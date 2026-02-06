@@ -42,6 +42,8 @@ import { MentorEvalFinal } from './pages/authentication/Internship/MentorEvalFin
 import { InternDashboard } from './pages/authentication/Internship/InternDashboard';
 import { InternTest } from './pages/authentication/Internship/InternTest';
 import { InternTaskBoard } from './pages/authentication/Internship/InternTaskBoard';
+import { InternReportPage } from './pages/authentication/Internship/InternReportPage';
+import { CertificatePage } from './pages/authentication/Internship/CertificatePage';
 import { DirectorApprovals } from './pages/authentication/Director/DirectorApprovals';
 
 const dashboardRoutes: RouteObject[] = [
@@ -220,6 +222,22 @@ const dashboardRoutes: RouteObject[] = [
         element: (
             <ProtectRoute>
                 <InternTaskBoard />
+            </ProtectRoute>
+        )
+    },
+    {
+        path: RouteConfig.InternReports.path,
+        element: (
+            <ProtectRoute>
+                <InternReportPage />
+            </ProtectRoute>
+        )
+    },
+    {
+        path: RouteConfig.InternCertificate.path,
+        element: (
+            <ProtectRoute>
+                <CertificatePage />
             </ProtectRoute>
         )
     },
