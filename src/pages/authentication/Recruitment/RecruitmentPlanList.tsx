@@ -23,101 +23,29 @@ import {
     Table,
     Tag,
     Typography,
-    message
+    message,
+    Skeleton
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
 import { useTranslation } from 'react-i18next';
+import { useRecruitmentPlans } from '../../../hooks/Recruitment/useRecruitmentPlans';
+import { useDashboardStats } from '../../../hooks/useDashboardStats';
+import { useInterviews } from '../../../hooks/Recruitment/useInterviews';
+import { RecruitmentPlan } from '../../../services/Recruitment/recruitmentPlans';
 
 const { Title, Text } = Typography;
-
-interface Campaign {
-    key: string;
-    id: string;
-    name: string;
-    batch: string;
-    department: string;
-    startDate: string;
-    candidates: number;
-    avatars: string[];
-    status: 'Active' | 'Pending' | 'Closed';
-}
-
-const data: Campaign[] = [
-    {
-        key: '1',
-        id: '1',
-        name: 'Summer 2024 Engineering',
-        batch: 'Internship Batch A',
-        department: 'Engineering',
-        startDate: 'Mar 15, 2024',
-        candidates: 24,
-        avatars: ['https://i.pravatar.cc/150?u=1', 'https://i.pravatar.cc/150?u=2', 'https://i.pravatar.cc/150?u=3'],
-        status: 'Active'
-    },
-    {
-        key: '2',
-        id: '2',
-        name: 'Q3 Marketing Trainees',
-        batch: 'Social Media Focus',
-        department: 'Marketing',
-        startDate: 'Apr 01, 2024',
-        candidates: 8,
-        avatars: ['https://i.pravatar.cc/150?u=4', 'https://i.pravatar.cc/150?u=5'],
-        status: 'Pending'
-    },
-    {
-        key: '3',
-        id: '3',
-        name: 'Product Design Fellows',
-        batch: 'UX/UI Research',
-        department: 'Design',
-        startDate: 'Feb 20, 2024',
-        candidates: 12,
-        avatars: ['https://i.pravatar.cc/150?u=6', 'https://i.pravatar.cc/150?u=7'],
-        status: 'Closed'
-    },
-    {
-        key: '4',
-        id: '4',
-        name: 'Data Science Cohort',
-        batch: 'Analytics Team',
-        department: 'Data',
-        startDate: 'Mar 22, 2024',
-        candidates: 5,
-        avatars: ['https://i.pravatar.cc/150?u=8'],
-        status: 'Active'
-    }
-];
-
-const schedule = [
-    {
-        time: '10:00 AM',
-        title: 'Frontend Dev Interview',
-        with: 'Michael Chen',
-        platform: 'Zoom',
-        avatar: 'https://i.pravatar.cc/150?u=9'
-    },
-    {
-        time: '11:30 AM',
-        title: 'Design Portfolio Review',
-        with: 'Sarah Miller',
-        platform: 'Room 302',
-        avatar: 'https://i.pravatar.cc/150?u=10'
-    },
-    {
-        time: '02:00 PM',
-        title: 'System Arch Discussion',
-        with: 'David Kim',
-        platform: 'Google Meet',
-        avatar: 'https://i.pravatar.cc/150?u=11'
-    }
-];
 
 export const RecruitmentPlanList = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
+
+    const { data: plansData, isLoading: plansLoading } = useRecruitmentPlans();
+    const { data: statsData, isLoading: statsLoading } = useDashboardStats();
+    const { data: interviewsData, isLoading: interviewsLoading } = useInterviews({
+        pagination: { page: 1, pageSize: 3 }
+    });
 
     const handleMenuClick = (e: any, campaignName: string) => {
         if (e.key === 'edit') {
@@ -129,7 +57,7 @@ export const RecruitmentPlanList = () => {
         }
     };
 
-    const getActionMenu = (record: Campaign): MenuProps => ({
+    const getActionMenu = (record: RecruitmentPlan): MenuProps => ({
         items: [
             { key: 'view', label: t('common.view') },
             { key: 'edit', label: t('common.edit') },
@@ -139,7 +67,7 @@ export const RecruitmentPlanList = () => {
         onClick: (e) => handleMenuClick(e, record.name)
     });
 
-    const columns: ColumnsType<Campaign> = [
+    const columns: ColumnsType<RecruitmentPlan> = [
         {
             title: t('recruitment.campaign_name'),
             dataIndex: 'name',
@@ -171,15 +99,13 @@ export const RecruitmentPlanList = () => {
             title: t('candidate.total_applications'),
             dataIndex: 'candidates',
             key: 'candidates',
-            render: (count, record) => (
+            render: (count) => (
                 <div
                     style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
                     onClick={() => navigate(RouteConfig.CVList.path)}
                 >
                     <Avatar.Group maxCount={3} size='small'>
-                        {record.avatars.map((url, index) => (
-                            <Avatar key={index} src={url} />
-                        ))}
+                        <Avatar src={`https://i.pravatar.cc/150?u=${count}`} />
                     </Avatar.Group>
                     <Text type='secondary' style={{ marginLeft: 8, fontSize: '12px' }}>
                         +{count}
@@ -198,7 +124,11 @@ export const RecruitmentPlanList = () => {
 
                 return (
                     <Tag color={color} style={{ borderRadius: '10px' }}>
-                        {status === 'Active' ? t('internship.active') : status === 'Pending' ? t('recruitment.pending_approval') : t('recruitment.closed')}
+                        {status === 'Active'
+                            ? t('internship.active')
+                            : status === 'Pending'
+                              ? t('recruitment.pending_approval')
+                              : t('recruitment.closed')}
                     </Tag>
                 );
             }
@@ -214,6 +144,9 @@ export const RecruitmentPlanList = () => {
         }
     ];
 
+    const stats = statsData?.data;
+    const schedule = interviewsData?.data?.hits || [];
+
     return (
         <div style={{ padding: '24px' }}>
             <div style={{ marginBottom: '24px' }}>
@@ -227,12 +160,13 @@ export const RecruitmentPlanList = () => {
                         style={{ borderRadius: '12px', cursor: 'pointer' }}
                         hoverable
                         onClick={() => navigate(RouteConfig.RecruitmentJobList.path)}
+                        loading={statsLoading}
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                             <div>
                                 <Text type='secondary'>{t('recruitment.open_positions')}</Text>
                                 <Title level={2} style={{ margin: '8px 0' }}>
-                                    12
+                                    {stats?.openPositions || 0}
                                 </Title>
                                 <Text type='success' style={{ fontSize: '12px' }}>
                                     <RiseOutlined /> +2 {t('common.last_month')}
@@ -250,12 +184,13 @@ export const RecruitmentPlanList = () => {
                         style={{ borderRadius: '12px', cursor: 'pointer' }}
                         hoverable
                         onClick={() => navigate(RouteConfig.CVList.path)}
+                        loading={statsLoading}
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                             <div>
                                 <Text type='secondary'>{t('recruitment.pending_applications')}</Text>
                                 <Title level={2} style={{ margin: '8px 0' }}>
-                                    45
+                                    {stats?.pendingApplications || 0}
                                 </Title>
                                 <Text type='secondary' style={{ fontSize: '12px' }}>
                                     {t('recruitment.require_review')}
@@ -273,12 +208,13 @@ export const RecruitmentPlanList = () => {
                         style={{ borderRadius: '12px', cursor: 'pointer' }}
                         hoverable
                         onClick={() => navigate(RouteConfig.InterviewSchedule.path)}
+                        loading={statsLoading}
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                             <div>
                                 <Text type='secondary'>{t('recruitment.upcoming_interviews')}</Text>
                                 <Title level={2} style={{ margin: '8px 0' }}>
-                                    8
+                                    {stats?.upcomingInterviews || 0}
                                 </Title>
                                 <Tag color='purple'>{t('onboarding.today')}</Tag>
                             </div>
@@ -289,12 +225,12 @@ export const RecruitmentPlanList = () => {
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px' }}>
+                    <Card bordered={false} style={{ borderRadius: '12px' }} loading={statsLoading}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                             <div>
                                 <Text type='secondary'>{t('recruitment.conversion_rate')}</Text>
                                 <Title level={2} style={{ margin: '8px 0' }}>
-                                    18%
+                                    {stats?.conversionRate || 0}%
                                 </Title>
                                 <Text type='success' style={{ fontSize: '12px' }}>
                                     <RiseOutlined /> 1.5% {t('common.last_week')}
@@ -351,7 +287,17 @@ export const RecruitmentPlanList = () => {
                             <Button icon={<FilterOutlined />}>{t('common.more_filters')}</Button>
                         </div>
 
-                        <Table columns={columns} dataSource={data} pagination={{ pageSize: 5 }} />
+                        <Table
+                            columns={columns}
+                            dataSource={plansData?.data?.hits || []}
+                            pagination={{
+                                current: plansData?.data?.pagination?.totalPages ? 1 : 1,
+                                total: plansData?.data?.pagination?.totalRows || 0,
+                                pageSize: 5
+                            }}
+                            loading={plansLoading}
+                            rowKey='id'
+                        />
                     </Card>
                 </Col>
 
@@ -359,59 +305,69 @@ export const RecruitmentPlanList = () => {
                     <Space direction='vertical' size='large' style={{ width: '100%' }}>
                         <Card title={t('recruitment.today_schedule')} bordered={false} style={{ borderRadius: '12px' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                {schedule.map((item, index) => (
-                                    <div
-                                        key={index}
-                                        style={{
-                                            display: 'flex',
-                                            gap: '12px',
-                                            padding: '8px',
-                                            borderRadius: '8px',
-                                            background: '#fafafa',
-                                            cursor: 'pointer'
-                                        }}
-                                        onClick={() => message.info(`View details for: ${item.title}`)}
-                                    >
+                                {interviewsLoading ? (
+                                    <Skeleton active />
+                                ) : (
+                                    schedule.map((item, index) => (
                                         <div
+                                            key={index}
                                             style={{
-                                                background: '#f0f0f0',
+                                                display: 'flex',
+                                                gap: '12px',
                                                 padding: '8px',
                                                 borderRadius: '8px',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                minWidth: '60px'
+                                                background: '#fafafa',
+                                                cursor: 'pointer'
                                             }}
+                                            onClick={() => message.info(`View details for: ${item.jobTitle}`)}
                                         >
-                                            <Text strong style={{ fontSize: '12px' }}>
-                                                {item.time.split(' ')[0]}
-                                            </Text>
-                                            <Text type='secondary' style={{ fontSize: '10px' }}>
-                                                {item.time.split(' ')[1]}
-                                            </Text>
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <Text strong style={{ display: 'block' }}>
-                                                {item.title}
-                                            </Text>
-                                            <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                {t('interview.online')} {item.with}
-                                            </Text>
                                             <div
                                                 style={{
-                                                    marginTop: '4px',
+                                                    background: '#f0f0f0',
+                                                    padding: '8px',
+                                                    borderRadius: '8px',
                                                     display: 'flex',
+                                                    flexDirection: 'column',
                                                     alignItems: 'center',
-                                                    gap: '8px'
+                                                    justifyContent: 'center',
+                                                    minWidth: '60px'
                                                 }}
                                             >
-                                                <Avatar size={20} src={item.avatar} />
-                                                <Tag style={{ margin: 0, fontSize: '10px' }}>{item.platform}</Tag>
+                                                <Text strong style={{ fontSize: '12px' }}>
+                                                    {item.time.split(' ')[0]}
+                                                </Text>
+                                                <Text type='secondary' style={{ fontSize: '10px' }}>
+                                                    {item.time.split(' ')[1]}
+                                                </Text>
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <Text strong style={{ display: 'block' }}>
+                                                    {item.jobTitle}
+                                                </Text>
+                                                <Text type='secondary' style={{ fontSize: '12px' }}>
+                                                    {item.format === 'Online'
+                                                        ? t('interview.online')
+                                                        : t('interview.offline')}{' '}
+                                                    {item.candidateName}
+                                                </Text>
+                                                <div
+                                                    style={{
+                                                        marginTop: '4px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '8px'
+                                                    }}
+                                                >
+                                                    <Avatar
+                                                        size={20}
+                                                        src={`https://i.pravatar.cc/150?u=${item.candidateId}`}
+                                                    />
+                                                    <Tag style={{ margin: 0, fontSize: '10px' }}>{item.format}</Tag>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))
+                                )}
                                 <Button
                                     type='default'
                                     block

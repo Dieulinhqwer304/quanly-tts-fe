@@ -1,16 +1,4 @@
 import {
-    CheckCircleOutlined,
-    CloseCircleOutlined,
-    DownloadOutlined,
-    EyeOutlined,
-    FilterOutlined,
-    ReloadOutlined,
-    SearchOutlined,
-    SortAscendingOutlined,
-    TeamOutlined,
-    RiseOutlined
-} from '@ant-design/icons';
-import {
     Avatar,
     Button,
     Card,
@@ -26,109 +14,57 @@ import {
     Typography,
     message
 } from 'antd';
+import {
+    CheckCircleOutlined,
+    CloseCircleOutlined,
+    DownloadOutlined,
+    EyeOutlined,
+    FilterOutlined,
+    RiseOutlined,
+    SearchOutlined,
+    SortAscendingOutlined,
+    TeamOutlined
+} from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
 import { useTranslation } from 'react-i18next';
+import { useCandidates, useShortlistCandidate, useRejectCandidate } from '../../../hooks/Recruitment/useCandidates';
+import { Candidate } from '../../../services/Recruitment/candidates';
 
 const { Title, Text } = Typography;
-
-interface Candidate {
-    key: string;
-    id: string;
-    name: string;
-    email: string;
-    appliedDate: string;
-    timeAgo: string;
-    status: 'Pending Review' | 'CV Screened' | 'Shortlisted' | 'Rejected';
-    matchScore: number;
-    avatar: string;
-}
-
-const initialData: Candidate[] = [
-    {
-        key: '1',
-        id: '1',
-        name: 'Sarah Jenkins',
-        email: 'sarah.j@example.com',
-        appliedDate: 'Oct 24, 2023',
-        timeAgo: '2 hours ago',
-        status: 'Pending Review',
-        matchScore: 92,
-        avatar: 'https://i.pravatar.cc/150?u=1'
-    },
-    {
-        key: '2',
-        id: '2',
-        name: 'David Chen',
-        email: 'david.c@university.edu',
-        appliedDate: 'Oct 23, 2023',
-        timeAgo: '1 day ago',
-        status: 'CV Screened',
-        matchScore: 78,
-        avatar: 'https://i.pravatar.cc/150?u=2'
-    },
-    {
-        key: '3',
-        id: '3',
-        name: 'Marcus Jones',
-        email: 'marcus.jones@email.com',
-        appliedDate: 'Oct 22, 2023',
-        timeAgo: '2 days ago',
-        status: 'Rejected',
-        matchScore: 45,
-        avatar: 'MJ'
-    },
-    {
-        key: '4',
-        id: '4',
-        name: 'Emily Wong',
-        email: 'emily.w@design.io',
-        appliedDate: 'Oct 20, 2023',
-        timeAgo: '4 days ago',
-        status: 'Shortlisted',
-        matchScore: 98,
-        avatar: 'https://i.pravatar.cc/150?u=4'
-    },
-    {
-        key: '5',
-        id: '5',
-        name: 'Alex Johnson',
-        email: 'alex.j@dev.net',
-        appliedDate: 'Oct 19, 2023',
-        timeAgo: '5 days ago',
-        status: 'Pending Review',
-        matchScore: 65,
-        avatar: 'AJ'
-    }
-];
 
 export const CVList = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [data] = useState<Candidate[]>(initialData);
 
-    const handleSearch = (value: string) => {
-        setSearchText(value);
-    };
-
-    const handleStatusChange = (value: string) => {
-        setStatusFilter(value);
-    };
-
-    const filteredData = data.filter((item) => {
-        const matchesSearch =
-            item.name.toLowerCase().includes(searchText.toLowerCase()) ||
-            item.email.toLowerCase().includes(searchText.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
-        return matchesSearch && matchesStatus;
+    const { data: candidatesData, isLoading } = useCandidates({
+        searcher: searchText ? { keyword: searchText, field: 'name' } : undefined,
+        status: statusFilter
     });
 
-    const handleAction = (action: string, name: string) => {
-        message.success(`${t('common.success')}: ${action} ${name}`);
+    const shortlistMutation = useShortlistCandidate();
+    const rejectMutation = useRejectCandidate();
+
+    const handleShortlist = async (id: string, name: string) => {
+        try {
+            await shortlistMutation.mutateAsync({ id });
+            message.success(`${t('candidate.shortlisted')} ${name}`);
+        } catch {
+            message.error(t('common.error'));
+        }
+    };
+
+    const handleReject = async (id: string, name: string) => {
+        try {
+            await rejectMutation.mutateAsync({ id });
+            message.success(`${t('candidate.rejected')} ${name}`);
+        } catch {
+            message.error(t('common.error'));
+        }
     };
 
     const columns: ColumnsType<Candidate> = [
@@ -141,11 +77,11 @@ export const CVList = () => {
                     style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
                     onClick={() => navigate(RouteConfig.CVDetail.getPath(record.id))}
                 >
-                    {record.avatar.includes('http') ? (
+                    {record.avatar?.includes('http') ? (
                         <Avatar src={record.avatar} size={40} />
                     ) : (
                         <Avatar style={{ backgroundColor: '#f56a00', verticalAlign: 'middle' }} size={40}>
-                            {record.avatar}
+                            {record.name?.[0]}
                         </Avatar>
                     )}
                     <div>
@@ -179,10 +115,22 @@ export const CVList = () => {
             render: (status: any) => {
                 let color = 'default';
                 let translatedStatus = status;
-                if (status === 'Pending Review') { color = 'warning'; translatedStatus = t('candidate.pending_review'); }
-                if (status === 'CV Screened') { color = 'processing'; translatedStatus = t('candidate.cv_screened'); }
-                if (status === 'Shortlisted') { color = 'success'; translatedStatus = t('candidate.shortlisted'); }
-                if (status === 'Rejected') { color = 'error'; translatedStatus = t('candidate.rejected'); }
+                if (status === 'Pending Review') {
+                    color = 'warning';
+                    translatedStatus = t('candidate.pending_review');
+                }
+                if (status === 'CV Screened') {
+                    color = 'processing';
+                    translatedStatus = t('candidate.cv_screened');
+                }
+                if (status === 'Shortlisted') {
+                    color = 'success';
+                    translatedStatus = t('candidate.shortlisted');
+                }
+                if (status === 'Rejected') {
+                    color = 'error';
+                    translatedStatus = t('candidate.rejected');
+                }
 
                 return (
                     <Tag color={color} style={{ borderRadius: '10px' }}>
@@ -221,29 +169,23 @@ export const CVList = () => {
                             onClick={() => navigate(RouteConfig.CVDetail.getPath(record.id))}
                         />
                     </Tooltip>
-                    {record.status !== 'Rejected' && (
+                    {record.status !== 'Rejected' && record.status !== 'Shortlisted' && (
                         <Tooltip title={t('candidate.shortlist_candidate')}>
                             <Button
                                 type='text'
                                 icon={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-                                onClick={() => handleAction(t('candidate.shortlisted'), record.name)}
+                                onClick={() => handleShortlist(record.id, record.name)}
+                                loading={shortlistMutation.isPending}
                             />
                         </Tooltip>
                     )}
-                    {record.status !== 'Rejected' ? (
+                    {record.status !== 'Rejected' && (
                         <Tooltip title={t('candidate.reject_candidate')}>
                             <Button
                                 type='text'
                                 icon={<CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
-                                onClick={() => handleAction(t('candidate.rejected'), record.name)}
-                            />
-                        </Tooltip>
-                    ) : (
-                        <Tooltip title={t('candidate.reconsider_candidate')}>
-                            <Button
-                                type='text'
-                                icon={<ReloadOutlined />}
-                                onClick={() => handleAction(t('candidate.reconsider_candidate'), record.name)}
+                                onClick={() => handleReject(record.id, record.name)}
+                                loading={rejectMutation.isPending}
                             />
                         </Tooltip>
                     )}
@@ -252,6 +194,8 @@ export const CVList = () => {
         }
     ];
 
+    const dataSource = candidatesData?.data?.hits || [];
+
     return (
         <div style={{ padding: '24px' }}>
             <div
@@ -259,7 +203,7 @@ export const CVList = () => {
             >
                 <div>
                     <Title level={3} style={{ margin: 0 }}>
-                        {t('candidate.screening')}: Frontend Developer Intern
+                        {t('candidate.screening')}
                     </Title>
                     <Text type='secondary'>{t('candidate.screening_desc')}</Text>
                 </div>
@@ -279,7 +223,7 @@ export const CVList = () => {
                             <TeamOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
                         </div>
                         <Title level={2} style={{ margin: '8px 0' }}>
-                            {data.length}
+                            {dataSource.length}
                         </Title>
                         <Text type='success' style={{ fontSize: '12px' }}>
                             <RiseOutlined /> +12% {t('common.last_week')}
@@ -293,7 +237,7 @@ export const CVList = () => {
                             <FilterOutlined style={{ fontSize: '20px', color: '#fa8c16' }} />
                         </div>
                         <Title level={2} style={{ margin: '8px 0' }}>
-                            {data.filter((c) => c.status === 'Pending Review').length}
+                            {dataSource.filter((c) => c.status === 'Pending Review').length}
                         </Title>
                         <Text type='secondary' style={{ fontSize: '12px' }}>
                             {t('candidate.needs_immediate_action')}
@@ -307,7 +251,7 @@ export const CVList = () => {
                             <CheckCircleOutlined style={{ fontSize: '20px', color: '#52c41a' }} />
                         </div>
                         <Title level={2} style={{ margin: '8px 0' }}>
-                            {data.filter((c) => c.status === 'Shortlisted').length}
+                            {dataSource.filter((c) => c.status === 'Shortlisted').length}
                         </Title>
                         <Text type='secondary' style={{ fontSize: '12px' }}>
                             {t('candidate.ready_for_interview')}
@@ -321,7 +265,7 @@ export const CVList = () => {
                             <CloseCircleOutlined style={{ fontSize: '20px', color: '#ff4d4f' }} />
                         </div>
                         <Title level={2} style={{ margin: '8px 0' }}>
-                            {data.filter((c) => c.status === 'Rejected').length}
+                            {dataSource.filter((c) => c.status === 'Rejected').length}
                         </Title>
                         <Text type='secondary' style={{ fontSize: '12px' }}>
                             {t('candidate.archived_applications')}
@@ -345,12 +289,12 @@ export const CVList = () => {
                             prefix={<SearchOutlined />}
                             placeholder={t('candidate.search_placeholder')}
                             style={{ width: 300 }}
-                            onChange={(e) => handleSearch(e.target.value)}
+                            onChange={(e) => setSearchText(e.target.value)}
                         />
                         <Select
                             defaultValue='all'
                             style={{ width: 160 }}
-                            onChange={handleStatusChange}
+                            onChange={setStatusFilter}
                             options={[
                                 { value: 'all', label: t('common.all') },
                                 { value: 'Pending Review', label: t('candidate.pending_review') },
@@ -369,12 +313,15 @@ export const CVList = () => {
 
                 <Table
                     columns={columns}
-                    dataSource={filteredData}
+                    dataSource={dataSource}
+                    loading={isLoading}
                     pagination={{
-                        total: filteredData.length,
-                        showTotal: (total, range) => `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.candidates')}`,
+                        total: candidatesData?.data?.pagination?.totalRows || 0,
+                        showTotal: (total, range) =>
+                            `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.candidates')}`,
                         pageSize: 5
                     }}
+                    rowKey='id'
                 />
             </Card>
         </div>

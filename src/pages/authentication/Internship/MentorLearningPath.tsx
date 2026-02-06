@@ -8,11 +8,13 @@ import {
     QuestionCircleOutlined,
     SettingOutlined,
     VideoCameraOutlined,
-    CheckCircleOutlined
+    CheckCircleOutlined,
+    LoadingOutlined
 } from '@ant-design/icons';
-import { Button, Card, Col, Input, Layout, Row, Space, Tag, Typography } from 'antd';
-import { useState } from 'react';
+import { Button, Card, Col, Input, Layout, Row, Space, Tag, Typography, Spin } from 'antd';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLearningPath, useUpdateLearningPath } from '../../../hooks/Internship/useLearningPath';
 
 const { Content, Sider } = Layout;
 const { Title, Text } = Typography;
@@ -20,32 +22,41 @@ const { TextArea } = Input;
 
 export const MentorLearningPath = () => {
     const { t } = useTranslation();
-    const [selectedModule, setSelectedModule] = useState(1);
+    const track = 'Frontend Development';
+    const { data: learningPathData, isLoading } = useLearningPath(track);
+    const updateMutation = useUpdateLearningPath();
 
-    const modules = [
-        { id: 1, title: 'Company Culture', status: 'Ready', count: 2, active: true },
-        { id: 2, title: 'Git & Version Control', status: 'Draft', count: 3, active: false },
-        { id: 3, title: 'React Fundamentals', status: 'Empty', count: 0, active: false }
-    ];
+    const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
 
-    const contentItems = [
-        {
-            id: 1,
-            type: 'video',
-            title: 'CEO Welcome Video',
-            meta: 'External Link • 5 mins',
-            icon: <VideoCameraOutlined />,
-            color: 'red'
-        },
-        {
-            id: 2,
-            type: 'file',
-            title: 'Employee Handbook 2024',
-            meta: 'PDF Document • 2.4 MB',
-            icon: <FilePdfOutlined />,
-            color: 'blue'
+    const learningPath = learningPathData?.data;
+    const modules = learningPath?.modules || [];
+    const selectedModule = modules.find((m) => m.id === (selectedModuleId || modules[0]?.id));
+
+    useEffect(() => {
+        if (modules.length > 0 && selectedModuleId === null) {
+            setSelectedModuleId(modules[0].id);
         }
-    ];
+    }, [modules, selectedModuleId]);
+
+    const handleUpdateModuleTitle = (moduleId: number, newTitle: string) => {
+        if (!learningPath) return;
+
+        const updatedModules = modules.map((m) => (m.id === moduleId ? { ...m, title: newTitle } : m));
+
+        updateMutation.mutate({
+            id: learningPath.id,
+            data: { modules: updatedModules }
+        });
+    };
+
+    if (isLoading) {
+        return (
+            <div style={{ padding: '40px', textAlign: 'center' }}>
+                <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} />
+                <div style={{ marginTop: '16px' }}>{t('common.loading')}</div>
+            </div>
+        );
+    }
 
     return (
         <Layout style={{ height: 'calc(100vh - 64px)', background: '#f6f7f8' }}>
@@ -56,7 +67,14 @@ export const MentorLearningPath = () => {
                             {t('learning_path.path_title')}
                         </Text>
                         <Input
-                            defaultValue='Frontend Development Internship - Q3'
+                            value={learningPath?.track}
+                            onChange={(e) => {
+                                if (!learningPath) return;
+                                updateMutation.mutate({
+                                    id: learningPath.id,
+                                    data: { track: e.target.value }
+                                });
+                            }}
                             style={{ marginTop: '8px', fontWeight: 500 }}
                         />
                     </div>
@@ -78,13 +96,13 @@ export const MentorLearningPath = () => {
                                 hoverable
                                 style={{
                                     borderRadius: '8px',
-                                    border: selectedModule === module.id ? '2px solid #136dec' : '1px solid #e5e7eb',
+                                    border: selectedModuleId === module.id ? '2px solid #136dec' : '1px solid #e5e7eb',
                                     borderLeft:
-                                        selectedModule === module.id ? '2px solid #136dec' : '4px solid transparent',
+                                        selectedModuleId === module.id ? '2px solid #136dec' : '4px solid transparent',
                                     cursor: 'pointer'
                                 }}
                                 bodyStyle={{ padding: '12px' }}
-                                onClick={() => setSelectedModule(module.id)}
+                                onClick={() => setSelectedModuleId(module.id)}
                             >
                                 <div
                                     style={{
@@ -104,28 +122,37 @@ export const MentorLearningPath = () => {
                                         color={
                                             module.status === 'Ready'
                                                 ? 'green'
-                                                : module.status === 'Draft'
-                                                    ? 'orange'
-                                                    : 'default'
+                                                : module.status === 'In Progress'
+                                                  ? 'blue'
+                                                  : 'default'
                                         }
                                     >
-                                        {module.status === 'Ready' ? t('learning_path.ready') : module.status === 'Draft' ? t('learning_path.draft') : t('learning_path.empty')}
+                                        {module.status === 'Ready'
+                                            ? t('learning_path.ready')
+                                            : module.status === 'In Progress'
+                                              ? t('learning_path.in_progress')
+                                              : t('learning_path.locked')}
                                     </Tag>
                                 </div>
                                 <div style={{ paddingLeft: '24px', fontSize: '12px', color: '#6b7280' }}>
-                                    {module.count > 0 ? (
+                                    {module.items.length > 0 ? (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                            {module.id === 1 && (
-                                                <>
-                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                        <VideoCameraOutlined /> CEO Welcome
-                                                    </span>
-                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                        <FileTextOutlined /> Handbook
-                                                    </span>
-                                                </>
+                                            {module.items.slice(0, 2).map((item) => (
+                                                <span
+                                                    key={item.id}
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+                                                >
+                                                    {item.type === 'video' ? (
+                                                        <VideoCameraOutlined />
+                                                    ) : (
+                                                        <FileTextOutlined />
+                                                    )}{' '}
+                                                    {item.title}
+                                                </span>
+                                            ))}
+                                            {module.items.length > 2 && (
+                                                <span>+ {module.items.length - 2} more items</span>
                                             )}
-                                            {module.id === 2 && <span>{module.count} {t('learning_path.items_configured')}</span>}
                                         </div>
                                     ) : (
                                         <span style={{ fontStyle: 'italic' }}>{t('learning_path.no_content')}</span>
@@ -180,8 +207,14 @@ export const MentorLearningPath = () => {
                     }}
                 >
                     <div>
-                        <Title level={4} style={{ margin: 0 }}>
-                            {t('learning_path.modules')} {selectedModule}: Company Culture
+                        <Title
+                            level={4}
+                            style={{ margin: 0 }}
+                            editable={{
+                                onChange: (val) => handleUpdateModuleTitle(selectedModule?.id || 0, val)
+                            }}
+                        >
+                            {t('learning_path.modules')} {selectedModule?.id}: {selectedModule?.title}
                         </Title>
                         <Text type='secondary' style={{ fontSize: '12px' }}>
                             {t('learning_path.desc')}
@@ -210,22 +243,22 @@ export const MentorLearningPath = () => {
                             {t('learning_path.module_content')}
                         </Text>
                         <Space direction='vertical' style={{ width: '100%' }}>
-                            {contentItems.map((item) => (
+                            {selectedModule?.items.map((item) => (
                                 <Card key={item.id} style={{ borderRadius: '12px' }} bodyStyle={{ padding: '16px' }}>
                                     <div style={{ display: 'flex', gap: '16px' }}>
                                         <div
                                             style={{
                                                 width: 40,
                                                 height: 40,
-                                                background: item.color === 'red' ? '#fef2f2' : '#eff6ff',
+                                                background: item.type === 'video' ? '#fef2f2' : '#eff6ff',
                                                 borderRadius: '8px',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                color: item.color === 'red' ? '#ef4444' : '#3b82f6'
+                                                color: item.type === 'video' ? '#ef4444' : '#3b82f6'
                                             }}
                                         >
-                                            {item.icon}
+                                            {item.type === 'video' ? <VideoCameraOutlined /> : <FilePdfOutlined />}
                                         </div>
                                         <div style={{ flex: 1 }}>
                                             <div

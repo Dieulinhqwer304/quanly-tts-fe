@@ -27,35 +27,39 @@ import {
     TimePicker,
     Typography,
     message,
-    Modal
+    Modal,
+    Skeleton
 } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useCandidates, useDeleteCandidate } from '../../../hooks/Recruitment/useCandidates';
+import { useCreateInterview } from '../../../hooks/Recruitment/useInterviews';
 
 const { Title, Text } = Typography;
 const { Content } = Layout;
 
-const candidates = [
-    { id: 1, name: 'Alice Smith', role: 'UX Intern', score: 92, avatar: 'https://i.pravatar.cc/150?u=1' },
-    { id: 2, name: 'Bob Jones', role: 'Frontend Dev', score: 88, avatar: 'https://i.pravatar.cc/150?u=2' },
-    { id: 3, name: 'Charlie Day', role: 'Product Mgmt', score: 85, avatar: 'https://i.pravatar.cc/150?u=3' },
-    { id: 4, name: 'Dana Lee', role: 'Marketing', score: 82, avatar: 'https://i.pravatar.cc/150?u=4' },
-    { id: 5, name: 'Evan Wright', role: 'Sales', score: 80, avatar: 'https://i.pravatar.cc/150?u=5' },
-    { id: 6, name: 'Fiona Green', role: 'DevOps', score: 79, avatar: 'https://i.pravatar.cc/150?u=6' }
-];
-
 export const InterviewSchedule = () => {
     const { t } = useTranslation();
-    const [selectedCandidates, setSelectedCandidates] = useState<number[]>([1, 2, 3]);
+    const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
     const [date, setDate] = useState<any>(null);
     const [timeRange, setTimeRange] = useState<any>(null);
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+    const [searchText, setSearchText] = useState('');
 
-    const toggleCandidate = (id: number) => {
+    const { data: candidatesData, isLoading } = useCandidates({
+        status: 'Shortlisted',
+        searcher: { keyword: searchText, field: 'name' }
+    });
+    const createInterview = useCreateInterview();
+    const deleteCandidate = useDeleteCandidate();
+
+    const candidates = candidatesData?.data.hits || [];
+
+    const toggleCandidate = (id: string) => {
         setSelectedCandidates((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
     };
 
-    const handleSendInvites = () => {
+    const handleSendInvites = async () => {
         if (selectedCandidates.length === 0) {
             message.warning('Please select at least one candidate.');
             return;
@@ -65,10 +69,39 @@ export const InterviewSchedule = () => {
             return;
         }
 
-        message.loading('Sending invites...', 1.5).then(() => {
-            message.success(`Sent interview invites to ${selectedCandidates.length} candidates!`);
+        const selectedCandsInfo = candidates.filter((c) => selectedCandidates.includes(c.id));
+
+        try {
+            message.loading({ content: 'Sending invites...', key: 'inviting' });
+
+            await Promise.all(
+                selectedCandsInfo.map((cand) =>
+                    createInterview.mutateAsync({
+                        candidateId: cand.id,
+                        candidateName: cand.name,
+                        jobId: cand.appliedFor,
+                        jobTitle: cand.appliedForTitle,
+                        date: date.format('YYYY-MM-DD'),
+                        time: `${timeRange[0].format('HH:mm')} - ${timeRange[1].format('HH:mm')}`,
+                        duration: '60 min',
+                        format: 'Online',
+                        location: 'https://meet.google.com/abc-defg-hij',
+                        interviewer: 'Michael Ross', // Should be selectable in real app
+                        notes: 'Standard Technical Interview'
+                    })
+                )
+            );
+
+            message.success({
+                content: `Sent interview invites to ${selectedCandidates.length} candidates!`,
+                key: 'inviting'
+            });
             setSelectedCandidates([]);
-        });
+            setDate(null);
+            setTimeRange(null);
+        } catch (error) {
+            message.error({ content: 'Failed to send some invites.', key: 'inviting' });
+        }
     };
 
     const handleReject = () => {
@@ -78,9 +111,14 @@ export const InterviewSchedule = () => {
             content: `${t('common.delete')} ${selectedCandidates.length} ${t('menu.interviews')}?`,
             okText: t('common.delete'),
             okButtonProps: { danger: true },
-            onOk: () => {
-                message.success(t('common.success'));
-                setSelectedCandidates([]);
+            onOk: async () => {
+                try {
+                    await Promise.all(selectedCandidates.map((id) => deleteCandidate.mutateAsync(id)));
+                    message.success(t('common.success'));
+                    setSelectedCandidates([]);
+                } catch (error) {
+                    message.error('Failed to delete some candidates.');
+                }
             }
         });
     };
@@ -89,7 +127,9 @@ export const InterviewSchedule = () => {
         <Layout style={{ minHeight: '100vh', background: '#f6f7f8' }}>
             <Content style={{ padding: '24px' }}>
                 <div style={{ marginBottom: '24px' }}>
-                    <Text type='secondary'>{t('menu.recruitment_management')} / {t('menu.cv_management')} / </Text>
+                    <Text type='secondary'>
+                        {t('menu.recruitment_management')} / {t('menu.cv_management')} /{' '}
+                    </Text>
                     <Text strong>{t('menu.interviews')}</Text>
                 </div>
 
@@ -118,55 +158,69 @@ export const InterviewSchedule = () => {
                             title={
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <span>{t('interview.queue')}</span>
-                                    <Tag color='blue'>{selectedCandidates.length} {t('interview.selected')}</Tag>
+                                    <Tag color='blue'>
+                                        {selectedCandidates.length} {t('interview.selected')}
+                                    </Tag>
                                 </div>
                             }
                             style={{ height: '100%', borderRadius: '12px' }}
                             bodyStyle={{ padding: 0, height: '600px', overflowY: 'auto' }}
                         >
                             <div style={{ padding: '12px', background: '#f8f9fa', borderBottom: '1px solid #f0f0f0' }}>
-                                <Input prefix={<SearchOutlined />} placeholder={t('candidate.search_placeholder')} />
+                                <Input
+                                    prefix={<SearchOutlined />}
+                                    placeholder={t('candidate.search_placeholder')}
+                                    onChange={(e) => setSearchText(e.target.value)}
+                                />
                             </div>
-                            <List
-                                dataSource={candidates}
-                                renderItem={(item) => (
-                                    <List.Item
-                                        style={{
-                                            padding: '12px 16px',
-                                            cursor: 'pointer',
-                                            background: selectedCandidates.includes(item.id) ? '#e6f7ff' : 'transparent'
-                                        }}
-                                        onClick={() => toggleCandidate(item.id)}
-                                    >
-                                        <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                            <Checkbox
-                                                checked={selectedCandidates.includes(item.id)}
-                                                style={{ marginRight: '12px' }}
-                                            />
-                                            <Avatar src={item.avatar} style={{ marginRight: '12px' }} />
-                                            <div style={{ flex: 1 }}>
-                                                <Text strong style={{ display: 'block' }}>
-                                                    {item.name}
-                                                </Text>
-                                                <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                    {item.role}
-                                                </Text>
+                            {isLoading ? (
+                                <div style={{ padding: '16px' }}>
+                                    <Skeleton active />
+                                </div>
+                            ) : (
+                                <List
+                                    dataSource={candidates}
+                                    renderItem={(item) => (
+                                        <List.Item
+                                            style={{
+                                                padding: '12px 16px',
+                                                cursor: 'pointer',
+                                                background: selectedCandidates.includes(item.id)
+                                                    ? '#e6f7ff'
+                                                    : 'transparent'
+                                            }}
+                                            onClick={() => toggleCandidate(item.id)}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                                <Checkbox
+                                                    checked={selectedCandidates.includes(item.id)}
+                                                    style={{ marginRight: '12px' }}
+                                                />
+                                                <Avatar src={item.avatar} style={{ marginRight: '12px' }} />
+                                                <div style={{ flex: 1 }}>
+                                                    <Text strong style={{ display: 'block' }}>
+                                                        {item.name}
+                                                    </Text>
+                                                    <Text type='secondary' style={{ fontSize: '12px' }}>
+                                                        {item.appliedForTitle}
+                                                    </Text>
+                                                </div>
+                                                <Tag
+                                                    color={
+                                                        item.matchScore >= 90
+                                                            ? 'success'
+                                                            : item.matchScore >= 80
+                                                              ? 'processing'
+                                                              : 'warning'
+                                                    }
+                                                >
+                                                    {item.matchScore}
+                                                </Tag>
                                             </div>
-                                            <Tag
-                                                color={
-                                                    item.score >= 90
-                                                        ? 'success'
-                                                        : item.score >= 80
-                                                            ? 'processing'
-                                                            : 'warning'
-                                                }
-                                            >
-                                                {item.score}
-                                            </Tag>
-                                        </div>
-                                    </List.Item>
-                                )}
-                            />
+                                        </List.Item>
+                                    )}
+                                />
+                            )}
                         </Card>
                     </Col>
 
@@ -187,6 +241,7 @@ export const InterviewSchedule = () => {
                                         type='primary'
                                         onClick={handleSendInvites}
                                         disabled={selectedCandidates.length === 0}
+                                        loading={createInterview.isPending}
                                     >
                                         {t('interview.invite')}
                                     </Button>
@@ -209,7 +264,11 @@ export const InterviewSchedule = () => {
                                 <Row gutter={16} style={{ marginBottom: '16px' }}>
                                     <Col span={12}>
                                         <Text strong>{t('interview.date')}</Text>
-                                        <DatePicker style={{ width: '100%', marginTop: '8px' }} onChange={setDate} />
+                                        <DatePicker
+                                            style={{ width: '100%', marginTop: '8px' }}
+                                            onChange={setDate}
+                                            value={date}
+                                        />
                                     </Col>
                                     <Col span={12}>
                                         <Text strong>{t('interview.time_slot')}</Text>
@@ -217,6 +276,7 @@ export const InterviewSchedule = () => {
                                             style={{ width: '100%', marginTop: '8px' }}
                                             format='HH:mm'
                                             onChange={setTimeRange}
+                                            value={timeRange}
                                         />
                                     </Col>
                                 </Row>
@@ -433,6 +493,7 @@ export const InterviewSchedule = () => {
                                     icon={<SendOutlined />}
                                     onClick={handleSendInvites}
                                     disabled={selectedCandidates.length === 0}
+                                    loading={createInterview.isPending}
                                 >
                                     {t('interview.schedule_send')} ({selectedCandidates.length})
                                 </Button>
