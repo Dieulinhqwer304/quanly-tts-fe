@@ -11,8 +11,9 @@ import {
     MailOutlined,
     PhoneOutlined
 } from '@ant-design/icons';
-import { Button, Card, Col, Form, Input, Layout, Row, Tag, Typography, Upload, message } from 'antd';
+import { Button, Card, Col, Form, Input, Layout, Row, Tag, Typography, Upload, message, Modal } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 const { Header, Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -20,10 +21,23 @@ const { Title, Text, Paragraph } = Typography;
 export const JobDetailPage = () => {
     const navigate = useNavigate();
     const [form] = Form.useForm();
+    const [loading, setLoading] = useState(false);
 
-    const onFinish = (values: any) => {
+    const onFinish = async (values: any) => {
+        setLoading(true);
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        setLoading(false);
+
         console.log('Received values of form: ', values);
-        message.success('Application submitted successfully!');
+
+        Modal.success({
+            title: 'Application Submitted!',
+            content: 'Thank you for applying. We have received your application and will review it shortly.',
+            okText: 'Back to Jobs',
+            onOk: () => navigate('/jobs')
+        });
+
+        form.resetFields();
     };
 
     return (
@@ -364,7 +378,9 @@ export const JobDetailPage = () => {
                                                 <Form.Item
                                                     name='firstName'
                                                     label='First Name'
-                                                    rules={[{ required: true }]}
+                                                    rules={[
+                                                        { required: true, message: 'Please input your first name!' }
+                                                    ]}
                                                 >
                                                     <Input placeholder='Jane' size='large' />
                                                 </Form.Item>
@@ -373,7 +389,9 @@ export const JobDetailPage = () => {
                                                 <Form.Item
                                                     name='lastName'
                                                     label='Last Name'
-                                                    rules={[{ required: true }]}
+                                                    rules={[
+                                                        { required: true, message: 'Please input your last name!' }
+                                                    ]}
                                                 >
                                                     <Input placeholder='Doe' size='large' />
                                                 </Form.Item>
@@ -383,7 +401,13 @@ export const JobDetailPage = () => {
                                         <Form.Item
                                             name='email'
                                             label='Email Address'
-                                            rules={[{ required: true, type: 'email' }]}
+                                            rules={[
+                                                {
+                                                    required: true,
+                                                    type: 'email',
+                                                    message: 'Please enter a valid email!'
+                                                }
+                                            ]}
                                         >
                                             <Input
                                                 prefix={<MailOutlined style={{ color: '#9ca3af' }} />}
@@ -392,7 +416,11 @@ export const JobDetailPage = () => {
                                             />
                                         </Form.Item>
 
-                                        <Form.Item name='phone' label='Phone Number'>
+                                        <Form.Item
+                                            name='phone'
+                                            label='Phone Number'
+                                            rules={[{ required: true, message: 'Please input your phone number!' }]}
+                                        >
                                             <Input
                                                 prefix={<PhoneOutlined style={{ color: '#9ca3af' }} />}
                                                 placeholder='+1 (555) 000-0000'
@@ -400,13 +428,18 @@ export const JobDetailPage = () => {
                                             />
                                         </Form.Item>
 
-                                        <Form.Item label='Resume/CV' name='resume'>
+                                        <Form.Item
+                                            label='Resume/CV'
+                                            name='resume'
+                                            rules={[{ required: true, message: 'Please upload your resume!' }]}
+                                        >
                                             <Upload.Dragger
                                                 style={{
                                                     padding: '24px',
                                                     background: '#f8f9fa',
                                                     border: '2px dashed #dbe0e6'
                                                 }}
+                                                maxCount={1}
                                             >
                                                 <p className='ant-upload-drag-icon'>
                                                     <CloudUploadOutlined
@@ -433,6 +466,7 @@ export const JobDetailPage = () => {
                                             htmlType='submit'
                                             size='large'
                                             block
+                                            loading={loading}
                                             style={{
                                                 height: '48px',
                                                 fontWeight: 700,

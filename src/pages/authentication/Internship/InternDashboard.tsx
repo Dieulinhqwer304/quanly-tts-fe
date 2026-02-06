@@ -17,12 +17,23 @@ import {
     TrophyOutlined,
     VideoCameraOutlined
 } from '@ant-design/icons';
-import { Avatar, Button, Card, Col, Layout, Progress, Row, Tag, Timeline, Typography } from 'antd';
+import { Avatar, Button, Card, Col, Layout, Progress, Row, Tag, Timeline, Typography, message } from 'antd';
+import { useNavigate } from 'react-router-dom';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
 
 export const InternDashboard = () => {
+    const navigate = useNavigate();
+
+    const handleNavigation = (path: string) => {
+        message.info(`Navigating to: ${path}`);
+    };
+
+    const handleDownload = (file: string) => {
+        message.success(`Downloading ${file}...`);
+    };
+
     return (
         <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
             <div
@@ -35,7 +46,9 @@ export const InternDashboard = () => {
                     fontSize: '14px'
                 }}
             >
-                <span style={{ cursor: 'pointer' }}>Home</span>
+                <span style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+                    Home
+                </span>
                 <RightOutlined style={{ fontSize: '10px' }} />
                 <span style={{ cursor: 'pointer' }}>Internship Program</span>
                 <RightOutlined style={{ fontSize: '10px' }} />
@@ -85,10 +98,20 @@ export const InternDashboard = () => {
                     </Text>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                    <Button icon={<DownloadOutlined />} size='large'>
+                    <Button
+                        icon={<DownloadOutlined />}
+                        size='large'
+                        onClick={() => handleDownload('Syllabus_Q3_2024.pdf')}
+                    >
                         Syllabus
                     </Button>
-                    <Button icon={<CalendarOutlined />} size='large' type='primary' style={{ background: '#101822' }}>
+                    <Button
+                        icon={<CalendarOutlined />}
+                        size='large'
+                        type='primary'
+                        style={{ background: '#101822' }}
+                        onClick={() => message.info('Opening Calendar...')}
+                    >
                         Schedule
                     </Button>
                 </div>
@@ -143,7 +166,11 @@ export const InternDashboard = () => {
                                         <Text type='secondary' style={{ display: 'block', marginBottom: '16px' }}>
                                             Introduction to company values, tools setup, and team introductions.
                                         </Text>
-                                        <Button type='link' style={{ padding: 0 }}>
+                                        <Button
+                                            type='link'
+                                            style={{ padding: 0 }}
+                                            onClick={() => handleNavigation('Module 1 Review')}
+                                        >
                                             Review Materials
                                         </Button>
                                     </Card>
@@ -217,6 +244,7 @@ export const InternDashboard = () => {
                                                     type='primary'
                                                     icon={<ArrowRightOutlined />}
                                                     style={{ background: '#136dec' }}
+                                                    onClick={() => handleNavigation('Module 2')}
                                                 >
                                                     Continue Learning
                                                 </Button>
@@ -230,8 +258,10 @@ export const InternDashboard = () => {
                                                         gap: '16px',
                                                         padding: '12px',
                                                         borderRadius: '8px',
-                                                        border: '1px solid #f0f0f0'
+                                                        border: '1px solid #f0f0f0',
+                                                        cursor: 'pointer'
                                                     }}
+                                                    onClick={() => handleNavigation('Video: SQL Intro')}
                                                 >
                                                     <div
                                                         style={{
@@ -282,8 +312,10 @@ export const InternDashboard = () => {
                                                         padding: '12px',
                                                         borderRadius: '8px',
                                                         background: '#e6f7ff',
-                                                        border: '1px solid #bae7ff'
+                                                        border: '1px solid #bae7ff',
+                                                        cursor: 'pointer'
                                                     }}
+                                                    onClick={() => handleNavigation('Article: Normalization')}
                                                 >
                                                     <div
                                                         style={{
@@ -337,7 +369,8 @@ export const InternDashboard = () => {
                                                         padding: '12px',
                                                         borderRadius: '8px',
                                                         border: '1px solid #f0f0f0',
-                                                        opacity: 0.6
+                                                        opacity: 0.6,
+                                                        cursor: 'not-allowed'
                                                     }}
                                                 >
                                                     <div
@@ -651,7 +684,11 @@ export const InternDashboard = () => {
                                         Senior DB Architect • Mentor
                                     </Text>
                                 </div>
-                                <Button shape='circle' icon={<MessageOutlined />} />
+                                <Button
+                                    shape='circle'
+                                    icon={<MessageOutlined />}
+                                    onClick={() => message.info('Opening chat with Sarah Jenkins...')}
+                                />
                             </div>
                         </Card>
                     </div>

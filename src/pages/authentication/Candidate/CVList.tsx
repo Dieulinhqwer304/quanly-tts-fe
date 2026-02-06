@@ -10,13 +10,32 @@ import {
     TeamOutlined,
     RiseOutlined
 } from '@ant-design/icons';
-import { Avatar, Button, Card, Col, Input, Progress, Row, Select, Space, Table, Tag, Typography } from 'antd';
+import {
+    Avatar,
+    Button,
+    Card,
+    Col,
+    Input,
+    Progress,
+    Row,
+    Select,
+    Space,
+    Table,
+    Tag,
+    Tooltip,
+    Typography,
+    message
+} from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { RouteConfig } from '../../../constants';
 
 const { Title, Text } = Typography;
 
 interface Candidate {
     key: string;
+    id: string;
     name: string;
     email: string;
     appliedDate: string;
@@ -26,9 +45,10 @@ interface Candidate {
     avatar: string;
 }
 
-const data: Candidate[] = [
+const initialData: Candidate[] = [
     {
         key: '1',
+        id: '1',
         name: 'Sarah Jenkins',
         email: 'sarah.j@example.com',
         appliedDate: 'Oct 24, 2023',
@@ -39,6 +59,7 @@ const data: Candidate[] = [
     },
     {
         key: '2',
+        id: '2',
         name: 'David Chen',
         email: 'david.c@university.edu',
         appliedDate: 'Oct 23, 2023',
@@ -49,6 +70,7 @@ const data: Candidate[] = [
     },
     {
         key: '3',
+        id: '3',
         name: 'Marcus Jones',
         email: 'marcus.jones@email.com',
         appliedDate: 'Oct 22, 2023',
@@ -59,6 +81,7 @@ const data: Candidate[] = [
     },
     {
         key: '4',
+        id: '4',
         name: 'Emily Wong',
         email: 'emily.w@design.io',
         appliedDate: 'Oct 20, 2023',
@@ -69,6 +92,7 @@ const data: Candidate[] = [
     },
     {
         key: '5',
+        id: '5',
         name: 'Alex Johnson',
         email: 'alex.j@dev.net',
         appliedDate: 'Oct 19, 2023',
@@ -80,13 +104,41 @@ const data: Candidate[] = [
 ];
 
 export const CVList = () => {
+    const navigate = useNavigate();
+    const [searchText, setSearchText] = useState('');
+    const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [data] = useState<Candidate[]>(initialData);
+
+    const handleSearch = (value: string) => {
+        setSearchText(value);
+    };
+
+    const handleStatusChange = (value: string) => {
+        setStatusFilter(value);
+    };
+
+    const filteredData = data.filter((item) => {
+        const matchesSearch =
+            item.name.toLowerCase().includes(searchText.toLowerCase()) ||
+            item.email.toLowerCase().includes(searchText.toLowerCase());
+        const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+        return matchesSearch && matchesStatus;
+    });
+
+    const handleAction = (action: string, name: string) => {
+        message.success(`${action} candidate ${name} successfully`);
+    };
+
     const columns: ColumnsType<Candidate> = [
         {
             title: 'Candidate',
             dataIndex: 'name',
             key: 'name',
             render: (text, record) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+                    onClick={() => navigate(RouteConfig.CVDetail.getPath(record.id))}
+                >
                     {record.avatar.includes('http') ? (
                         <Avatar src={record.avatar} size={40} />
                     ) : (
@@ -140,6 +192,7 @@ export const CVList = () => {
             title: 'Match Score',
             dataIndex: 'matchScore',
             key: 'matchScore',
+            sorter: (a, b) => a.matchScore - b.matchScore,
             render: (score) => (
                 <div style={{ width: 120 }}>
                     <Progress
@@ -158,22 +211,38 @@ export const CVList = () => {
             align: 'right',
             render: (_, record) => (
                 <Space>
-                    <Button type='text' icon={<EyeOutlined />} title='View CV' />
-                    {record.status !== 'Rejected' && (
+                    <Tooltip title='View Details'>
                         <Button
                             type='text'
-                            icon={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-                            title='Shortlist'
+                            icon={<EyeOutlined />}
+                            onClick={() => navigate(RouteConfig.CVDetail.getPath(record.id))}
                         />
+                    </Tooltip>
+                    {record.status !== 'Rejected' && (
+                        <Tooltip title='Shortlist Candidate'>
+                            <Button
+                                type='text'
+                                icon={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+                                onClick={() => handleAction('Shortlisted', record.name)}
+                            />
+                        </Tooltip>
                     )}
                     {record.status !== 'Rejected' ? (
-                        <Button
-                            type='text'
-                            icon={<CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
-                            title='Reject'
-                        />
+                        <Tooltip title='Reject Candidate'>
+                            <Button
+                                type='text'
+                                icon={<CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
+                                onClick={() => handleAction('Rejected', record.name)}
+                            />
+                        </Tooltip>
                     ) : (
-                        <Button type='text' icon={<ReloadOutlined />} title='Reconsider' />
+                        <Tooltip title='Reconsider Candidate'>
+                            <Button
+                                type='text'
+                                icon={<ReloadOutlined />}
+                                onClick={() => handleAction('Reconsidered', record.name)}
+                            />
+                        </Tooltip>
                     )}
                 </Space>
             )
@@ -207,7 +276,7 @@ export const CVList = () => {
                             <TeamOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
                         </div>
                         <Title level={2} style={{ margin: '8px 0' }}>
-                            142
+                            {data.length}
                         </Title>
                         <Text type='success' style={{ fontSize: '12px' }}>
                             <RiseOutlined /> +12% from last week
@@ -221,7 +290,7 @@ export const CVList = () => {
                             <FilterOutlined style={{ fontSize: '20px', color: '#fa8c16' }} />
                         </div>
                         <Title level={2} style={{ margin: '8px 0' }}>
-                            28
+                            {data.filter((c) => c.status === 'Pending Review').length}
                         </Title>
                         <Text type='secondary' style={{ fontSize: '12px' }}>
                             Needs immediate action
@@ -235,7 +304,7 @@ export const CVList = () => {
                             <CheckCircleOutlined style={{ fontSize: '20px', color: '#52c41a' }} />
                         </div>
                         <Title level={2} style={{ margin: '8px 0' }}>
-                            15
+                            {data.filter((c) => c.status === 'Shortlisted').length}
                         </Title>
                         <Text type='secondary' style={{ fontSize: '12px' }}>
                             Ready for interview
@@ -249,7 +318,7 @@ export const CVList = () => {
                             <CloseCircleOutlined style={{ fontSize: '20px', color: '#ff4d4f' }} />
                         </div>
                         <Title level={2} style={{ margin: '8px 0' }}>
-                            99
+                            {data.filter((c) => c.status === 'Rejected').length}
                         </Title>
                         <Text type='secondary' style={{ fontSize: '12px' }}>
                             Archived applications
@@ -269,15 +338,22 @@ export const CVList = () => {
                     }}
                 >
                     <div style={{ display: 'flex', gap: '12px', flex: 1 }}>
-                        <Input prefix={<SearchOutlined />} placeholder='Search candidates...' style={{ width: 300 }} />
+                        <Input
+                            prefix={<SearchOutlined />}
+                            placeholder='Search candidates...'
+                            style={{ width: 300 }}
+                            onChange={(e) => handleSearch(e.target.value)}
+                        />
                         <Select
-                            defaultValue=''
+                            defaultValue='all'
                             style={{ width: 160 }}
+                            onChange={handleStatusChange}
                             options={[
-                                { value: '', label: 'All Statuses' },
-                                { value: 'pending', label: 'Pending Review' },
-                                { value: 'shortlisted', label: 'Shortlisted' },
-                                { value: 'rejected', label: 'Rejected' }
+                                { value: 'all', label: 'All Statuses' },
+                                { value: 'Pending Review', label: 'Pending Review' },
+                                { value: 'CV Screened', label: 'CV Screened' },
+                                { value: 'Shortlisted', label: 'Shortlisted' },
+                                { value: 'Rejected', label: 'Rejected' }
                             ]}
                         />
                     </div>
@@ -290,9 +366,9 @@ export const CVList = () => {
 
                 <Table
                     columns={columns}
-                    dataSource={data}
+                    dataSource={filteredData}
                     pagination={{
-                        total: 142,
+                        total: filteredData.length,
                         showTotal: (total, range) => `Showing ${range[0]}-${range[1]} of ${total} candidates`,
                         pageSize: 5
                     }}

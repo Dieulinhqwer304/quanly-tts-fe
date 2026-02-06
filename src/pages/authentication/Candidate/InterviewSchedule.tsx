@@ -26,7 +26,8 @@ import {
     Tag,
     TimePicker,
     Typography,
-    message
+    message,
+    Modal
 } from 'antd';
 import { useState } from 'react';
 
@@ -44,9 +45,42 @@ const candidates = [
 
 export const InterviewSchedule = () => {
     const [selectedCandidates, setSelectedCandidates] = useState<number[]>([1, 2, 3]);
+    const [date, setDate] = useState<any>(null);
+    const [timeRange, setTimeRange] = useState<any>(null);
+    const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
     const toggleCandidate = (id: number) => {
         setSelectedCandidates((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
+    };
+
+    const handleSendInvites = () => {
+        if (selectedCandidates.length === 0) {
+            message.warning('Please select at least one candidate.');
+            return;
+        }
+        if (!date || !timeRange) {
+            message.warning('Please select a date and time range.');
+            return;
+        }
+
+        message.loading('Sending invites...', 1.5).then(() => {
+            message.success(`Sent interview invites to ${selectedCandidates.length} candidates!`);
+            setSelectedCandidates([]);
+        });
+    };
+
+    const handleReject = () => {
+        if (selectedCandidates.length === 0) return;
+        Modal.confirm({
+            title: `Reject ${selectedCandidates.length} Candidates?`,
+            content: 'Are you sure you want to reject these candidates? They will receive a rejection email.',
+            okText: 'Reject',
+            okButtonProps: { danger: true },
+            onOk: () => {
+                message.success('Candidates rejected.');
+                setSelectedCandidates([]);
+            }
+        });
     };
 
     return (
@@ -71,7 +105,9 @@ export const InterviewSchedule = () => {
                         </Title>
                         <Text type='secondary'>Select candidates and configure interview invites.</Text>
                     </div>
-                    <Button icon={<FilterOutlined />}>Filter</Button>
+                    <Button icon={<FilterOutlined />} onClick={() => message.info('Filter functionality coming soon')}>
+                        Filter
+                    </Button>
                 </div>
 
                 <Row gutter={24}>
@@ -142,8 +178,16 @@ export const InterviewSchedule = () => {
                                     <Text type='secondary'>Setup details for the selected candidates.</Text>
                                 </div>
                                 <Space>
-                                    <Button>Reject</Button>
-                                    <Button type='primary'>Invite</Button>
+                                    <Button danger onClick={handleReject} disabled={selectedCandidates.length === 0}>
+                                        Reject
+                                    </Button>
+                                    <Button
+                                        type='primary'
+                                        onClick={handleSendInvites}
+                                        disabled={selectedCandidates.length === 0}
+                                    >
+                                        Invite
+                                    </Button>
                                 </Space>
                             </div>
 
@@ -163,22 +207,15 @@ export const InterviewSchedule = () => {
                                 <Row gutter={16} style={{ marginBottom: '16px' }}>
                                     <Col span={12}>
                                         <Text strong>Date</Text>
-                                        <DatePicker style={{ width: '100%', marginTop: '8px' }} />
+                                        <DatePicker style={{ width: '100%', marginTop: '8px' }} onChange={setDate} />
                                     </Col>
                                     <Col span={12}>
                                         <Text strong>Time Slot</Text>
-                                        <div
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                marginTop: '8px'
-                                            }}
-                                        >
-                                            <TimePicker style={{ flex: 1 }} format='HH:mm' />
-                                            <span>-</span>
-                                            <TimePicker style={{ flex: 1 }} format='HH:mm' />
-                                        </div>
+                                        <TimePicker.RangePicker
+                                            style={{ width: '100%', marginTop: '8px' }}
+                                            format='HH:mm'
+                                            onChange={setTimeRange}
+                                        />
                                     </Col>
                                 </Row>
                                 <Row gutter={16}>
@@ -213,7 +250,14 @@ export const InterviewSchedule = () => {
                                         <Text strong>Meeting Link / Location</Text>
                                         <Input
                                             prefix={<VideoCameraOutlined style={{ color: '#bfbfbf' }} />}
-                                            suffix={<Button icon={<CopyOutlined />} type='text' size='small' />}
+                                            suffix={
+                                                <Button
+                                                    icon={<CopyOutlined />}
+                                                    type='text'
+                                                    size='small'
+                                                    onClick={() => message.success('Copied link')}
+                                                />
+                                            }
                                             defaultValue='https://meet.google.com/abc-defg-hij'
                                             style={{ marginTop: '8px' }}
                                         />
@@ -244,7 +288,7 @@ export const InterviewSchedule = () => {
                                     >
                                         <MailOutlined style={{ marginRight: '8px' }} /> Email Communication
                                     </Title>
-                                    <Button type='link' size='small'>
+                                    <Button type='link' size='small' onClick={() => setIsTemplateModalOpen(true)}>
                                         Manage Templates
                                     </Button>
                                 </div>
@@ -328,13 +372,19 @@ export const InterviewSchedule = () => {
                                             <div style={{ marginBottom: '8px' }}>
                                                 <CalendarOutlined style={{ color: '#136dec', marginRight: '8px' }} />{' '}
                                                 <Text strong>
-                                                    <Tag color='blue'>{`{Date}`}</Tag>
+                                                    <Tag color='blue'>
+                                                        {date ? date.format('YYYY-MM-DD') : `{Date}`}
+                                                    </Tag>
                                                 </Text>
                                             </div>
                                             <div style={{ marginBottom: '8px' }}>
                                                 <ClockCircleOutlined style={{ color: '#136dec', marginRight: '8px' }} />{' '}
                                                 <Text strong>
-                                                    <Tag color='blue'>{`{Time}`}</Tag>
+                                                    <Tag color='blue'>
+                                                        {timeRange
+                                                            ? `${timeRange[0].format('HH:mm')} - ${timeRange[1].format('HH:mm')}`
+                                                            : `{Time}`}
+                                                    </Tag>
                                                 </Text>
                                             </div>
                                             <div>
@@ -372,12 +422,15 @@ export const InterviewSchedule = () => {
                                     paddingTop: '24px'
                                 }}
                             >
-                                <Button size='large'>Cancel</Button>
+                                <Button size='large' onClick={() => setSelectedCandidates([])}>
+                                    Cancel
+                                </Button>
                                 <Button
                                     type='primary'
                                     size='large'
                                     icon={<SendOutlined />}
-                                    onClick={() => message.success('Invites sent successfully!')}
+                                    onClick={handleSendInvites}
+                                    disabled={selectedCandidates.length === 0}
                                 >
                                     Schedule & Send ({selectedCandidates.length})
                                 </Button>
@@ -385,6 +438,15 @@ export const InterviewSchedule = () => {
                         </Card>
                     </Col>
                 </Row>
+
+                <Modal
+                    title='Manage Templates'
+                    open={isTemplateModalOpen}
+                    onOk={() => setIsTemplateModalOpen(false)}
+                    onCancel={() => setIsTemplateModalOpen(false)}
+                >
+                    <p>Template management settings would go here.</p>
+                </Modal>
             </Content>
         </Layout>
     );
