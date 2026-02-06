@@ -3,14 +3,12 @@ import {
     CheckSquareOutlined,
     CloseOutlined,
     CloudUploadOutlined,
-    EditOutlined,
     FilterOutlined,
     FlagOutlined,
     LinkOutlined,
     MessageOutlined,
     MoreOutlined,
     PlusOutlined,
-    SearchOutlined,
     UploadOutlined,
     UserOutlined
 } from '@ant-design/icons';
@@ -27,79 +25,59 @@ import {
     Typography,
     Upload,
     message,
-    Modal
+    Modal,
+    Spin,
+    Empty,
+    Form
 } from 'antd';
 import { useState } from 'react';
+import { useTasks, useUpdateTask, useCreateTask } from '../../../hooks/Internship/useTasks';
+import { Task } from '../../../services/Internship/tasks';
 
 const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
 
-interface Task {
-    id: number;
-    title: string;
-    description: string;
-    status: 'To Do' | 'In Progress' | 'Done';
-    priority: 'High' | 'Medium' | 'Low';
-    dueDate: string;
-    progress?: number;
-    assigneeAvatar?: string;
-    tags?: string[];
-}
-
-const initialTasksData: Task[] = [
-    {
-        id: 1,
-        title: 'Competitor Analysis Report',
-        description: 'Analyze top 3 competitors and their feature sets.',
-        status: 'To Do',
-        priority: 'High',
-        dueDate: 'Oct 24',
-        assigneeAvatar: 'https://i.pravatar.cc/150?u=8'
-    },
-    {
-        id: 2,
-        title: 'Draft UI Mockups for Dashboard',
-        description: 'Create initial wireframes for the new intern dashboard.',
-        status: 'To Do',
-        priority: 'Medium',
-        dueDate: 'Oct 26',
-        assigneeAvatar: 'https://i.pravatar.cc/150?u=5'
-    },
-    {
-        id: 3,
-        title: 'API Integration Testing',
-        description: 'Connect frontend to user endpoints and verify response schemas.',
-        status: 'In Progress',
-        priority: 'High',
-        dueDate: 'Oct 25',
-        progress: 60,
-        assigneeAvatar: 'https://i.pravatar.cc/150?u=1'
-    },
-    {
-        id: 4,
-        title: 'Setup Dev Environment',
-        description: 'Install Node.js, Docker, and project dependencies.',
-        status: 'Done',
-        priority: 'Low',
-        dueDate: 'Oct 20',
-        assigneeAvatar: 'https://i.pravatar.cc/150?u=3'
-    }
-];
-
 export const InternTaskBoard = () => {
-    const [tasks, setTasks] = useState<Task[]>(initialTasksData);
-    const [selectedTask, setSelectedTask] = useState<Task | null>(tasks[2]);
+    const internId = 'intern-1'; // Mock for now, should come from auth
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [form] = Form.useForm();
 
-    const moveTask = (task: Task, newStatus: Task['status']) => {
-        const updatedTasks = tasks.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t));
-        setTasks(updatedTasks);
-        message.success(`Task moved to ${newStatus}`);
+    const { data: tasksData, isLoading: isTasksLoading } = useTasks({ internId });
+    const updateTaskMutation = useUpdateTask();
+    const createTaskMutation = useCreateTask();
+
+    const tasks = tasksData?.data?.hits || [];
+
+    const moveTask = async (task: Task, newStatus: Task['status']) => {
+        try {
+            await updateTaskMutation.mutateAsync({
+                id: task.id,
+                status: newStatus
+            });
+            message.success(`Task moved to ${newStatus}`);
+            if (selectedTask?.id === task.id) {
+                setSelectedTask({ ...selectedTask, status: newStatus });
+            }
+        } catch {
+            message.error('Failed to move task');
+        }
     };
 
-    const handleCreateTask = () => {
-        setIsCreateModalOpen(false);
-        message.success('New task created!');
+    const handleCreateTask = async (values: any) => {
+        try {
+            await createTaskMutation.mutateAsync({
+                ...values,
+                internId,
+                intern: 'Alex Johnson', // Mock
+                internAvatar: 'https://i.pravatar.cc/150?u=1' // Mock
+            });
+            setIsCreateModalOpen(false);
+            form.resetFields();
+            message.success('New task created!');
+        } catch {
+            message.error('Failed to create task');
+        }
     };
 
     const renderTaskCard = (task: Task) => (
@@ -142,9 +120,9 @@ export const InternTaskBoard = () => {
                     size='small'
                     onClick={(e) => {
                         e.stopPropagation();
-                        moveTask(task, 'Done');
+                        moveTask(task, 'Completed');
                     }}
-                    disabled={task.status === 'Done'}
+                    disabled={task.status === 'Completed'}
                 >
                     Done
                 </Button>
@@ -158,41 +136,22 @@ export const InternTaskBoard = () => {
             </div>
             <div style={{ fontWeight: 600, marginBottom: '8px', color: '#1f2937' }}>{task.title}</div>
 
-            {task.progress !== undefined && (
-                <div style={{ marginBottom: '12px' }}>
-                    <div
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            fontSize: '10px',
-                            color: '#8c8c8c',
-                            marginBottom: '4px'
-                        }}
-                    >
-                        <span>Progress</span>
-                        <span>{task.progress}%</span>
-                    </div>
-                    <div style={{ width: '100%', height: '6px', background: '#f5f5f5', borderRadius: '3px' }}>
-                        <div
-                            style={{
-                                width: `${task.progress}%`,
-                                height: '100%',
-                                background: '#136dec',
-                                borderRadius: '3px'
-                            }}
-                        ></div>
-                    </div>
-                </div>
-            )}
-
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#6b7280' }}>
                     <CalendarOutlined /> {task.dueDate}
                 </div>
-                <Avatar size='small' src={task.assigneeAvatar} />
+                <Avatar size='small' src={task.internAvatar} />
             </div>
         </Card>
     );
+
+    if (isTasksLoading) {
+        return (
+            <div style={{ padding: '100px', textAlign: 'center' }}>
+                <Spin size='large' />
+            </div>
+        );
+    }
 
     return (
         <Layout style={{ height: 'calc(100vh - 64px)', background: '#f6f7f8' }}>
@@ -248,26 +207,10 @@ export const InternTaskBoard = () => {
                             >
                                 Kanban Board
                             </Button>
-                            <Button
-                                type='text'
-                                icon={
-                                    <div style={{ transform: 'rotate(90deg)' }}>
-                                        <MoreOutlined />
-                                    </div>
-                                }
-                            >
-                                List View
-                            </Button>
                         </Space>
                         <Space>
                             <Select
-                                defaultValue='Priority: High'
-                                style={{ width: 140 }}
-                                bordered={false}
-                                className='bg-white rounded-lg border border-gray-200'
-                            />
-                            <Select
-                                defaultValue='Due Date: Any'
+                                defaultValue='All Priorities'
                                 style={{ width: 140 }}
                                 bordered={false}
                                 className='bg-white rounded-lg border border-gray-200'
@@ -293,10 +236,12 @@ export const InternTaskBoard = () => {
                                     {tasks.filter((t) => t.status === 'To Do').length}
                                 </Tag>
                             </div>
-                            <Button type='text' icon={<PlusOutlined />} size='small' />
                         </div>
                         <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px' }}>
                             {tasks.filter((t) => t.status === 'To Do').map(renderTaskCard)}
+                            {tasks.filter((t) => t.status === 'To Do').length === 0 && (
+                                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description='No tasks' />
+                            )}
                         </div>
                     </div>
 
@@ -315,7 +260,6 @@ export const InternTaskBoard = () => {
                                     {tasks.filter((t) => t.status === 'In Progress').length}
                                 </Tag>
                             </div>
-                            <Button type='text' icon={<PlusOutlined />} size='small' />
                         </div>
                         <div
                             style={{
@@ -329,6 +273,9 @@ export const InternTaskBoard = () => {
                             }}
                         >
                             {tasks.filter((t) => t.status === 'In Progress').map(renderTaskCard)}
+                            {tasks.filter((t) => t.status === 'In Progress').length === 0 && (
+                                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description='No tasks in progress' />
+                            )}
                         </div>
                     </div>
 
@@ -344,13 +291,15 @@ export const InternTaskBoard = () => {
                             <div style={{ fontWeight: 600, color: '#374151' }}>
                                 Done{' '}
                                 <Tag color='green' style={{ marginLeft: '8px', borderRadius: '12px' }}>
-                                    {tasks.filter((t) => t.status === 'Done').length}
+                                    {tasks.filter((t) => t.status === 'Completed').length}
                                 </Tag>
                             </div>
-                            <Button type='text' icon={<PlusOutlined />} size='small' />
                         </div>
                         <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px', opacity: 0.7 }}>
-                            {tasks.filter((t) => t.status === 'Done').map(renderTaskCard)}
+                            {tasks.filter((t) => t.status === 'Completed').map(renderTaskCard)}
+                            {tasks.filter((t) => t.status === 'Completed').length === 0 && (
+                                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description='No completed tasks' />
+                            )}
                         </div>
                     </div>
                 </div>
@@ -458,7 +407,8 @@ export const InternTaskBoard = () => {
                             <Button
                                 type='primary'
                                 block
-                                onClick={() => message.success('Deliverable submitted for review!')}
+                                onClick={() => moveTask(selectedTask, 'Under Review')}
+                                loading={updateTaskMutation.isPending}
                             >
                                 Submit for Review
                             </Button>
@@ -518,31 +468,6 @@ export const InternTaskBoard = () => {
                                     </Button>
                                 </div>
                             </div>
-
-                            <div style={{ display: 'flex', gap: '12px' }}>
-                                <Avatar src='https://i.pravatar.cc/150?u=1' />
-                                <Input
-                                    suffix={
-                                        <Button
-                                            type='primary'
-                                            size='small'
-                                            icon={<CheckSquareOutlined />}
-                                            style={{
-                                                borderRadius: '50%',
-                                                width: '24px',
-                                                height: '24px',
-                                                minWidth: 'auto',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center'
-                                            }}
-                                            onClick={() => message.success('Reply posted')}
-                                        />
-                                    }
-                                    placeholder='Write a reply...'
-                                    style={{ borderRadius: '24px' }}
-                                />
-                            </div>
                         </div>
                     </div>
                 </Sider>
@@ -551,22 +476,31 @@ export const InternTaskBoard = () => {
             <Modal
                 title='Create New Task'
                 open={isCreateModalOpen}
-                onOk={handleCreateTask}
+                onOk={() => form.submit()}
                 onCancel={() => setIsCreateModalOpen(false)}
+                confirmLoading={createTaskMutation.isPending}
             >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 0' }}>
-                    <Input placeholder='Task Title' />
-                    <Input.TextArea placeholder='Description' rows={3} />
-                    <Select
-                        placeholder='Priority'
-                        options={[
-                            { value: 'High', label: 'High' },
-                            { value: 'Medium', label: 'Medium' },
-                            { value: 'Low', label: 'Low' }
-                        ]}
-                    />
-                    <Select placeholder='Assignee' options={[{ value: '1', label: 'Me' }]} />
-                </div>
+                <Form form={form} layout='vertical' onFinish={handleCreateTask}>
+                    <Form.Item name='title' label='Task Title' rules={[{ required: true }]}>
+                        <Input placeholder='Task Title' />
+                    </Form.Item>
+                    <Form.Item name='description' label='Description' rules={[{ required: true }]}>
+                        <Input.TextArea placeholder='Description' rows={3} />
+                    </Form.Item>
+                    <Form.Item name='priority' label='Priority' rules={[{ required: true }]}>
+                        <Select
+                            placeholder='Priority'
+                            options={[
+                                { value: 'High', label: 'High' },
+                                { value: 'Medium', label: 'Medium' },
+                                { value: 'Low', label: 'Low' }
+                            ]}
+                        />
+                    </Form.Item>
+                    <Form.Item name='dueDate' label='Due Date' rules={[{ required: true }]}>
+                        <Input type='date' />
+                    </Form.Item>
+                </Form>
             </Modal>
         </Layout>
     );

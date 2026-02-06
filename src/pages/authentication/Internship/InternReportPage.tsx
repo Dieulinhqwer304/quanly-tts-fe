@@ -1,85 +1,31 @@
-import { Button, Card, Form, Input, Modal, Select, Space, Table, Tag, Typography, message } from 'antd';
-import { DeleteOutlined, EditOutlined, EyeOutlined, PlusOutlined } from '@ant-design/icons';
-import { useMemo, useState } from 'react';
+import { Button, Card, Form, Input, Modal, Select, Space, Table, Tag, Typography, message, Spin, Empty } from 'antd';
+import { DeleteOutlined, EditOutlined, EyeOutlined, PlusOutlined, LoadingOutlined } from '@ant-design/icons';
+import { useState } from 'react';
+import { useReports, useCreateReport, useUpdateReport, useDeleteReport } from '../../../hooks/Internship/useReports';
+import { Report } from '../../../services/Internship/reports';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
-type ReportType = 'Weekly' | 'Monthly';
-type ReportStatus = 'Submitted' | 'Approved' | 'Rejected';
-
-interface ReportItem {
-    id: number;
-    title: string;
-    type: ReportType;
-    period: string;
-    submittedAt: string;
-    status: ReportStatus;
-    score?: number;
-    feedback?: string;
-    content: string;
-    challenges: string;
-    nextPlan: string;
-}
-
-const initialReports: ReportItem[] = [
-    {
-        id: 1,
-        title: 'Week 32 - Sprint Review',
-        type: 'Weekly',
-        period: 'Week 32',
-        submittedAt: '2025-08-11',
-        status: 'Approved',
-        score: 92,
-        feedback: 'Great clarity and actionable next steps.',
-        content: 'Completed sprint backlog and documented API usage.',
-        challenges: 'Time allocation for testing was tight.',
-        nextPlan: 'Increase unit test coverage for edge cases.'
-    },
-    {
-        id: 2,
-        title: 'Week 33 - System Design Notes',
-        type: 'Weekly',
-        period: 'Week 33',
-        submittedAt: '2025-08-18',
-        status: 'Submitted',
-        score: 0,
-        feedback: 'Pending review by mentor.',
-        content: 'Outlined database schema and service boundaries.',
-        challenges: 'Need to finalize data flow for analytics.',
-        nextPlan: 'Review with mentor and adjust diagram.'
-    },
-    {
-        id: 3,
-        title: 'Monthly Report - August',
-        type: 'Monthly',
-        period: 'Aug 2025',
-        submittedAt: '2025-08-31',
-        status: 'Rejected',
-        score: 68,
-        feedback: 'Missing detail on measurable outcomes.',
-        content: 'Summarized learning and contributions for August.',
-        challenges: 'Need more concrete KPI measurements.',
-        nextPlan: 'Include metrics and links to deliverables.'
-    }
-];
-
 export const InternReportPage = () => {
-    const [reports, setReports] = useState<ReportItem[]>(initialReports);
-    const [typeFilter, setTypeFilter] = useState<'All' | ReportType>('All');
-    const [statusFilter, setStatusFilter] = useState<'All' | ReportStatus>('All');
+    const [typeFilter, setTypeFilter] = useState<'All' | 'Weekly' | 'Monthly'>('All');
+    const [statusFilter, setStatusFilter] = useState<'All' | 'Submitted' | 'Approved' | 'Rejected'>('All');
     const [modalOpen, setModalOpen] = useState(false);
     const [viewOnly, setViewOnly] = useState(false);
-    const [editingReport, setEditingReport] = useState<ReportItem | null>(null);
+    const [editingReport, setEditingReport] = useState<Report | null>(null);
     const [form] = Form.useForm();
 
-    const filteredReports = useMemo(() => {
-        return reports.filter((report) => {
-            const matchesType = typeFilter === 'All' || report.type === typeFilter;
-            const matchesStatus = statusFilter === 'All' || report.status === statusFilter;
-            return matchesType && matchesStatus;
-        });
-    }, [reports, statusFilter, typeFilter]);
+    const { data: reportsRes, isLoading } = useReports({
+        internId: 'ITS-001', // Mocked ID
+        type: typeFilter,
+        status: statusFilter
+    });
+
+    const createReportMutation = useCreateReport();
+    const updateReportMutation = useUpdateReport();
+    const deleteReportMutation = useDeleteReport();
+
+    const reports = reportsRes?.data?.hits || [];
 
     const handleOpenCreate = () => {
         setEditingReport(null);
@@ -88,30 +34,30 @@ export const InternReportPage = () => {
         setModalOpen(true);
     };
 
-    const handleOpenView = (report: ReportItem) => {
+    const handleOpenView = (report: Report) => {
         setEditingReport(report);
         setViewOnly(true);
         form.setFieldsValue(report);
         setModalOpen(true);
     };
 
-    const handleOpenEdit = (report: ReportItem) => {
+    const handleOpenEdit = (report: Report) => {
         setEditingReport(report);
         setViewOnly(false);
         form.setFieldsValue(report);
         setModalOpen(true);
     };
 
-    const handleDelete = (report: ReportItem) => {
+    const handleDelete = (report: Report) => {
         Modal.confirm({
-            title: 'Xoa bao cao nay?'.toUpperCase(),
-            content: `Bao cao "${report.title}" se bi xoa vinh vien.`,
-            okText: 'Xoa bao cao',
+            title: 'Xóa báo cáo này?'.toUpperCase(),
+            content: `Báo cáo "${report.title}" sẽ bị xóa vĩnh viễn.`,
+            okText: 'Xóa báo cáo',
             okButtonProps: { danger: true },
-            cancelText: 'Huy',
-            onOk: () => {
-                setReports((prev) => prev.filter((item) => item.id !== report.id));
-                message.success('Bao cao da duoc xoa');
+            cancelText: 'Hủy',
+            onOk: async () => {
+                await deleteReportMutation.mutateAsync(report.id);
+                message.success('Báo cáo đã được xóa');
             }
         });
     };
@@ -125,30 +71,27 @@ export const InternReportPage = () => {
         try {
             const values = await form.validateFields();
             if (editingReport) {
-                setReports((prev) =>
-                    prev.map((item) => (item.id === editingReport.id ? { ...item, ...values } : item))
-                );
-                message.success('Cap nhat bao cao thanh cong');
+                await updateReportMutation.mutateAsync({
+                    id: editingReport.id,
+                    ...values
+                });
+                message.success('Báo cáo đã được cập nhật');
+                setModalOpen(false);
             } else {
-                const newReport: ReportItem = {
-                    id: Date.now(),
+                await createReportMutation.mutateAsync({
+                    internId: 'ITS-001',
                     title: values.title,
                     type: values.type,
                     period: values.period,
-                    submittedAt: new Date().toISOString().slice(0, 10),
-                    status: 'Submitted',
-                    score: 0,
-                    feedback: 'Pending review by mentor.',
                     content: values.content,
                     challenges: values.challenges,
                     nextPlan: values.nextPlan
-                };
-                setReports((prev) => [newReport, ...prev]);
-                message.success('Bao cao moi da duoc tao');
+                });
+                message.success('Báo cáo mới đã được tạo');
+                setModalOpen(false);
             }
-            setModalOpen(false);
         } catch (error) {
-            return;
+            console.error(error);
         }
     };
 
@@ -157,7 +100,7 @@ export const InternReportPage = () => {
             title: 'Report Title',
             dataIndex: 'title',
             key: 'title',
-            render: (value: string, record: ReportItem) => (
+            render: (value: string, record: Report) => (
                 <div>
                     <Text strong>{value}</Text>
                     <div style={{ fontSize: '12px', color: '#8c8c8c' }}>{record.period}</div>
@@ -168,7 +111,7 @@ export const InternReportPage = () => {
             title: 'Type',
             dataIndex: 'type',
             key: 'type',
-            render: (value: ReportType) => <Tag color={value === 'Weekly' ? 'blue' : 'purple'}>{value}</Tag>
+            render: (value: string) => <Tag color={value === 'Weekly' ? 'blue' : 'purple'}>{value}</Tag>
         },
         {
             title: 'Submission Date',
@@ -179,7 +122,7 @@ export const InternReportPage = () => {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
-            render: (value: ReportStatus) => {
+            render: (value: string) => {
                 const color = value === 'Approved' ? 'green' : value === 'Rejected' ? 'red' : 'gold';
                 return <Tag color={color}>{value}</Tag>;
             }
@@ -187,17 +130,17 @@ export const InternReportPage = () => {
         {
             title: 'Score / Feedback',
             key: 'score',
-            render: (_: unknown, record: ReportItem) => (
+            render: (_: unknown, record: Report) => (
                 <div>
                     <Text strong>{record.score || '--'}</Text>
-                    <div style={{ fontSize: '12px', color: '#8c8c8c' }}>{record.feedback}</div>
+                    <div style={{ fontSize: '12px', color: '#8c8c8c' }}>{record.feedback || 'No feedback yet'}</div>
                 </div>
             )
         },
         {
             title: 'Actions',
             key: 'actions',
-            render: (_: unknown, record: ReportItem) => (
+            render: (_: unknown, record: Report) => (
                 <Space>
                     <Button icon={<EyeOutlined />} onClick={() => handleOpenView(record)} />
                     <Button icon={<EditOutlined />} onClick={() => handleOpenEdit(record)} />
@@ -221,12 +164,12 @@ export const InternReportPage = () => {
             >
                 <div>
                     <Title level={2} style={{ margin: 0 }}>
-                        Bao cao thuc tap
+                        Báo cáo thực tập
                     </Title>
-                    <Text type='secondary'>Quan ly bao cao hang tuan va hang thang</Text>
+                    <Text type='secondary'>Quản lý báo cáo hàng tuần và hàng tháng</Text>
                 </div>
                 <Button type='primary' icon={<PlusOutlined />} onClick={handleOpenCreate}>
-                    Tao bao cao moi
+                    Tạo báo cáo mới
                 </Button>
             </div>
 
@@ -235,26 +178,26 @@ export const InternReportPage = () => {
                 bodyStyle={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}
             >
                 <div style={{ minWidth: '200px' }}>
-                    <Text type='secondary'>Loai bao cao</Text>
+                    <Text type='secondary'>Loại báo cáo</Text>
                     <Select
                         style={{ width: '100%' }}
                         value={typeFilter}
                         onChange={(value) => setTypeFilter(value)}
                         options={[
-                            { value: 'All', label: 'Tat ca' },
+                            { value: 'All', label: 'Tất cả' },
                             { value: 'Weekly', label: 'Weekly' },
                             { value: 'Monthly', label: 'Monthly' }
                         ]}
                     />
                 </div>
                 <div style={{ minWidth: '200px' }}>
-                    <Text type='secondary'>Trang thai</Text>
+                    <Text type='secondary'>Trạng thái</Text>
                     <Select
                         style={{ width: '100%' }}
                         value={statusFilter}
                         onChange={(value) => setStatusFilter(value)}
                         options={[
-                            { value: 'All', label: 'Tat ca' },
+                            { value: 'All', label: 'Tất cả' },
                             { value: 'Submitted', label: 'Submitted' },
                             { value: 'Approved', label: 'Approved' },
                             { value: 'Rejected', label: 'Rejected' }
@@ -264,23 +207,31 @@ export const InternReportPage = () => {
             </Card>
 
             <Card style={{ borderRadius: '12px' }}>
-                <Table columns={columns} dataSource={filteredReports} rowKey='id' pagination={{ pageSize: 6 }} />
+                <Table
+                    columns={columns}
+                    dataSource={reports}
+                    loading={isLoading}
+                    rowKey='id'
+                    pagination={{ pageSize: 6 }}
+                    locale={{ emptyText: isLoading ? <Spin indicator={<LoadingOutlined />} /> : <Empty /> }}
+                />
             </Card>
 
             <Modal
-                title={viewOnly ? 'Chi tiet bao cao' : editingReport ? 'Chinh sua bao cao' : 'Tao bao cao moi'}
+                title={viewOnly ? 'Chi tiết báo cáo' : editingReport ? 'Chỉnh sửa báo cáo' : 'Tạo báo cáo mới'}
                 open={modalOpen}
                 onCancel={() => setModalOpen(false)}
                 onOk={handleSave}
-                okText={viewOnly ? 'Dong' : 'Luu'}
-                cancelText='Huy'
+                okText={viewOnly ? 'Đóng' : 'Lưu'}
+                cancelText='Hủy'
                 width={720}
+                confirmLoading={createReportMutation.isPending || updateReportMutation.isPending}
             >
                 <Form layout='vertical' form={form} initialValues={{ type: 'Weekly' }} style={{ marginTop: '16px' }}>
-                    <Form.Item label='Report Title' name='title' rules={[{ required: true, message: 'Nhap tieu de' }]}>
+                    <Form.Item label='Report Title' name='title' rules={[{ required: true, message: 'Nhập tiêu đề' }]}>
                         <Input placeholder='Week 35 - Weekly Report' disabled={viewOnly} />
                     </Form.Item>
-                    <Form.Item label='Report Type' name='type' rules={[{ required: true, message: 'Chon loai' }]}>
+                    <Form.Item label='Report Type' name='type' rules={[{ required: true, message: 'Chọn loại' }]}>
                         <Select
                             disabled={viewOnly}
                             options={[
@@ -292,34 +243,35 @@ export const InternReportPage = () => {
                     <Form.Item
                         label='Week / Month'
                         name='period'
-                        rules={[{ required: true, message: 'Chon ky bao cao' }]}
+                        rules={[{ required: true, message: 'Chọn kỳ báo cáo' }]}
                     >
                         <Select
                             disabled={viewOnly}
                             options={[
                                 { value: 'Week 34', label: 'Week 34' },
                                 { value: 'Week 35', label: 'Week 35' },
+                                { value: 'Week 36', label: 'Week 36' },
                                 { value: 'Aug 2025', label: 'Aug 2025' },
                                 { value: 'Sep 2025', label: 'Sep 2025' }
                             ]}
                         />
                     </Form.Item>
-                    <Form.Item label='Content' name='content' rules={[{ required: true, message: 'Nhap noi dung' }]}>
-                        <TextArea rows={4} placeholder='Tom tat nhung viec da lam' readOnly={viewOnly} />
+                    <Form.Item label='Content' name='content' rules={[{ required: true, message: 'Nhập nội dung' }]}>
+                        <TextArea rows={4} placeholder='Tóm tắt những việc đã làm' readOnly={viewOnly} />
                     </Form.Item>
                     <Form.Item
                         label='Issues / Challenges'
                         name='challenges'
-                        rules={[{ required: true, message: 'Nhap kho khan' }]}
+                        rules={[{ required: true, message: 'Nhập khó khăn' }]}
                     >
-                        <TextArea rows={3} placeholder='Kho khan gap phai trong tuan' readOnly={viewOnly} />
+                        <TextArea rows={3} placeholder='Khó khăn gặp phải trong tuần' readOnly={viewOnly} />
                     </Form.Item>
                     <Form.Item
                         label='Next Week Plan'
                         name='nextPlan'
-                        rules={[{ required: true, message: 'Nhap ke hoach' }]}
+                        rules={[{ required: true, message: 'Nhập kế hoạch' }]}
                     >
-                        <TextArea rows={3} placeholder='Ke hoach tiep theo' readOnly={viewOnly} />
+                        <TextArea rows={3} placeholder='Kế hoạch tiếp theo' readOnly={viewOnly} />
                     </Form.Item>
                 </Form>
             </Modal>

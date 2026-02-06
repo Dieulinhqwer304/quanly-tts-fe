@@ -106,16 +106,19 @@ export const RouteConfig = {
         path: '/mentor/learning-paths'
     },
     MentorEvalPhase1: {
-        path: '/mentor/eval-phase1'
+        path: '/mentor/eval-phase1/:id',
+        getPath: (id: string) => `/mentor/eval-phase1/${id}`
     },
     MentorTaskManagement: {
         path: '/mentor/tasks'
     },
     MentorEvalPhase2: {
-        path: '/mentor/eval-phase2'
+        path: '/mentor/eval-phase2/:id',
+        getPath: (id: string) => `/mentor/eval-phase2/${id}`
     },
     MentorEvalFinal: {
-        path: '/mentor/eval-final'
+        path: '/mentor/eval-final/:id',
+        getPath: (id: string) => `/mentor/eval-final/${id}`
     },
 
     InternDashboard: {

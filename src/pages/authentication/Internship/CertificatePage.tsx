@@ -1,4 +1,4 @@
-import { Badge, Button, Card, Col, Descriptions, Row, Space, Steps, Switch, Typography, message } from 'antd';
+import { Badge, Button, Card, Col, Descriptions, Row, Skeleton, Space, Steps, Typography, message } from 'antd';
 import {
     CheckCircleOutlined,
     DownloadOutlined,
@@ -6,16 +6,35 @@ import {
     ShareAltOutlined,
     TrophyOutlined
 } from '@ant-design/icons';
-import { useState } from 'react';
+import { useIntern } from '../../../hooks/Internship/useInterns';
+import { useEvaluations } from '../../../hooks/Internship/useEvaluations';
 
 const { Title, Text } = Typography;
 
 export const CertificatePage = () => {
-    const [isCertified, setIsCertified] = useState(true);
+    const internId = 'ITS-001'; // Mock current intern ID
+    const { data: internDetail, isLoading: isLoadingIntern } = useIntern(internId);
+    const { data: evaluationsData, isLoading: isLoadingEvaluations } = useEvaluations({
+        internId
+    });
+
+    const intern = internDetail?.data;
+    const evaluations = evaluationsData?.data?.hits || [];
+
+    const finalEvaluation = evaluations.find((e) => e.type === 'Final' && e.status === 'Completed');
+    const isCertified = intern?.progress === 100 && !!finalEvaluation;
 
     const handleDownload = () => {
         message.success('Certificate download started');
     };
+
+    if (isLoadingIntern || isLoadingEvaluations) {
+        return (
+            <div style={{ padding: '24px' }}>
+                <Skeleton active paragraph={{ rows: 10 }} />
+            </div>
+        );
+    }
 
     return (
         <div style={{ padding: '24px' }}>
@@ -41,21 +60,10 @@ export const CertificatePage = () => {
                                     </Title>
                                     <Text type='secondary'>Track your journey and unlock the final certificate.</Text>
                                 </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <Text type='secondary' style={{ display: 'block', marginBottom: '8px' }}>
-                                        Demo status
-                                    </Text>
-                                    <Switch
-                                        checkedChildren='Certified'
-                                        unCheckedChildren='In Progress'
-                                        checked={isCertified}
-                                        onChange={setIsCertified}
-                                    />
-                                </div>
                             </div>
 
                             <Steps
-                                current={isCertified ? 4 : 3}
+                                current={isCertified ? 4 : finalEvaluation ? 3 : intern && intern.progress > 50 ? 2 : 1}
                                 items={[
                                     { title: 'Onboarding' },
                                     { title: 'Phase 1' },
@@ -132,11 +140,13 @@ export const CertificatePage = () => {
                                     </Title>
                                     <Text type='secondary'>This certificate is awarded to</Text>
                                     <Title level={4} style={{ margin: '8px 0' }}>
-                                        Nguyen Van A
+                                        {intern?.name || '---'}
                                     </Title>
                                     <Text type='secondary'>for successfully completing the internship program</Text>
                                     <div style={{ marginTop: '16px', fontSize: '12px', color: '#8c8c8c' }}>
-                                        Issue Date: 2025-09-02 • Certificate ID: INT-2025-0932
+                                        Issue Date: {isCertified ? new Date().toISOString().split('T')[0] : 'Pending'} •
+                                        Certificate ID:{' '}
+                                        {isCertified ? `INT-${internId}-${new Date().getFullYear()}` : 'Pending'}
                                     </div>
                                 </div>
                             </Card>
@@ -150,10 +160,20 @@ export const CertificatePage = () => {
                                 Internship Details
                             </Title>
                             <Descriptions column={1} size='small' bordered>
-                                <Descriptions.Item label='Department'>Product Engineering</Descriptions.Item>
-                                <Descriptions.Item label='Mentor'>Sarah Jenkins</Descriptions.Item>
-                                <Descriptions.Item label='Duration'>Jun 2025 - Sep 2025</Descriptions.Item>
-                                <Descriptions.Item label='Final Grade'>A-</Descriptions.Item>
+                                <Descriptions.Item label='Department'>{intern?.track || '---'}</Descriptions.Item>
+                                <Descriptions.Item label='Mentor'>{intern?.mentor || '---'}</Descriptions.Item>
+                                <Descriptions.Item label='Duration'>
+                                    {intern?.startDate} - {intern?.endDate}
+                                </Descriptions.Item>
+                                <Descriptions.Item label='Final Grade'>
+                                    {finalEvaluation?.score
+                                        ? finalEvaluation.score >= 90
+                                            ? 'A'
+                                            : finalEvaluation.score >= 80
+                                              ? 'B'
+                                              : 'C'
+                                        : '---'}
+                                </Descriptions.Item>
                             </Descriptions>
                         </Card>
 
@@ -165,8 +185,9 @@ export const CertificatePage = () => {
                                         Next step
                                     </Title>
                                     <Text type='secondary'>
-                                        Keep your LinkedIn profile updated and include the certificate link once it is
-                                        issued.
+                                        {isCertified
+                                            ? 'Keep your LinkedIn profile updated and include the certificate link once it is issued.'
+                                            : 'Complete your remaining tasks and final evaluation to unlock your certificate.'}
                                     </Text>
                                 </div>
                             </Space>
