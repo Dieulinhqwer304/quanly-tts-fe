@@ -10,7 +10,8 @@ import {
     MessageOutlined,
     SearchOutlined,
     UserOutlined,
-    WarningOutlined
+    WarningOutlined,
+    LoadingOutlined
 } from '@ant-design/icons';
 import {
     Avatar,
@@ -21,79 +22,83 @@ import {
     Layout,
     List,
     Progress,
-    Rate,
     Row,
     Space,
     Tag,
     Typography,
     message,
-    Modal
+    Modal,
+    Spin,
+    Empty
 } from 'antd';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useApprovals, useUpdateApproval } from '../../../hooks/Recruitment/useApprovals';
+import dayjs from 'dayjs';
 
 const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
 
-const initialQueue = [
-    {
-        id: 1,
-        type: 'Conversion',
-        time: 'Today, 10:30 AM',
-        name: 'Alex Doe',
-        title: 'Intern to Junior Analyst Proposal',
-        mentor: 'Mike Ross',
-        score: 4.8,
-        avatar: 'https://i.pravatar.cc/150?u=1'
-    },
-    {
-        id: 2,
-        type: 'Recruitment',
-        time: 'Yesterday',
-        name: 'Sr. Java Developer',
-        title: 'New Position • Backend Team',
-        hr: 'Sarah Jenkins',
-        priority: 'High',
-        avatar: null
-    },
-    {
-        id: 3,
-        type: 'Recruitment',
-        time: '2 days ago',
-        name: 'UX Researcher Intern',
-        title: 'Summer cohort replacement',
-        hr: 'Tom Hiddleston',
-        priority: 'Normal',
-        avatar: null
-    }
-];
-
 export const DirectorApprovals = () => {
-    const [selectedRequest, setSelectedRequest] = useState<number | null>(1);
-    const [queue, setQueue] = useState(initialQueue);
+    const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
     const [directorNote, setDirectorNote] = useState('');
+    const [searchKeyword, setSearchKeyword] = useState('');
+    const [statusFilter, setStatusFilter] = useState<'Pending' | 'Approved' | 'Rejected' | 'Adjusting'>('Pending');
+
+    const { data: approvalsRes, isLoading } = useApprovals({
+        searcher: { keyword: searchKeyword, field: 'name' },
+        status: statusFilter
+    });
+
+    const updateApproval = useUpdateApproval();
+
+    const queue = approvalsRes?.data?.hits || [];
+    const selectedRequest =
+        queue.find((r) => r.id === selectedRequestId) || (queue.length > 0 && !selectedRequestId ? queue[0] : null);
+
+    useEffect(() => {
+        if (queue.length > 0 && !selectedRequestId) {
+            setSelectedRequestId(queue[0].id);
+        }
+    }, [queue, selectedRequestId]);
 
     const handleAction = (action: 'approve' | 'reject' | 'adjust') => {
         if (!selectedRequest) return;
 
-        const request = queue.find((r) => r.id === selectedRequest);
+        const statusMap = {
+            approve: 'Approved',
+            reject: 'Rejected',
+            adjust: 'Adjusting'
+        } as const;
 
-        if (action === 'approve') {
-            message.success(`Approved request for ${request?.name}`);
-        } else if (action === 'reject') {
-            message.error(`Rejected request for ${request?.name}`);
-        } else {
-            message.info(`Requested adjustment for ${request?.name}`);
-        }
+        const newStatus = statusMap[action];
 
-        const newQueue = queue.filter((r) => r.id !== selectedRequest);
-        setQueue(newQueue);
-        if (newQueue.length > 0) {
-            setSelectedRequest(newQueue[0].id);
-        } else {
-            setSelectedRequest(null);
-        }
-        setDirectorNote('');
+        updateApproval.mutate(
+            {
+                id: selectedRequest.id,
+                status: newStatus,
+                notes: directorNote
+            },
+            {
+                onSuccess: () => {
+                    message.success(`Request for ${selectedRequest.name} has been ${newStatus.toLowerCase()}`);
+                    setDirectorNote('');
+                    // If the selected one is gone (due to filter), reset selection
+                    if (queue.length <= 1) {
+                        setSelectedRequestId(null);
+                    }
+                },
+                onError: () => {
+                    message.error('Failed to update request. Please try again.');
+                }
+            }
+        );
     };
+
+    const renderEmpty = () => (
+        <div style={{ padding: '100px 0', textAlign: 'center' }}>
+            <Empty description={`No ${statusFilter.toLowerCase()} requests found.`} />
+        </div>
+    );
 
     return (
         <Layout style={{ height: 'calc(100vh - 64px)', background: '#f6f7f8' }}>
@@ -113,13 +118,16 @@ export const DirectorApprovals = () => {
                         <Space>
                             <Button
                                 size='small'
-                                type='text'
-                                style={{ background: '#f0f2f4' }}
-                                onClick={() => message.info('Filter: Pending')}
+                                type={statusFilter === 'Pending' ? 'primary' : 'text'}
+                                onClick={() => setStatusFilter('Pending')}
                             >
                                 Pending
                             </Button>
-                            <Button size='small' type='text' onClick={() => message.info('Filter: History')}>
+                            <Button
+                                size='small'
+                                type={statusFilter === 'Approved' ? 'primary' : 'text'}
+                                onClick={() => setStatusFilter('Approved')}
+                            >
                                 History
                             </Button>
                         </Space>
@@ -127,79 +135,104 @@ export const DirectorApprovals = () => {
                     <Input
                         prefix={<SearchOutlined />}
                         placeholder='Search requests...'
-                        onChange={(e) => console.log(e.target.value)}
+                        onChange={(e) => setSearchKeyword(e.target.value)}
                     />
                 </div>
-                <List
-                    dataSource={queue}
-                    renderItem={(item) => (
-                        <div
-                            style={{
-                                padding: '16px',
-                                borderBottom: '1px solid #f0f0f0',
-                                borderLeft: selectedRequest === item.id ? '4px solid #136dec' : '4px solid transparent',
-                                background: selectedRequest === item.id ? 'rgba(19, 109, 236, 0.05)' : '#fff',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s'
-                            }}
-                            onClick={() => setSelectedRequest(item.id)}
-                        >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Tag color={item.type === 'Conversion' ? 'purple' : 'blue'}>{item.type}</Tag>
-                                    <Text type='secondary' style={{ fontSize: '12px' }}>
-                                        {item.time}
-                                    </Text>
+                {isLoading ? (
+                    <div style={{ textAlign: 'center', padding: '50px' }}>
+                        <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} tip='Loading queue...' />
+                    </div>
+                ) : (
+                    <List
+                        dataSource={queue}
+                        locale={{ emptyText: renderEmpty() }}
+                        renderItem={(item) => (
+                            <div
+                                style={{
+                                    padding: '16px',
+                                    borderBottom: '1px solid #f0f0f0',
+                                    borderLeft:
+                                        selectedRequestId === item.id ||
+                                        (!selectedRequestId && queue[0]?.id === item.id)
+                                            ? '4px solid #136dec'
+                                            : '4px solid transparent',
+                                    background:
+                                        selectedRequestId === item.id ||
+                                        (!selectedRequestId && queue[0]?.id === item.id)
+                                            ? 'rgba(19, 109, 236, 0.05)'
+                                            : '#fff',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s'
+                                }}
+                                onClick={() => setSelectedRequestId(item.id)}
+                            >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Tag color={item.type === 'Conversion' ? 'purple' : 'blue'}>{item.type}</Tag>
+                                        <Text type='secondary' style={{ fontSize: '12px' }}>
+                                            {dayjs(item.createdAt).fromNow()}
+                                        </Text>
+                                    </div>
+                                    <Tag
+                                        color={
+                                            item.status === 'Pending'
+                                                ? 'orange'
+                                                : item.status === 'Approved'
+                                                  ? 'success'
+                                                  : 'error'
+                                        }
+                                    >
+                                        {item.status}
+                                    </Tag>
                                 </div>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                                {item.avatar ? (
-                                    <Avatar src={item.avatar} size={40} />
-                                ) : (
+                                <div
+                                    style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}
+                                >
                                     <Avatar
                                         icon={item.type === 'Recruitment' ? <FileTextOutlined /> : <UserOutlined />}
                                         size={40}
                                         style={{ background: '#f0f2f4', color: '#6b7280' }}
                                     />
-                                )}
-                                <div>
-                                    <div style={{ fontWeight: 600, color: '#111418' }}>{item.name}</div>
-                                    <div style={{ fontSize: '12px', color: '#6b7280' }}>{item.title}</div>
+                                    <div>
+                                        <div style={{ fontWeight: 600, color: '#111418' }}>{item.name}</div>
+                                        <div style={{ fontSize: '12px', color: '#6b7280' }}>{item.title}</div>
+                                    </div>
+                                </div>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        fontSize: '12px',
+                                        color: '#6b7280'
+                                    }}
+                                >
+                                    {item.mentor ? (
+                                        <span>
+                                            <UserOutlined /> Mentor: {item.mentor}
+                                        </span>
+                                    ) : (
+                                        <span>
+                                            <UserOutlined /> HR: {item.hr || 'N/A'}
+                                        </span>
+                                    )}
+                                    {item.score ? (
+                                        <span style={{ color: '#10b981', fontWeight: 600 }}>Score: {item.score}/5</span>
+                                    ) : (
+                                        <span
+                                            style={{
+                                                color: item.priority === 'High' ? '#d97706' : '#6b7280',
+                                                fontWeight: 600
+                                            }}
+                                        >
+                                            {item.priority === 'High' && <WarningOutlined />}{' '}
+                                            {item.priority || 'Normal'} Priority
+                                        </span>
+                                    )}
                                 </div>
                             </div>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    fontSize: '12px',
-                                    color: '#6b7280'
-                                }}
-                            >
-                                {item.mentor ? (
-                                    <span>
-                                        <UserOutlined /> Mentor: {item.mentor}
-                                    </span>
-                                ) : (
-                                    <span>
-                                        <UserOutlined /> HR: {item.hr}
-                                    </span>
-                                )}
-                                {item.score ? (
-                                    <span style={{ color: '#10b981', fontWeight: 600 }}>Score: {item.score}/5</span>
-                                ) : (
-                                    <span
-                                        style={{
-                                            color: item.priority === 'High' ? '#d97706' : '#6b7280',
-                                            fontWeight: 600
-                                        }}
-                                    >
-                                        {item.priority === 'High' && <WarningOutlined />} {item.priority} Priority
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                />
+                        )}
+                    />
+                )}
             </Sider>
 
             <Content style={{ padding: 0, overflowY: 'auto', position: 'relative' }}>
@@ -228,10 +261,10 @@ export const DirectorApprovals = () => {
                                 >
                                     <span>Requests</span>
                                     <span style={{ fontSize: '10px' }}>▶</span>
-                                    <span>#REQ-2023-8492</span>
+                                    <span>#{selectedRequest.id}</span>
                                 </div>
                                 <Title level={2} style={{ margin: '0 0 8px 0' }}>
-                                    Intern Conversion Proposal: Alex Doe
+                                    {selectedRequest.type} Proposal: {selectedRequest.name}
                                 </Title>
                                 <div
                                     style={{
@@ -243,21 +276,27 @@ export const DirectorApprovals = () => {
                                     }}
                                 >
                                     <Tag bordered={false} style={{ background: '#f3f4f6' }}>
-                                        Engineering Dept
+                                        {selectedRequest.department || 'General Dept'}
                                     </Tag>
                                     <span>|</span>
-                                    <span>Submitted on Oct 24, 2023</span>
+                                    <span>Submitted on {dayjs(selectedRequest.createdAt).format('MMM DD, YYYY')}</span>
                                 </div>
                             </div>
                             <Tag
-                                color='warning'
+                                color={
+                                    selectedRequest.status === 'Pending'
+                                        ? 'warning'
+                                        : selectedRequest.status === 'Approved'
+                                          ? 'success'
+                                          : 'error'
+                                }
                                 style={{ fontSize: '14px', padding: '4px 12px', borderRadius: '16px' }}
                             >
-                                Pending Review
+                                {selectedRequest.status} Review
                             </Tag>
                         </div>
 
-                        <div style={{ padding: '32px', paddingBottom: '120px', maxWidth: '1000px', margin: '0 auto' }}>
+                        <div style={{ padding: '32px', paddingBottom: '150px', maxWidth: '1000px', margin: '0 auto' }}>
                             <Row gutter={24}>
                                 <Col span={16}>
                                     <Card
@@ -280,7 +319,7 @@ export const DirectorApprovals = () => {
                                             <AuditOutlined style={{ color: '#136dec' }} /> Candidate Summary
                                         </Title>
                                         <div style={{ display: 'flex', gap: '24px' }}>
-                                            <Avatar size={96} shape='square' src='https://i.pravatar.cc/150?u=1' />
+                                            <Avatar size={96} shape='square' icon={<UserOutlined />} />
                                             <Row gutter={[32, 16]} style={{ flex: 1 }}>
                                                 <Col span={12}>
                                                     <Text
@@ -291,9 +330,13 @@ export const DirectorApprovals = () => {
                                                             fontWeight: 600
                                                         }}
                                                     >
-                                                        Current Role
+                                                        {selectedRequest.type === 'Conversion'
+                                                            ? 'Current Role'
+                                                            : 'Role Name'}
                                                     </Text>
-                                                    <div style={{ fontWeight: 500 }}>Software Engineering Intern</div>
+                                                    <div style={{ fontWeight: 500 }}>
+                                                        {selectedRequest.currentRole || selectedRequest.name}
+                                                    </div>
                                                 </Col>
                                                 <Col span={12}>
                                                     <Text
@@ -304,9 +347,13 @@ export const DirectorApprovals = () => {
                                                             fontWeight: 600
                                                         }}
                                                     >
-                                                        Proposed Role
+                                                        {selectedRequest.type === 'Conversion'
+                                                            ? 'Proposed Role'
+                                                            : 'Department'}
                                                     </Text>
-                                                    <div style={{ fontWeight: 500 }}>Junior Analyst</div>
+                                                    <div style={{ fontWeight: 500 }}>
+                                                        {selectedRequest.proposedRole || selectedRequest.department}
+                                                    </div>
                                                 </Col>
                                                 <Col span={12}>
                                                     <Text
@@ -317,9 +364,11 @@ export const DirectorApprovals = () => {
                                                             fontWeight: 600
                                                         }}
                                                     >
-                                                        Mentor
+                                                        {selectedRequest.mentor ? 'Mentor' : 'HR Owner'}
                                                     </Text>
-                                                    <div style={{ fontWeight: 500 }}>Mike Ross</div>
+                                                    <div style={{ fontWeight: 500 }}>
+                                                        {selectedRequest.mentor || selectedRequest.hr || 'N/A'}
+                                                    </div>
                                                 </Col>
                                                 <Col span={12}>
                                                     <Text
@@ -330,9 +379,11 @@ export const DirectorApprovals = () => {
                                                             fontWeight: 600
                                                         }}
                                                     >
-                                                        Start Date
+                                                        Submission Date
                                                     </Text>
-                                                    <div style={{ fontWeight: 500 }}>Nov 15, 2023</div>
+                                                    <div style={{ fontWeight: 500 }}>
+                                                        {dayjs(selectedRequest.createdAt).format('MMM DD, YYYY')}
+                                                    </div>
                                                 </Col>
                                             </Row>
                                         </div>
@@ -366,10 +417,14 @@ export const DirectorApprovals = () => {
                                                 marginBottom: '16px'
                                             }}
                                         >
-                                            <span style={{ fontSize: '36px', fontWeight: 700 }}>4.8</span>
-                                            <Text type='secondary' style={{ marginBottom: '8px' }}>
-                                                / 5.0 Overall
-                                            </Text>
+                                            <span style={{ fontSize: '36px', fontWeight: 700 }}>
+                                                {selectedRequest.score || 'N/A'}
+                                            </span>
+                                            {selectedRequest.score && (
+                                                <Text type='secondary' style={{ marginBottom: '8px' }}>
+                                                    / 5.0 Overall
+                                                </Text>
+                                            )}
                                         </div>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                             <div>
@@ -470,28 +525,42 @@ export const DirectorApprovals = () => {
                                                 }}
                                             >
                                                 <Text type='secondary'>Allocated Budget (FY23)</Text>
-                                                <Text strong>$60,000</Text>
+                                                <Text strong>${selectedRequest.budget?.toLocaleString() || '0'}</Text>
                                             </div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                                 <Text type='secondary'>Proposed Salary</Text>
                                                 <Text strong style={{ fontSize: '18px' }}>
-                                                    $65,000
+                                                    ${selectedRequest.salary?.toLocaleString() || '0'}
                                                 </Text>
                                             </div>
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '8px',
-                                                    background: '#fff7ed',
-                                                    padding: '8px 12px',
-                                                    borderRadius: '4px',
-                                                    color: '#d97706',
-                                                    fontSize: '12px'
-                                                }}
-                                            >
-                                                <WarningOutlined /> Exceeds budget by $5,000 (8.3%)
-                                            </div>
+                                            {selectedRequest.salary &&
+                                                selectedRequest.budget &&
+                                                selectedRequest.salary > selectedRequest.budget && (
+                                                    <div
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '8px',
+                                                            background: '#fff7ed',
+                                                            padding: '8px 12px',
+                                                            borderRadius: '4px',
+                                                            color: '#d97706',
+                                                            fontSize: '12px'
+                                                        }}
+                                                    >
+                                                        <WarningOutlined /> Exceeds budget by $
+                                                        {(
+                                                            selectedRequest.salary - selectedRequest.budget
+                                                        ).toLocaleString()}{' '}
+                                                        (
+                                                        {Math.round(
+                                                            ((selectedRequest.salary - selectedRequest.budget) /
+                                                                selectedRequest.budget) *
+                                                                100
+                                                        )}
+                                                        %)
+                                                    </div>
+                                                )}
                                         </div>
                                     </Card>
                                 </Col>
@@ -509,7 +578,7 @@ export const DirectorApprovals = () => {
                                                 marginBottom: '24px'
                                             }}
                                         >
-                                            <MessageOutlined style={{ color: '#136dec' }} /> Mentor's Justification
+                                            <MessageOutlined style={{ color: '#136dec' }} /> Stakeholder Justification
                                         </Title>
                                         <div
                                             style={{ position: 'relative', paddingLeft: '16px', marginBottom: '16px' }}
@@ -529,125 +598,108 @@ export const DirectorApprovals = () => {
                                             <Paragraph
                                                 style={{ fontStyle: 'italic', color: '#4b5563', lineHeight: 1.6 }}
                                             >
-                                                Alex has consistently exceeded expectations in the Q3 migration project.
-                                                He not only handled his assigned tickets but also proactively fixed
-                                                legacy bugs in the payment gateway. His technical aptitude matches that
-                                                of a Junior II level, justifying the slightly higher starting salary.
-                                                Losing him would be a setback for the team velocity.
+                                                The candidate has consistently exceeded expectations in their current
+                                                role. Performance metrics indicate a high technical aptitude and strong
+                                                team integration. Justifies the proposed terms based on market standards
+                                                and internal parity.
                                             </Paragraph>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <Avatar size='small' src='https://i.pravatar.cc/150?u=10' />
+                                            <Avatar size='small' icon={<UserOutlined />} />
                                             <Text strong style={{ fontSize: '12px' }}>
-                                                Mike Ross, Senior Lead
+                                                {selectedRequest.mentor || selectedRequest.hr || 'Manager'}
                                             </Text>
                                         </div>
                                     </Card>
                                 </Col>
                             </Row>
-
-                            <Card
-                                bordered={false}
-                                style={{ marginTop: '24px', borderRadius: '12px', border: '1px solid #e5e7eb' }}
-                            >
-                                <Title level={5} style={{ marginBottom: '16px' }}>
-                                    Detailed Evaluation
-                                </Title>
-                                <List
-                                    itemLayout='horizontal'
-                                    dataSource={[
-                                        {
-                                            criteria: 'Code Quality',
-                                            rating: 5,
-                                            notes: 'Clean, well-documented, follows patterns.'
-                                        },
-                                        {
-                                            criteria: 'Communication',
-                                            rating: 4,
-                                            notes: 'Good proactive updates, needs confidence in presentations.'
-                                        }
-                                    ]}
-                                    renderItem={(item) => (
-                                        <List.Item>
-                                            <Row style={{ width: '100%' }} align='middle'>
-                                                <Col span={6}>
-                                                    <Text strong>{item.criteria}</Text>
-                                                </Col>
-                                                <Col span={6}>
-                                                    <Rate
-                                                        disabled
-                                                        defaultValue={item.rating}
-                                                        style={{ fontSize: '14px', color: '#fbbf24' }}
-                                                    />
-                                                </Col>
-                                                <Col span={12}>
-                                                    <Text type='secondary'>{item.notes}</Text>
-                                                </Col>
-                                            </Row>
-                                        </List.Item>
-                                    )}
-                                />
-                            </Card>
                         </div>
 
-                        <div
-                            style={{
-                                position: 'absolute',
-                                bottom: 0,
-                                left: 0,
-                                width: '100%',
-                                background: '#fff',
-                                borderTop: '1px solid #e5e7eb',
-                                padding: '24px 32px',
-                                boxShadow: '0 -4px 6px -1px rgba(0, 0, 0, 0.05)'
-                            }}
-                        >
-                            <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <Text strong>Director's Notes (Optional)</Text>
-                                    <Input.TextArea
-                                        rows={2}
-                                        placeholder='Add a comment regarding your decision...'
-                                        style={{ marginTop: '8px' }}
-                                        value={directorNote}
-                                        onChange={(e) => setDirectorNote(e.target.value)}
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        {selectedRequest.status === 'Pending' && (
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    background: '#fff',
+                                    borderTop: '1px solid #e5e7eb',
+                                    padding: '24px 32px',
+                                    boxShadow: '0 -4px 6px -1px rgba(0, 0, 0, 0.05)',
+                                    zIndex: 10
+                                }}
+                            >
+                                <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+                                    <div style={{ marginBottom: '16px' }}>
+                                        <Text strong>Director's Notes (Optional)</Text>
+                                        <Input.TextArea
+                                            rows={2}
+                                            placeholder='Add a comment regarding your decision...'
+                                            style={{ marginTop: '8px' }}
+                                            value={directorNote}
+                                            onChange={(e) => setDirectorNote(e.target.value)}
+                                        />
+                                    </div>
                                     <div
                                         style={{
                                             display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px',
-                                            color: '#6b7280',
-                                            fontSize: '12px'
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center'
                                         }}
                                     >
-                                        <InfoCircleOutlined /> Only visible to HR & Mentor
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                                color: '#6b7280',
+                                                fontSize: '12px'
+                                            }}
+                                        >
+                                            <InfoCircleOutlined /> Only visible to HR & Mentor
+                                        </div>
+                                        <Space>
+                                            <Button
+                                                danger
+                                                icon={<CloseCircleOutlined />}
+                                                loading={updateApproval.isPending}
+                                                onClick={() =>
+                                                    Modal.confirm({
+                                                        title: 'Confirm Rejection',
+                                                        content: `Are you sure you want to reject the proposal for ${selectedRequest.name}?`,
+                                                        onOk: () => handleAction('reject')
+                                                    })
+                                                }
+                                            >
+                                                Reject
+                                            </Button>
+                                            <Button
+                                                icon={<HistoryOutlined />}
+                                                loading={updateApproval.isPending}
+                                                onClick={() => handleAction('adjust')}
+                                            >
+                                                Request Adjustment
+                                            </Button>
+                                            <Button
+                                                type='primary'
+                                                icon={<CheckCircleOutlined />}
+                                                style={{ background: '#136dec' }}
+                                                loading={updateApproval.isPending}
+                                                onClick={() =>
+                                                    Modal.confirm({
+                                                        title: 'Confirm Approval',
+                                                        content: `Are you sure you want to approve the proposal for ${selectedRequest.name}?`,
+                                                        onOk: () => handleAction('approve')
+                                                    })
+                                                }
+                                            >
+                                                Approve Request
+                                            </Button>
+                                        </Space>
                                     </div>
-                                    <Space>
-                                        <Button
-                                            danger
-                                            icon={<CloseCircleOutlined />}
-                                            onClick={() => handleAction('reject')}
-                                        >
-                                            Reject
-                                        </Button>
-                                        <Button icon={<HistoryOutlined />} onClick={() => handleAction('adjust')}>
-                                            Request Adjustment
-                                        </Button>
-                                        <Button
-                                            type='primary'
-                                            icon={<CheckCircleOutlined />}
-                                            style={{ background: '#136dec' }}
-                                            onClick={() => handleAction('approve')}
-                                        >
-                                            Approve Request
-                                        </Button>
-                                    </Space>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </>
                 ) : (
                     <div
@@ -659,7 +711,7 @@ export const DirectorApprovals = () => {
                             color: '#8c8c8c'
                         }}
                     >
-                        Select a request to view details
+                        <Empty description='Select a request to view details' />
                     </div>
                 )}
             </Content>

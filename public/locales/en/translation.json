@@ -86,7 +86,8 @@
         "active": "Active",
         "completed": "Completed",
         "dropped": "Dropped",
-        "to": "to"
+        "to": "to",
+        "interns": "interns"
     },
     "common": {
         "actions": "Actions",
