@@ -1,6 +1,6 @@
 import { LockOutlined, UserOutlined, GoogleOutlined } from '@ant-design/icons';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Checkbox, Divider, Form, Input, Layout, Typography, message, theme } from 'antd';
+import { Button, Checkbox, Divider, Form, Input, Typography, message, theme } from 'antd';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
