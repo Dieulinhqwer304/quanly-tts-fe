@@ -1,10 +1,12 @@
-import { Layout, Menu } from 'antd';
-import { DashboardOutlined, UserOutlined, SettingOutlined } from '@ant-design/icons';
+import { Layout, Menu, Avatar, Typography, theme, Button } from 'antd';
+import { DashboardOutlined, UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
 import { ReactNode } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const { Sider } = Layout;
+const { Text } = Typography;
 
 interface NavbarDashboardProps {
     collapsed: boolean;
@@ -35,6 +37,8 @@ const PATH_TO_KEYS_MAP: Record<string, string[]> = {
 export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { logout } = useAuth();
+    const { token } = theme.useToken();
 
     const menuItems: MenuItem[] = [
         {
@@ -46,11 +50,11 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
         {
             key: 'users',
             icon: <UserOutlined />,
-            label: 'Quản lý ngườii dùng',
+            label: 'Quản lý người dùng',
             children: [
                 {
                     key: 'users-list',
-                    label: 'Danh sách ngườii dùng',
+                    label: 'Danh sách người dùng',
                     onClick: () => navigate('/users')
                 }
             ]
@@ -65,11 +69,9 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
 
     const getSelectedKeys = (): string[] => {
         const path = location.pathname;
-
         if (path.match(/\/users\/[^/]+\/update$/)) {
             return ['users', 'users-list'];
         }
-
         return PATH_TO_KEYS_MAP[path] || ['dashboard'];
     };
 
@@ -79,61 +81,101 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
             collapsible
             collapsed={collapsed}
             style={{
-                ...styles.sider,
-                background: '#fff'
+                background: '#fff',
+                borderRight: '1px solid rgba(5, 5, 5, 0.06)',
+                height: '100vh',
+                position: 'fixed',
+                left: 0,
+                top: 0,
+                bottom: 0,
+                zIndex: 1001
             }}
             width={260}
             theme='light'
         >
             <div
                 style={{
-                    ...styles.logo,
-                    borderBottom: '1px solid #f0f0f0'
+                    height: '64px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: collapsed ? 'center' : 'flex-start',
+                    padding: collapsed ? '0' : '0 24px',
+                    borderBottom: '1px solid rgba(5, 5, 5, 0.06)'
                 }}
             >
-                <img
-                    src='/public/vite.svg'
-                    alt='Logo'
+                <div
                     style={{
+                        width: '32px',
                         height: '32px',
-                        margin: collapsed ? '16px auto' : '16px 24px'
+                        background: `linear-gradient(135deg, ${token.colorPrimary} 0%, #764ba2 100%)`,
+                        borderRadius: '8px',
+                        marginRight: collapsed ? 0 : '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#fff',
+                        fontWeight: 'bold',
+                        flexShrink: 0
+                    }}
+                >
+                    A
+                </div>
+                {!collapsed && <span style={{ fontSize: '18px', fontWeight: '700', color: '#1f2937' }}>Admin</span>}
+            </div>
+
+            <div style={{ height: 'calc(100vh - 64px - 70px)', overflowY: 'auto', paddingTop: '16px' }}>
+                <Menu
+                    theme='light'
+                    mode='inline'
+                    selectedKeys={getSelectedKeys()}
+                    defaultOpenKeys={['users']}
+                    items={menuItems}
+                    style={{
+                        borderRight: 0,
+                        fontSize: '15px',
+                        fontWeight: 500
                     }}
                 />
             </div>
-            <Menu
-                theme='light'
-                mode='inline'
-                selectedKeys={getSelectedKeys()}
-                items={menuItems}
+
+            <div
                 style={{
-                    ...styles.menu,
-                    fontSize: '15px',
-                    fontWeight: 400
+                    height: '70px',
+                    borderTop: '1px solid rgba(5, 5, 5, 0.06)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: collapsed ? '0' : '0 16px',
+                    justifyContent: collapsed ? 'center' : 'space-between',
+                    background: '#fafafa'
                 }}
-            />
+            >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
+                    <Avatar style={{ backgroundColor: token.colorPrimary, flexShrink: 0 }} icon={<UserOutlined />} />
+                    {!collapsed && (
+                        <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                            <Text
+                                strong
+                                style={{
+                                    fontSize: '14px',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                }}
+                            >
+                                Admin User
+                            </Text>
+                            <Text type='secondary' style={{ fontSize: '12px' }}>
+                                admin@example.com
+                            </Text>
+                        </div>
+                    )}
+                </div>
+                {!collapsed && (
+                    <Button type='text' icon={<LogoutOutlined />} onClick={logout} style={{ color: '#6b7280' }} />
+                )}
+            </div>
         </Sider>
     );
 };
-
-const styles = {
-    sider: {
-        overflow: 'auto',
-        height: '100vh',
-        position: 'fixed' as const,
-        left: 0,
-        top: 0,
-        bottom: 0,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-    },
-    logo: {
-        height: '64px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    menu: {
-        borderRight: 0
-    }
-} as const;
 
 export default NavbarDashboard;

@@ -1,32 +1,69 @@
 import {
-    LogoutOutlined,
-    // Icon Antd
     MenuFoldOutlined,
     MenuUnfoldOutlined,
+    BellOutlined,
+    SearchOutlined,
     QuestionCircleOutlined,
+    UserOutlined,
     SettingOutlined,
-    UserOutlined
+    LogoutOutlined
 } from '@ant-design/icons';
-import { Avatar, Button, Dropdown, Layout, MenuProps, message, Modal, Space, Typography } from 'antd';
+import {
+    Layout,
+    Button,
+    Input,
+    Badge,
+    Avatar,
+    theme,
+    Popover,
+    List,
+    Typography,
+    Dropdown,
+    MenuProps,
+    Modal,
+    Space,
+    message
+} from 'antd';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RouteConfig } from '../../../constants';
 import { useAuth } from '../../../contexts/AuthContext';
+import { RouteConfig } from '../../../constants';
 
 const { Header } = Layout;
 const { Text } = Typography;
+
 interface HeaderDashboardProps {
-    collapsed: boolean; // Trạng thái đóng/mở sidebar
-    toggleCollapsed: () => void; // Hàm để đóng/mở sidebar
+    collapsed: boolean;
+    toggleCollapsed: () => void;
 }
 
 export const HeaderDashboard = ({ collapsed, toggleCollapsed }: HeaderDashboardProps) => {
+    const { token } = theme.useToken();
     const navigate = useNavigate();
     const { logout } = useAuth();
-    const [isLoading, setIsLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const userMenuItems = [
+    const notifications = [
+        { title: 'New user registered', time: '5 min ago', read: false },
+        { title: 'System update completed', time: '1 hour ago', read: true },
+        { title: 'Weekly report ready', time: 'Yesterday', read: true }
+    ];
+
+    const handleLogout = async () => {
+        setIsLoading(true);
+        try {
+            logout();
+            message.success('Đăng xuất thành công!');
+            navigate(RouteConfig.LoginPage.path);
+        } catch (error) {
+            message.error('Có lỗi xảy ra khi đăng xuất!');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const userMenuItems: MenuProps['items'] = [
         {
             key: 'profile',
             label: 'Thông tin cá nhân',
@@ -50,48 +87,118 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed }: HeaderDashboardP
         }
     ];
 
-    const handleLogout = async () => {
-        setIsLoading(true);
-        try {
-            // Gọi hàm logout từ context để xóa accessToken
-            logout();
-            message.success('Đăng xuất thành công!');
-            navigate(RouteConfig.LoginPage.path);
-        } catch (error) {
-            message.error('Có lỗi xảy ra khi đăng xuất!');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleCancel = () => {
-        setShowModal(false);
-    };
+    const notificationContent = (
+        <div style={{ width: 300 }}>
+            <div
+                style={{
+                    padding: '8px 16px',
+                    borderBottom: '1px solid #f0f0f0',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}
+            >
+                <Text strong>Notifications</Text>
+                <Button type='link' size='small'>
+                    Mark all read
+                </Button>
+            </div>
+            <List
+                itemLayout='horizontal'
+                dataSource={notifications}
+                renderItem={(item) => (
+                    <List.Item
+                        style={{
+                            padding: '12px 16px',
+                            background: item.read ? '#fff' : '#f0f9ff',
+                            cursor: 'pointer',
+                            transition: 'background 0.3s'
+                        }}
+                        className='hover:bg-gray-50'
+                    >
+                        <List.Item.Meta
+                            avatar={<Badge status={item.read ? 'default' : 'processing'} />}
+                            title={<Text style={{ fontSize: '13px' }}>{item.title}</Text>}
+                            description={
+                                <Text type='secondary' style={{ fontSize: '11px' }}>
+                                    {item.time}
+                                </Text>
+                            }
+                        />
+                    </List.Item>
+                )}
+            />
+        </div>
+    );
 
     return (
-        <Header style={styles.header}>
-            {/* Bên trái header  */}
-            <div style={styles.leftSection}>
-                <Button // Nút toggle sidebar
+        <Header
+            style={{
+                padding: '0 24px',
+                background: 'rgba(255, 255, 255, 0.8)',
+                backdropFilter: 'blur(8px)',
+                position: 'sticky',
+                top: 0,
+                zIndex: 1000,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderBottom: '1px solid rgba(5, 5, 5, 0.06)',
+                height: '64px'
+            }}
+        >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <Button
                     type='text'
                     icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
                     onClick={toggleCollapsed}
-                    style={styles.triggerButton}
+                    style={{
+                        fontSize: '16px',
+                        width: 32,
+                        height: 32
+                    }}
+                />
+
+                <Input
+                    prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+                    placeholder='Search...'
+                    bordered={false}
+                    style={{
+                        backgroundColor: '#f3f4f6',
+                        borderRadius: '6px',
+                        width: '240px',
+                        padding: '6px 12px'
+                    }}
+                    className='hidden md:flex'
                 />
             </div>
-            {/* bên phải header  */}
-            <div style={styles.rightSection}>
-                <Dropdown
-                    menu={{ items: userMenuItems as MenuProps['items'] }}
-                    placement='bottomRight'
-                    arrow
-                    trigger={['click']}
-                >
-                    <Space style={styles.userInfo}>
-                        <Avatar icon={<UserOutlined />} />
-                        <span style={styles.userName}>Admin</span>
-                    </Space>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <Button type='text' shape='circle' icon={<QuestionCircleOutlined />} style={{ color: '#6b7280' }} />
+
+                <Popover content={notificationContent} trigger='click' placement='bottomRight' arrow={false}>
+                    <Badge count={1} dot offset={[-4, 4]}>
+                        <Button type='text' shape='circle' icon={<BellOutlined />} style={{ color: '#6b7280' }} />
+                    </Badge>
+                </Popover>
+
+                <div style={{ width: '1px', height: '24px', background: '#e5e7eb' }}></div>
+
+                <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement='bottomRight' arrow>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <Avatar
+                            style={{
+                                backgroundColor: token.colorPrimary,
+                                verticalAlign: 'middle',
+                                cursor: 'pointer'
+                            }}
+                            size='default'
+                            icon={<UserOutlined />}
+                        />
+                        <span style={{ fontWeight: 500, color: '#374151' }}>Admin</span>
+                    </div>
                 </Dropdown>
+
                 <Modal
                     title={
                         <Space>
@@ -100,9 +207,9 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed }: HeaderDashboardP
                         </Space>
                     }
                     open={showModal}
-                    onCancel={handleCancel}
+                    onCancel={() => setShowModal(false)}
                     footer={[
-                        <Button key='cancel' onClick={handleCancel}>
+                        <Button key='cancel' onClick={() => setShowModal(false)}>
                             Hủy
                         </Button>,
                         <Button
@@ -118,61 +225,12 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed }: HeaderDashboardP
                     ]}
                     centered
                     width={400}
-                    style={{ borderRadius: '8px' }}
                 >
                     <div style={{ paddingTop: '16px', paddingBottom: '16px' }}>
-                        <Text style={{ fontSize: '16px' }}>Bạn có chắc chắn muốn đăng xuất khỏi hệ thống không?</Text>
-                        <div
-                            style={{
-                                marginTop: '12px',
-                                padding: '12px',
-                                background: '#fef3c7',
-                                borderRadius: '8px',
-                                border: '1px solid #fde68a'
-                            }}
-                        >
-                            <Text type='secondary' style={{ fontSize: '14px' }}>
-                                💡 Sau khi đăng xuất, bạn sẽ cần đăng nhập lại để tiếp tục sử dụng hệ thống.
-                            </Text>
-                        </div>
+                        <Text>Bạn có chắc chắn muốn đăng xuất khỏi hệ thống không?</Text>
                     </div>
                 </Modal>
             </div>
         </Header>
     );
 };
-
-const styles = {
-    header: {
-        padding: 0,
-        background: '#fff',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-        zIndex: 1,
-        borderBottom: '1px solid #f0f0f0'
-    },
-    leftSection: {
-        display: 'flex',
-        alignItems: 'center'
-    },
-    rightSection: {
-        paddingRight: '24px'
-    },
-    triggerButton: {
-        fontSize: '16px',
-        width: 64,
-        height: 64
-    },
-    searchInput: {
-        width: '300px',
-        marginLeft: '24px'
-    },
-    userInfo: {
-        cursor: 'pointer'
-    },
-    userName: {
-        marginLeft: '8px'
-    }
-} as const;
