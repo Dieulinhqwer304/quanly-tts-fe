@@ -63,35 +63,40 @@ const dashboardRoutes: RouteObject[] = [
     }
 ];
 
+import { ConfigProvider } from 'antd';
+import { themeConfig } from './theme/themeConfig';
+
 export const App: FC = () => {
     return (
-        <AntApp>
-            <NotificationProvider>
-                <AuthProvider>
-                    <BrowserRouter>
-                        <Routes>
-                            <Route path='/' element={<RootLayout />}>
-                                <Route element={<AuthLayout />}>
-                                    <Route path={RouteConfig.LoginPage.path} element={<LoginPage />} />
-                                    <Route path={RouteConfig.Logout.path} element={<FormLogout />} />
-                                </Route>
+        <ConfigProvider theme={themeConfig}>
+            <AntApp>
+                <NotificationProvider>
+                    <AuthProvider>
+                        <BrowserRouter>
+                            <Routes>
+                                <Route path='/' element={<RootLayout />}>
+                                    <Route element={<AuthLayout />}>
+                                        <Route path={RouteConfig.LoginPage.path} element={<LoginPage />} />
+                                        <Route path={RouteConfig.Logout.path} element={<FormLogout />} />
+                                    </Route>
 
-                                <Route element={<DashboardLayout />}>
-                                    <Route path={RouteConfig.ProfilePage.path} element={<ProfilePage />} />
-                                    {dashboardRoutes.map((route) => {
-                                        return <Route key={route.path} path={route.path} element={route.element} />;
-                                    })}
-                                </Route>
+                                    <Route element={<DashboardLayout />}>
+                                        <Route path={RouteConfig.ProfilePage.path} element={<ProfilePage />} />
+                                        {dashboardRoutes.map((route) => {
+                                            return <Route key={route.path} path={route.path} element={route.element} />;
+                                        })}
+                                    </Route>
 
-                                <Route path={RouteConfig.InternalErrorPage.path} element={<InternalErrorPage />} />
-                                <Route path={RouteConfig.ForbiddenPage.path} element={<ForbiddenPage />} />
-                                <Route path={RouteConfig.NotFoundPage.path} element={<NotFoundPage />} />
-                                <Route path='*' element={<NotFoundPage />} />
-                            </Route>
-                        </Routes>
-                    </BrowserRouter>
-                </AuthProvider>
-            </NotificationProvider>
-        </AntApp>
+                                    <Route path={RouteConfig.InternalErrorPage.path} element={<InternalErrorPage />} />
+                                    <Route path={RouteConfig.ForbiddenPage.path} element={<ForbiddenPage />} />
+                                    <Route path={RouteConfig.NotFoundPage.path} element={<NotFoundPage />} />
+                                    <Route path='*' element={<NotFoundPage />} />
+                                </Route>
+                            </Routes>
+                        </BrowserRouter>
+                    </AuthProvider>
+                </NotificationProvider>
+            </AntApp>
+        </ConfigProvider>
     );
 };
