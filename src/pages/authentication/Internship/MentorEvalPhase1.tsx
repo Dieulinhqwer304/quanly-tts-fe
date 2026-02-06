@@ -22,11 +22,13 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 export const MentorEvalPhase1 = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
@@ -36,7 +38,7 @@ export const MentorEvalPhase1 = () => {
         console.log('Phase 1 Evaluation:', values);
         setTimeout(() => {
             setLoading(false);
-            message.success('Phase 1 Evaluation submitted successfully!');
+            message.success(t('common.success'));
             navigate(RouteConfig.MentorRequestList.path);
         }, 1500);
     };
@@ -46,20 +48,20 @@ export const MentorEvalPhase1 = () => {
             <div style={{ marginBottom: '24px' }}>
                 <Breadcrumb
                     items={[
-                        { title: 'Mentor Portal' },
-                        { title: 'Evaluations' },
-                        { title: 'Phase 1: Training Period' },
+                        { title: t('menu.mentor_portal') },
+                        { title: t('menu.evaluations') },
+                        { title: t('eval.phase1_title') },
                     ]}
                 />
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <Space align="center">
-                    <Title level={3} style={{ margin: 0 }}>Step 1: Training Period Evaluation</Title>
+                    <Title level={3} style={{ margin: 0 }}>{t('eval.phase1_title')}</Title>
                 </Space>
                 <Space>
-                    <Button icon={<SaveOutlined />} onClick={() => message.info('Draft saved!')}>Save Draft</Button>
-                    <Button type="primary" onClick={() => form.submit()} loading={loading}>Submit Evaluation</Button>
+                    <Button icon={<SaveOutlined />} onClick={() => message.info(t('eval.draft_saved'))}>{t('eval.save_draft')}</Button>
+                    <Button type="primary" onClick={() => form.submit()} loading={loading}>{t('eval.submit_eval')}</Button>
                 </Space>
             </div>
 
@@ -84,74 +86,74 @@ export const MentorEvalPhase1 = () => {
                 layout="vertical"
                 onFinish={onFinish}
             >
-                <Card title="Core Performance" bordered={false} style={{ borderRadius: '12px', marginBottom: '24px' }}>
+                <Card title={t('eval.core_perf')} bordered={false} style={{ borderRadius: '12px', marginBottom: '24px' }}>
                     <Row gutter={48}>
                         <Col span={12}>
-                            <Form.Item label="Learning Speed" name="learningSpeed" rules={[{ required: true }]}>
+                            <Form.Item label={t('eval.learning_speed')} name="learningSpeed" rules={[{ required: true }]}>
                                 <Rate allowHalf />
                             </Form.Item>
-                            <Text type="secondary" style={{ fontSize: '12px' }}>Ability to grasp new concepts and technologies.</Text>
+                            <Text type="secondary" style={{ fontSize: '12px' }}>{t('eval.learning_speed_desc')}</Text>
                         </Col>
                         <Col span={12}>
-                            <Form.Item label="Communication" name="communication" rules={[{ required: true }]}>
+                            <Form.Item label={t('candidate.communication')} name="communication" rules={[{ required: true }]}>
                                 <Rate allowHalf />
                             </Form.Item>
-                            <Text type="secondary" style={{ fontSize: '12px' }}>Effectiveness in team discussions and reporting.</Text>
+                            <Text type="secondary" style={{ fontSize: '12px' }}>{t('eval.communication_desc')}</Text>
                         </Col>
                     </Row>
                     <Divider />
                     <Row gutter={48}>
                         <Col span={12}>
-                            <Form.Item label="Punctuality" name="punctuality" rules={[{ required: true }]}>
+                            <Form.Item label={t('eval.punctuality')} name="punctuality" rules={[{ required: true }]}>
                                 <Rate allowHalf />
                             </Form.Item>
-                            <Text type="secondary" style={{ fontSize: '12px' }}>Adherence to working hours and meeting schedules.</Text>
+                            <Text type="secondary" style={{ fontSize: '12px' }}>{t('eval.punctuality_desc')}</Text>
                         </Col>
                         <Col span={12}>
-                            <Form.Item label="Code Quality" name="codeQuality" rules={[{ required: true }]}>
+                            <Form.Item label={t('eval.code_quality')} name="codeQuality" rules={[{ required: true }]}>
                                 <Rate allowHalf />
                             </Form.Item>
-                            <Text type="secondary" style={{ fontSize: '12px' }}>Following established coding standards and cleanliness.</Text>
+                            <Text type="secondary" style={{ fontSize: '12px' }}>{t('eval.code_quality_desc')}</Text>
                         </Col>
                     </Row>
                 </Card>
 
-                <Card title="Detailed Assessment" bordered={false} style={{ borderRadius: '12px', marginBottom: '24px' }}>
+                <Card title={t('eval.detailed_assessment')} bordered={false} style={{ borderRadius: '12px', marginBottom: '24px' }}>
                     <Form.Item
-                        label="Strengths"
+                        label={t('eval.strengths')}
                         name="strengths"
-                        rules={[{ required: true, message: 'Please list some strengths' }]}
+                        rules={[{ required: true, message: t('common.required_field') }]}
                     >
-                        <TextArea rows={3} placeholder="What has the intern done well so far?" />
+                        <TextArea rows={3} placeholder={t('eval.strengths_placeholder')} />
                     </Form.Item>
 
                     <Form.Item
-                        label="Areas for Improvement"
+                        label={t('eval.improvements')}
                         name="improvements"
-                        rules={[{ required: true, message: 'Please list areas to improve' }]}
+                        rules={[{ required: true, message: t('common.required_field') }]}
                     >
-                        <TextArea rows={3} placeholder="What should the intern focus on for the next phase?" />
+                        <TextArea rows={3} placeholder={t('eval.improvements_placeholder')} />
                     </Form.Item>
                 </Card>
 
-                <Card title="Phase 2 Recommendation" bordered={false} style={{ borderRadius: '12px' }}>
+                <Card title={t('eval.recommendation')} bordered={false} style={{ borderRadius: '12px' }}>
                     <Form.Item
-                        label="Should this intern proceed to the Project Phase?"
+                        label={t('eval.proceed_q')}
                         name="proceedToPhase2"
                         rules={[{ required: true }]}
                     >
                         <Select
                             options={[
-                                { value: 'yes', label: 'Yes - Ready for real projects' },
-                                { value: 'extended_training', label: 'Conditional - Needs 2 more weeks of training' },
-                                { value: 'no', label: 'No - Not meeting requirements' }
+                                { value: 'yes', label: t('eval.ready_projects') },
+                                { value: 'extended_training', label: t('eval.extended_training') },
+                                { value: 'no', label: t('eval.not_meeting') }
                             ]}
                         />
                     </Form.Item>
                     <div style={{ background: '#f6ffed', padding: '16px', borderRadius: '8px', border: '1px solid #b7eb8f' }}>
                         <Space>
                             <InfoCircleOutlined style={{ color: '#52c41a' }} />
-                            <Text>Advancing to Phase 2 allows the intern to be assigned to client projects.</Text>
+                            <Text>{t('eval.advancing_info')}</Text>
                         </Space>
                     </div>
                 </Card>

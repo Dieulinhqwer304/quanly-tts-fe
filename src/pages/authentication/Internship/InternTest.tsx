@@ -17,6 +17,7 @@ import {
     Result
 } from 'antd';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -64,6 +65,7 @@ const questions: Question[] = [
 ];
 
 export const InternTest = () => {
+    const { t } = useTranslation();
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState<Record<number, number>>({});
     const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
@@ -98,7 +100,7 @@ export const InternTest = () => {
         });
         setScore(finalScore);
         setSubmitted(true);
-        message.success('Test submitted successfully!');
+        message.success(t('common.success'));
     };
 
     if (submitted) {
@@ -106,13 +108,13 @@ export const InternTest = () => {
             <div style={{ padding: '48px', textAlign: 'center' }}>
                 <Result
                     status={score === questions.length ? "success" : "info"}
-                    title="Test Completed!"
-                    subTitle={`You scored ${score} out of ${questions.length} questions correctly.`}
+                    title={t('test.completed')}
+                    subTitle={t('test.score_msg', { score, total: questions.length })}
                     extra={[
                         <Button type="primary" key="dashboard" onClick={() => window.location.reload()}>
-                            Try Another Set
+                            {t('test.try_another')}
                         </Button>,
-                        <Button key="back">View Detailed Feedback</Button>,
+                        <Button key="back">{t('test.view_feedback')}</Button>,
                     ]}
                 />
             </div>
@@ -125,8 +127,8 @@ export const InternTest = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Space size="large">
                         <div>
-                            <Text type="secondary" style={{ display: 'block', fontSize: '12px' }}>PROGRESS</Text>
-                            <Text strong>{currentQuestion + 1} / {questions.length} Questions</Text>
+                            <Text type="secondary" style={{ display: 'block', fontSize: '12px' }}>{t('test.progress')}</Text>
+                            <Text strong>{currentQuestion + 1} / {questions.length} {t('test.questions')}</Text>
                         </div>
                         <Progress
                             type="circle"
@@ -136,7 +138,7 @@ export const InternTest = () => {
                         />
                     </Space>
                     <div style={{ textAlign: 'right' }}>
-                        <Text type="secondary" style={{ display: 'block', fontSize: '12px' }}>TIME REMAINING</Text>
+                        <Text type="secondary" style={{ display: 'block', fontSize: '12px' }}>{t('test.time_remaining')}</Text>
                         <Space>
                             <ClockCircleOutlined style={{ color: timeLeft < 60 ? '#ff4d4f' : '#136dec' }} />
                             <Text strong style={{ fontSize: '18px', color: timeLeft < 60 ? '#ff4d4f' : 'inherit' }}>
@@ -200,19 +202,19 @@ export const InternTest = () => {
                             type="primary"
                             icon={<CheckCircleOutlined />}
                             onClick={() => Modal.confirm({
-                                title: 'Submit Test?',
-                                content: 'Are you sure you want to submit your answers?',
+                                title: t('test.submit_confirm'),
+                                content: t('test.submit_desc'),
                                 onOk: handleSubmit
                             })}
                         >
-                            Finish & Submit
+                            {t('test.finish_submit')}
                         </Button>
                     ) : (
                         <Button
                             type="primary"
                             onClick={() => setCurrentQuestion(prev => prev + 1)}
                         >
-                            Next Question <RightOutlined />
+                            {t('test.next')} <RightOutlined />
                         </Button>
                     )}
                 </div>
@@ -220,7 +222,7 @@ export const InternTest = () => {
 
             <div style={{ marginTop: '24px', textAlign: 'center' }}>
                 <Text type="secondary">
-                    Select the best answer for each question. You can review and change your answers before submitting.
+                    {t('test.instruction')}
                 </Text>
             </div>
         </div>
