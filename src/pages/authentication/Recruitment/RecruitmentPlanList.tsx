@@ -28,6 +28,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
 
@@ -116,6 +117,7 @@ const schedule = [
 
 export const RecruitmentPlanList = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const handleMenuClick = (e: any, campaignName: string) => {
         if (e.key === 'edit') {
@@ -129,17 +131,17 @@ export const RecruitmentPlanList = () => {
 
     const getActionMenu = (record: Campaign): MenuProps => ({
         items: [
-            { key: 'view', label: 'View Details' },
-            { key: 'edit', label: 'Edit' },
+            { key: 'view', label: t('common.view') },
+            { key: 'edit', label: t('common.edit') },
             { type: 'divider' },
-            { key: 'delete', label: 'Delete', danger: true }
+            { key: 'delete', label: t('common.delete'), danger: true }
         ],
         onClick: (e) => handleMenuClick(e, record.name)
     });
 
     const columns: ColumnsType<Campaign> = [
         {
-            title: 'Campaign Name',
+            title: t('recruitment.campaign_name'),
             dataIndex: 'name',
             key: 'name',
             render: (text, record) => (
@@ -154,19 +156,19 @@ export const RecruitmentPlanList = () => {
             )
         },
         {
-            title: 'Department',
+            title: t('common.department'),
             dataIndex: 'department',
             key: 'department',
             render: (text) => <Text type='secondary'>{text}</Text>
         },
         {
-            title: 'Start Date',
+            title: t('candidate.applied_date'),
             dataIndex: 'startDate',
             key: 'startDate',
             render: (text) => <Text type='secondary'>{text}</Text>
         },
         {
-            title: 'Candidates',
+            title: t('candidate.total_applications'),
             dataIndex: 'candidates',
             key: 'candidates',
             render: (count, record) => (
@@ -186,7 +188,7 @@ export const RecruitmentPlanList = () => {
             )
         },
         {
-            title: 'Status',
+            title: t('common.status'),
             dataIndex: 'status',
             key: 'status',
             render: (status) => {
@@ -196,13 +198,13 @@ export const RecruitmentPlanList = () => {
 
                 return (
                     <Tag color={color} style={{ borderRadius: '10px' }}>
-                        {status}
+                        {status === 'Active' ? t('internship.active') : status === 'Pending' ? t('recruitment.pending_approval') : t('recruitment.closed')}
                     </Tag>
                 );
             }
         },
         {
-            title: 'Actions',
+            title: t('common.actions'),
             key: 'action',
             render: (_, record) => (
                 <Dropdown menu={getActionMenu(record)} trigger={['click']}>
@@ -215,7 +217,7 @@ export const RecruitmentPlanList = () => {
     return (
         <div style={{ padding: '24px' }}>
             <div style={{ marginBottom: '24px' }}>
-                <Title level={3}>Recruitment Overview</Title>
+                <Title level={3}>{t('recruitment.overview')}</Title>
             </div>
 
             <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
@@ -228,12 +230,12 @@ export const RecruitmentPlanList = () => {
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                             <div>
-                                <Text type='secondary'>Open Positions</Text>
+                                <Text type='secondary'>{t('recruitment.open_positions')}</Text>
                                 <Title level={2} style={{ margin: '8px 0' }}>
                                     12
                                 </Title>
                                 <Text type='success' style={{ fontSize: '12px' }}>
-                                    <RiseOutlined /> +2 vs last week
+                                    <RiseOutlined /> +2 {t('common.last_month')}
                                 </Text>
                             </div>
                             <div style={{ background: '#e6f7ff', padding: '8px', borderRadius: '8px' }}>
@@ -251,12 +253,12 @@ export const RecruitmentPlanList = () => {
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                             <div>
-                                <Text type='secondary'>Pending Applications</Text>
+                                <Text type='secondary'>{t('recruitment.pending_applications')}</Text>
                                 <Title level={2} style={{ margin: '8px 0' }}>
                                     45
                                 </Title>
                                 <Text type='secondary' style={{ fontSize: '12px' }}>
-                                    Require review
+                                    {t('recruitment.require_review')}
                                 </Text>
                             </div>
                             <div style={{ background: '#fff7e6', padding: '8px', borderRadius: '8px' }}>
@@ -274,11 +276,11 @@ export const RecruitmentPlanList = () => {
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                             <div>
-                                <Text type='secondary'>Upcoming Interviews</Text>
+                                <Text type='secondary'>{t('recruitment.upcoming_interviews')}</Text>
                                 <Title level={2} style={{ margin: '8px 0' }}>
                                     8
                                 </Title>
-                                <Tag color='purple'>Today</Tag>
+                                <Tag color='purple'>{t('onboarding.today')}</Tag>
                             </div>
                             <div style={{ background: '#f9f0ff', padding: '8px', borderRadius: '8px' }}>
                                 <CalendarOutlined style={{ fontSize: '20px', color: '#722ed1' }} />
@@ -290,12 +292,12 @@ export const RecruitmentPlanList = () => {
                     <Card bordered={false} style={{ borderRadius: '12px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                             <div>
-                                <Text type='secondary'>Conversion Rate</Text>
+                                <Text type='secondary'>{t('recruitment.conversion_rate')}</Text>
                                 <Title level={2} style={{ margin: '8px 0' }}>
                                     18%
                                 </Title>
                                 <Text type='success' style={{ fontSize: '12px' }}>
-                                    <RiseOutlined /> 1.5% vs last month
+                                    <RiseOutlined /> 1.5% {t('common.last_week')}
                                 </Text>
                             </div>
                             <div style={{ background: '#f6ffed', padding: '8px', borderRadius: '8px' }}>
@@ -309,7 +311,7 @@ export const RecruitmentPlanList = () => {
             <Row gutter={24}>
                 <Col xs={24} lg={16}>
                     <Card
-                        title='Recruitment Campaigns'
+                        title={t('recruitment.campaigns')}
                         bordered={false}
                         style={{ borderRadius: '12px' }}
                         extra={
@@ -318,35 +320,35 @@ export const RecruitmentPlanList = () => {
                                 icon={<PlusOutlined />}
                                 onClick={() => navigate(RouteConfig.RecruitmentPlanCreate.path)}
                             >
-                                Create New Plan
+                                {t('recruitment.create_new_plan')}
                             </Button>
                         }
                     >
                         <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                             <Input
                                 prefix={<SearchOutlined />}
-                                placeholder='Search campaigns...'
+                                placeholder={t('recruitment.search_campaigns')}
                                 style={{ width: 200 }}
                             />
                             <Select
-                                defaultValue='All Departments'
+                                defaultValue={t('recruitment.all_depts')}
                                 style={{ width: 160 }}
                                 options={[
-                                    { value: 'All Departments', label: 'All Departments' },
+                                    { value: 'All Departments', label: t('recruitment.all_depts') },
                                     { value: 'Engineering', label: 'Engineering' },
                                     { value: 'Marketing', label: 'Marketing' }
                                 ]}
                             />
                             <Select
-                                defaultValue='Status: All'
+                                defaultValue={t('recruitment.status_all')}
                                 style={{ width: 140 }}
                                 options={[
-                                    { value: 'Status: All', label: 'Status: All' },
-                                    { value: 'Active', label: 'Active' },
-                                    { value: 'Closed', label: 'Closed' }
+                                    { value: 'Status: All', label: t('recruitment.status_all') },
+                                    { value: 'Active', label: t('internship.active') },
+                                    { value: 'Closed', label: t('recruitment.closed') }
                                 ]}
                             />
-                            <Button icon={<FilterOutlined />}>More Filters</Button>
+                            <Button icon={<FilterOutlined />}>{t('common.more_filters')}</Button>
                         </div>
 
                         <Table columns={columns} dataSource={data} pagination={{ pageSize: 5 }} />
@@ -355,7 +357,7 @@ export const RecruitmentPlanList = () => {
 
                 <Col xs={24} lg={8}>
                     <Space direction='vertical' size='large' style={{ width: '100%' }}>
-                        <Card title="Today's Schedule" bordered={false} style={{ borderRadius: '12px' }}>
+                        <Card title={t('recruitment.today_schedule')} bordered={false} style={{ borderRadius: '12px' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 {schedule.map((item, index) => (
                                     <div
@@ -394,7 +396,7 @@ export const RecruitmentPlanList = () => {
                                                 {item.title}
                                             </Text>
                                             <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                with {item.with}
+                                                {t('interview.online')} {item.with}
                                             </Text>
                                             <div
                                                 style={{
@@ -415,7 +417,7 @@ export const RecruitmentPlanList = () => {
                                     block
                                     onClick={() => navigate(RouteConfig.InterviewSchedule.path)}
                                 >
-                                    View Full Calendar
+                                    {t('recruitment.view_full_calendar')}
                                 </Button>
                             </div>
                         </Card>
@@ -430,16 +432,16 @@ export const RecruitmentPlanList = () => {
                             bodyStyle={{ padding: '24px' }}
                         >
                             <Title level={4} style={{ color: 'white', marginTop: 0 }}>
-                                Need Mentors?
+                                {t('recruitment.need_mentors')}
                             </Title>
                             <Text style={{ color: 'rgba(255,255,255,0.85)', display: 'block', marginBottom: '16px' }}>
-                                Assign mentors to the new batch of engineering interns.
+                                {t('recruitment.assign_mentors_desc')}
                             </Text>
                             <Button
                                 style={{ color: '#1890ff', fontWeight: 'bold' }}
                                 onClick={() => navigate(RouteConfig.MentorRequestList.path)}
                             >
-                                Assign Now
+                                {t('recruitment.assign_now')}
                             </Button>
                         </Card>
                     </Space>

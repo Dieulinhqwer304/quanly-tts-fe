@@ -1,11 +1,9 @@
 import {
-    CalendarOutlined,
-    CheckCircleOutlined,
-    CloseCircleOutlined,
     DownloadOutlined,
     EnvironmentOutlined,
     FilePdfOutlined,
     LinkedinOutlined,
+    LeftOutlined,
     MailOutlined,
     PhoneOutlined,
     UserOutlined
@@ -17,12 +15,12 @@ import {
     Col,
     Descriptions,
     Divider,
+    Input,
     Layout,
     List,
     Modal,
     Row,
     Space,
-    Steps,
     Tag,
     Timeline,
     Typography,
@@ -30,11 +28,13 @@ import {
 } from 'antd';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const { Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
 
 export const CVDetail = () => {
+    const { t } = useTranslation();
     const { id } = useParams();
     const navigate = useNavigate();
     const [status, setStatus] = useState<string>('Pending Review');
@@ -57,21 +57,21 @@ export const CVDetail = () => {
 
     const handleApprove = () => {
         setStatus('Shortlisted');
-        message.success('Candidate shortlisted successfully!');
+        message.success(t('common.success'));
     };
 
     const handleReject = () => {
         setIsRejectModalOpen(false);
         setStatus('Rejected');
-        message.error('Candidate rejected.');
+        message.error(t('common.error'));
     };
 
     return (
         <Layout style={{ minHeight: '100vh', background: '#f6f7f8' }}>
             <Content style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
                 <div style={{ marginBottom: '24px' }}>
-                    <Button type='link' onClick={() => navigate('/recruitment/cvs')} style={{ paddingLeft: 0 }}>
-                        &larr; Back to Candidates
+                    <Button icon={<LeftOutlined />} type='link' onClick={() => navigate('/recruitment/cvs')} style={{ paddingLeft: 0 }}>
+                        {t('candidate.back_to_candidates')}
                     </Button>
                 </div>
 
@@ -132,27 +132,27 @@ export const CVDetail = () => {
                                         status === 'Shortlisted'
                                             ? 'success'
                                             : status === 'Rejected'
-                                              ? 'error'
-                                              : 'warning'
+                                                ? 'error'
+                                                : 'warning'
                                     }
                                     style={{ fontSize: '14px', padding: '4px 12px' }}
                                 >
-                                    {status}
+                                    {status === 'Shortlisted' ? t('candidate.shortlisted') : status === 'Rejected' ? t('candidate.rejected') : t('candidate.pending_review')}
                                 </Tag>
                             </div>
                             <Space>
-                                <Button icon={<DownloadOutlined />}>Download CV</Button>
+                                <Button icon={<DownloadOutlined />}>{t('candidate.download_cv')}</Button>
                                 {status !== 'Rejected' && (
                                     <>
                                         <Button danger onClick={() => setIsRejectModalOpen(true)}>
-                                            Reject
+                                            {t('candidate.reject_candidate_btn')}
                                         </Button>
                                         <Button
                                             type='primary'
                                             onClick={handleApprove}
                                             disabled={status === 'Shortlisted'}
                                         >
-                                            {status === 'Shortlisted' ? 'Shortlisted' : 'Shortlist Candidate'}
+                                            {status === 'Shortlisted' ? t('candidate.shortlisted') : t('candidate.shortlist_candidate_btn')}
                                         </Button>
                                     </>
                                 )}
@@ -164,14 +164,14 @@ export const CVDetail = () => {
                 <Row gutter={24}>
                     <Col xs={24} lg={16}>
                         <Card
-                            title='Candidate Information'
+                            title={t('candidate.candidate_info')}
                             bordered={false}
                             style={{ borderRadius: '12px', marginBottom: '24px' }}
                         >
                             <Descriptions column={1} labelStyle={{ fontWeight: 600, width: '150px' }}>
-                                <Descriptions.Item label='Education'>{candidate.education}</Descriptions.Item>
-                                <Descriptions.Item label='Experience'>{candidate.experience}</Descriptions.Item>
-                                <Descriptions.Item label='Skills'>
+                                <Descriptions.Item label={t('candidate.education')}>{candidate.education}</Descriptions.Item>
+                                <Descriptions.Item label={t('candidate.experience')}>{candidate.experience}</Descriptions.Item>
+                                <Descriptions.Item label={t('candidate.skills')}>
                                     <Space size={[0, 8]} wrap>
                                         {candidate.skills.map((skill) => (
                                             <Tag key={skill}>{skill}</Tag>
@@ -187,7 +187,7 @@ export const CVDetail = () => {
 
                             <Divider />
 
-                            <Title level={5}>Cover Letter</Title>
+                            <Title level={5}>{t('candidate.cover_letter')}</Title>
                             <Paragraph style={{ color: '#4b5563' }}>
                                 I am writing to express my strong interest in the Frontend Developer Intern position at
                                 InternOS. As a final year Computer Science student, I have built several React
@@ -198,7 +198,7 @@ export const CVDetail = () => {
 
                             <Divider />
 
-                            <Title level={5}>Resume Preview</Title>
+                            <Title level={5}>{t('candidate.resume_preview')}</Title>
                             <div
                                 style={{
                                     height: '400px',
@@ -217,7 +217,7 @@ export const CVDetail = () => {
                                     <Text type='secondary' style={{ display: 'block' }}>
                                         Sarah_Jenkins_Resume.pdf
                                     </Text>
-                                    <Button type='link'>Click to preview</Button>
+                                    <Button type='link'>{t('candidate.click_to_preview')}</Button>
                                 </div>
                             </div>
                         </Card>
@@ -225,7 +225,7 @@ export const CVDetail = () => {
 
                     <Col xs={24} lg={8}>
                         <Card
-                            title='Application Timeline'
+                            title={t('candidate.app_timeline')}
                             bordered={false}
                             style={{ borderRadius: '12px', marginBottom: '24px' }}
                         >
@@ -235,10 +235,10 @@ export const CVDetail = () => {
                                         color: 'green',
                                         children: (
                                             <>
-                                                <Text strong>Applied</Text>
+                                                <Text strong>{t('candidate.applied')}</Text>
                                                 <br />
                                                 <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                    {candidate.appliedDate} - via Website
+                                                    {candidate.appliedDate} - {t('candidate.via_website')}
                                                 </Text>
                                             </>
                                         )
@@ -247,10 +247,10 @@ export const CVDetail = () => {
                                         color: 'blue',
                                         children: (
                                             <>
-                                                <Text strong>Screening</Text>
+                                                <Text strong>{t('candidate.screening')}</Text>
                                                 <br />
                                                 <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                    Oct 25, 2023 - Auto-screened (Match: 92%)
+                                                    Oct 25, 2023 - {t('candidate.auto_screened')} (Match: 92%)
                                                 </Text>
                                             </>
                                         )
@@ -259,27 +259,27 @@ export const CVDetail = () => {
                                         color: status === 'Shortlisted' ? 'blue' : 'gray',
                                         children: (
                                             <>
-                                                <Text strong>Shortlisted</Text>
+                                                <Text strong>{t('candidate.shortlisted')}</Text>
                                                 <br />
                                                 <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                    {status === 'Shortlisted' ? 'Just now - by HR' : 'Pending'}
+                                                    {status === 'Shortlisted' ? `${t('candidate.just_now')} - by HR` : t('learning_path.draft')}
                                                 </Text>
                                             </>
                                         )
                                     },
                                     {
                                         color: 'gray',
-                                        children: 'Interview'
+                                        children: t('candidate.interview')
                                     },
                                     {
                                         color: 'gray',
-                                        children: 'Offer'
+                                        children: t('candidate.offer')
                                     }
                                 ]}
                             />
                         </Card>
 
-                        <Card title='Internal Notes' bordered={false} style={{ borderRadius: '12px' }}>
+                        <Card title={t('candidate.internal_notes')} bordered={false} style={{ borderRadius: '12px' }}>
                             <List
                                 itemLayout='horizontal'
                                 dataSource={[
@@ -307,9 +307,9 @@ export const CVDetail = () => {
                                 )}
                             />
                             <div style={{ marginTop: '16px' }}>
-                                <Input.TextArea placeholder='Add a note...' rows={2} />
+                                <Input.TextArea placeholder={`${t('candidate.add_note')}...`} rows={2} />
                                 <Button type='primary' size='small' style={{ marginTop: '8px', float: 'right' }}>
-                                    Add Note
+                                    {t('candidate.add_note')}
                                 </Button>
                             </div>
                         </Card>
@@ -317,19 +317,18 @@ export const CVDetail = () => {
                 </Row>
 
                 <Modal
-                    title='Reject Candidate'
+                    title={t('candidate.reject_confirm_title')}
                     open={isRejectModalOpen}
                     onOk={handleReject}
                     onCancel={() => setIsRejectModalOpen(false)}
-                    okText='Confirm Reject'
+                    okText={t('candidate.reject_candidate_btn')}
                     okButtonProps={{ danger: true }}
                 >
                     <p>
-                        Are you sure you want to reject this candidate? This action will send a rejection email template
-                        to the candidate.
+                        {t('candidate.reject_confirm_msg')}
                     </p>
                     <Input.TextArea
-                        placeholder='Reason for rejection (internal)...'
+                        placeholder={t('candidate.reject_reason_label')}
                         rows={3}
                         style={{ marginTop: '16px' }}
                     />

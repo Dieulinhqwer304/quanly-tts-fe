@@ -30,6 +30,7 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
 
@@ -133,6 +134,7 @@ const internData: InternProgress[] = [
 ];
 
 export const MentorRequestList = () => {
+    const { t } = useTranslation();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleAction = (action: string, item: string) => {
@@ -141,10 +143,10 @@ export const MentorRequestList = () => {
 
     const getActionMenu = (record: InternProgress): MenuProps => ({
         items: [
-            { key: 'view', label: 'View Profile' },
-            { key: 'message', label: 'Message Intern' },
+            { key: 'view', label: t('task_mgmt.view_profile') },
+            { key: 'message', label: t('task_mgmt.message_intern') },
             { type: 'divider' },
-            { key: 'report', label: 'Report Issue', danger: true }
+            { key: 'report', label: t('task_mgmt.report_issue'), danger: true }
         ],
         onClick: (e) => {
             if (e.key === 'view') handleAction('Viewed profile', record.name);
@@ -155,7 +157,7 @@ export const MentorRequestList = () => {
 
     const columns: ColumnsType<InternProgress> = [
         {
-            title: 'Intern',
+            title: t('task_mgmt.intern'),
             dataIndex: 'name',
             key: 'name',
             render: (text, record) => (
@@ -169,13 +171,13 @@ export const MentorRequestList = () => {
             )
         },
         {
-            title: 'Current Phase',
+            title: t('task_mgmt.project_phase'),
             dataIndex: 'currentPhase',
             key: 'currentPhase',
-            render: (text, record) => <Tag color={record.phaseColor}>{text}</Tag>
+            render: (text, record) => <Tag color={record.phaseColor}>{text === 'Training' ? t('task_mgmt.training') : t('task_mgmt.project')}</Tag>
         },
         {
-            title: 'Progress',
+            title: t('learning_path.progress'),
             dataIndex: 'progressPercent',
             key: 'progress',
             width: '25%',
@@ -197,7 +199,7 @@ export const MentorRequestList = () => {
             )
         },
         {
-            title: 'Status',
+            title: t('common.status'),
             dataIndex: 'status',
             key: 'status',
             align: 'right',
@@ -208,12 +210,12 @@ export const MentorRequestList = () => {
                     ) : (
                         <span style={{ marginRight: '4px', color: '#faad14' }}>●</span>
                     )}
-                    {status}
+                    {status === 'On Track' ? t('task_mgmt.on_track') : t('task_mgmt.behind')}
                 </Tag>
             )
         },
         {
-            title: 'Actions',
+            title: t('common.actions'),
             key: 'action',
             align: 'right',
             render: (_, record) => (
@@ -231,12 +233,12 @@ export const MentorRequestList = () => {
             >
                 <div>
                     <Title level={2} style={{ margin: 0 }}>
-                        Dashboard Overview
+                        {t('task_mgmt.dashboard_overview')}
                     </Title>
-                    <Text type='secondary'>Manage your interns' training progress and review pending tasks.</Text>
+                    <Text type='secondary'>{t('task_mgmt.dashboard_desc')}</Text>
                 </div>
                 <Button type='primary' icon={<FileAddOutlined />} size='large' onClick={() => setIsModalOpen(true)}>
-                    Assign New Task
+                    {t('task_mgmt.assign_new_task')}
                 </Button>
             </div>
 
@@ -252,13 +254,13 @@ export const MentorRequestList = () => {
                                 color: '#8c8c8c'
                             }}
                         >
-                            <GroupOutlined /> Total Interns
+                            <GroupOutlined /> {t('task_mgmt.total_interns')}
                         </div>
                         <Title level={2} style={{ margin: 0 }}>
                             12
                         </Title>
                         <Tag color='success' style={{ marginTop: '8px' }}>
-                            +2 this month
+                            +2 {t('task_mgmt.this_month')}
                         </Tag>
                     </Card>
                 </Col>
@@ -273,13 +275,13 @@ export const MentorRequestList = () => {
                                 color: '#8c8c8c'
                             }}
                         >
-                            <ClockCircleOutlined /> Pending Reviews
+                            <ClockCircleOutlined /> {t('task_mgmt.pending_reviews')}
                         </div>
                         <Title level={2} style={{ margin: 0 }}>
                             5
                         </Title>
                         <Tag color='warning' style={{ marginTop: '8px' }}>
-                            Needs attention
+                            {t('recruitment.require_review')}
                         </Tag>
                     </Card>
                 </Col>
@@ -294,13 +296,13 @@ export const MentorRequestList = () => {
                                 color: '#8c8c8c'
                             }}
                         >
-                            <RiseOutlined /> Avg. Completion
+                            <RiseOutlined /> {t('task_mgmt.avg_completion')}
                         </div>
                         <Title level={2} style={{ margin: 0 }}>
                             78%
                         </Title>
                         <Tag color='success' style={{ marginTop: '8px' }}>
-                            +5% vs last week
+                            +5% {t('onboarding.last_week')}
                         </Tag>
                     </Card>
                 </Col>
@@ -315,13 +317,13 @@ export const MentorRequestList = () => {
                                 color: '#8c8c8c'
                             }}
                         >
-                            <TrophyOutlined /> Project Phase
+                            <TrophyOutlined /> {t('task_mgmt.project_phase')}
                         </div>
                         <Title level={2} style={{ margin: 0 }}>
                             4
                         </Title>
                         <Tag color='blue' style={{ marginTop: '8px' }}>
-                            Interns promoted
+                            {t('task_mgmt.interns_promoted')}
                         </Tag>
                     </Card>
                 </Col>
@@ -339,7 +341,7 @@ export const MentorRequestList = () => {
                             gap: '8px'
                         }}
                     >
-                        <WarningOutlined style={{ color: '#faad14' }} /> Pending Reviews
+                        <WarningOutlined style={{ color: '#faad14' }} /> {t('task_mgmt.pending_reviews')}
                     </div>
                     <Card bordered={false} style={{ borderRadius: '12px' }} bodyStyle={{ padding: 0 }}>
                         <List
@@ -354,7 +356,7 @@ export const MentorRequestList = () => {
                                                 marginBottom: '8px'
                                             }}
                                         >
-                                            <Tag color={item.phaseColor}>{item.phase}</Tag>
+                                            <Tag color={item.phaseColor}>{item.phase.includes('Training') ? t('task_mgmt.training') : t('task_mgmt.project')}</Tag>
                                             <Text type='secondary' style={{ fontSize: '12px' }}>
                                                 {item.timeAgo}
                                             </Text>
@@ -379,13 +381,13 @@ export const MentorRequestList = () => {
                                                 size='small'
                                                 onClick={() => handleAction('Reviewed', item.taskName)}
                                             >
-                                                Review
+                                                {t('task_mgmt.review')}
                                             </Button>
                                             <Button
                                                 size='small'
                                                 onClick={() => handleAction('Dismissed', item.taskName)}
                                             >
-                                                Dismiss
+                                                {t('task_mgmt.dismiss')}
                                             </Button>
                                         </Space>
                                     </div>
@@ -394,7 +396,7 @@ export const MentorRequestList = () => {
                         />
                         <div style={{ padding: '12px', textAlign: 'center', borderTop: '1px solid #f0f0f0' }}>
                             <Button type='link' onClick={() => message.info('View all pending tasks page')}>
-                                View All Pending Tasks
+                                {t('task_mgmt.view_all_pending')}
                             </Button>
                         </div>
                     </Card>
@@ -409,15 +411,15 @@ export const MentorRequestList = () => {
                             marginBottom: '16px'
                         }}
                     >
-                        <div style={{ fontWeight: 700, fontSize: '16px' }}>Intern Progress Tracking</div>
+                        <div style={{ fontWeight: 700, fontSize: '16px' }}>{t('task_mgmt.intern_progress')}</div>
                         <div style={{ display: 'flex', gap: '8px' }}>
                             <Select
-                                defaultValue='All Phases'
+                                defaultValue={t('task_mgmt.all_phases')}
                                 style={{ width: 140 }}
                                 options={[
-                                    { value: 'All Phases', label: 'All Phases' },
-                                    { value: 'Phase 1', label: 'Phase 1: Training' },
-                                    { value: 'Phase 2', label: 'Phase 2: Project' }
+                                    { value: 'All Phases', label: t('task_mgmt.all_phases') },
+                                    { value: 'Phase 1', label: t('task_mgmt.training') },
+                                    { value: 'Phase 2', label: t('task_mgmt.project') }
                                 ]}
                                 onChange={(val) => message.info(`Filter: ${val}`)}
                             />
@@ -428,14 +430,14 @@ export const MentorRequestList = () => {
                         <div style={{ padding: '16px' }}>
                             <Input
                                 prefix={<SearchOutlined />}
-                                placeholder='Search interns, tasks...'
+                                placeholder={t('task_mgmt.search_intern_task')}
                                 onChange={(e) => console.log(e.target.value)}
                             />
                         </div>
                         <Table columns={columns} dataSource={internData} pagination={false} />
                         <div style={{ padding: '12px', textAlign: 'center', borderTop: '1px solid #f0f0f0' }}>
                             <Button type='link' onClick={() => message.info('View full intern list')}>
-                                View All Interns
+                                {t('task_mgmt.view_all_interns')}
                             </Button>
                         </div>
                     </Card>
@@ -443,7 +445,7 @@ export const MentorRequestList = () => {
             </Row>
 
             <Modal
-                title='Assign New Task'
+                title={t('task_mgmt.assign_new_task')}
                 open={isModalOpen}
                 onOk={() => {
                     setIsModalOpen(false);
@@ -452,12 +454,12 @@ export const MentorRequestList = () => {
                 onCancel={() => setIsModalOpen(false)}
             >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 0' }}>
-                    <Input placeholder='Task Title' />
+                    <Input placeholder={t('task_mgmt.task_title')} />
                     <Select
-                        placeholder='Assign to Intern'
+                        placeholder={t('task_mgmt.intern')}
                         options={internData.map((i) => ({ label: i.name, value: i.key }))}
                     />
-                    <Input.TextArea placeholder='Task Description' rows={4} />
+                    <Input.TextArea placeholder={t('task_mgmt.desc')} rows={4} />
                 </div>
             </Modal>
         </div>

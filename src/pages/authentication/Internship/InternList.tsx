@@ -21,8 +21,8 @@ import {
     Breadcrumb,
     Progress
 } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
 
@@ -101,96 +101,9 @@ const initialData: Intern[] = [
 ];
 
 export const InternList = () => {
+    const { t } = useTranslation();
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
-
-    const columns: ColumnsType<Intern> = [
-        {
-            title: 'Intern Info',
-            dataIndex: 'name',
-            key: 'name',
-            render: (text, record) => (
-                <Space size="middle">
-                    <Avatar size={40} src={record.avatar} icon={<UserOutlined />} />
-                    <div>
-                        <Text strong style={{ display: 'block' }}>{text}</Text>
-                        <Text type="secondary" style={{ fontSize: '12px' }}>{record.id}</Text>
-                    </div>
-                </Space>
-            )
-        },
-        {
-            title: 'Contact',
-            key: 'contact',
-            render: (_, record) => (
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
-                        <MailOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} /> {record.email}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
-                        <PhoneOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} /> {record.phone}
-                    </div>
-                </div>
-            )
-        },
-        {
-            title: 'Track & Mentor',
-            key: 'track',
-            render: (_, record) => (
-                <div>
-                    <Tag color="purple">{record.track}</Tag>
-                    <div style={{ marginTop: '4px', fontSize: '12px' }}>
-                        <Text type="secondary">Mentor: </Text>
-                        <Text strong>{record.mentor}</Text>
-                    </div>
-                </div>
-            )
-        },
-        {
-            title: 'Duration',
-            key: 'duration',
-            render: (_, record) => (
-                <div style={{ fontSize: '13px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <CalendarOutlined style={{ color: '#8c8c8c' }} /> {record.startDate}
-                    </div>
-                    <Text type="secondary" style={{ fontSize: '11px', paddingLeft: '18px' }}>to {record.endDate}</Text>
-                </div>
-            )
-        },
-        {
-            title: 'Progress',
-            dataIndex: 'progress',
-            key: 'progress',
-            width: 180,
-            render: (progress) => (
-                <div style={{ width: '100%' }}>
-                    <Progress percent={progress} size="small" strokeColor="#136dec" />
-                </div>
-            )
-        },
-        {
-            title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
-            render: (status) => {
-                let color = 'processing';
-                if (status === 'Completed') color = 'success';
-                if (status === 'Dropped') color = 'error';
-                return <Tag color={color} style={{ borderRadius: '10px' }}>{status}</Tag>;
-            }
-        },
-        {
-            title: 'Actions',
-            key: 'action',
-            render: (_, record) => (
-                <Space>
-                    <Button type="text" icon={<EyeOutlined />} onClick={() => message.info(`Viewing ${record.name}`)} />
-                    <Button type="text" icon={<EditOutlined />} onClick={() => message.info(`Editing ${record.name}`)} />
-                </Space>
-            )
-        }
-    ];
 
     const filteredData = initialData.filter(item => {
         const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -204,24 +117,24 @@ export const InternList = () => {
             <div style={{ marginBottom: '24px' }}>
                 <Breadcrumb
                     items={[
-                        { title: 'Internship' },
-                        { title: 'Intern List' },
+                        { title: t('menu.recruitment_management') },
+                        { title: t('internship.intern_list') },
                     ]}
                 />
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
-                    <Title level={3} style={{ margin: 0 }}>Internship Management</Title>
-                    <Text type="secondary">View and manage all active, completed, and dropped internship profiles.</Text>
+                    <Title level={3} style={{ margin: 0 }}>{t('internship.management')}</Title>
+                    <Text type="secondary">{t('internship.management_desc')}</Text>
                 </div>
-                <Button type="primary">Export List</Button>
+                <Button type="primary">{t('internship.export_list')}</Button>
             </div>
 
             <Card bordered={false} style={{ borderRadius: '12px' }}>
                 <div style={{ marginBottom: '16px', display: 'flex', gap: '12px' }}>
                     <Input
-                        placeholder="Search interns by name or track..."
+                        placeholder={t('internship.search_placeholder')}
                         prefix={<SearchOutlined />}
                         style={{ width: 350 }}
                         onChange={(e) => setSearchText(e.target.value)}
@@ -231,16 +144,102 @@ export const InternList = () => {
                         style={{ width: 160 }}
                         onChange={setStatusFilter}
                         options={[
-                            { value: 'All', label: 'All Statuses' },
-                            { value: 'Active', label: 'Active' },
-                            { value: 'Completed', label: 'Completed' },
-                            { value: 'Dropped', label: 'Dropped' }
+                            { value: 'All', label: t('internship.all_statuses') },
+                            { value: 'Active', label: t('internship.active') },
+                            { value: 'Completed', label: t('internship.completed') },
+                            { value: 'Dropped', label: t('internship.dropped') }
                         ]}
                     />
                 </div>
 
                 <Table
-                    columns={columns}
+                    columns={[
+                        {
+                            title: t('internship.intern_info'),
+                            dataIndex: 'name',
+                            key: 'name',
+                            render: (text, record: any) => (
+                                <Space size="middle">
+                                    <Avatar size={40} src={record.avatar} icon={<UserOutlined />} />
+                                    <div>
+                                        <Text strong style={{ display: 'block' }}>{text}</Text>
+                                        <Text type="secondary" style={{ fontSize: '12px' }}>{record.id}</Text>
+                                    </div>
+                                </Space>
+                            )
+                        },
+                        {
+                            title: t('internship.contact'),
+                            key: 'contact',
+                            render: (_, record: any) => (
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
+                                        <MailOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} /> {record.email}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
+                                        <PhoneOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} /> {record.phone}
+                                    </div>
+                                </div>
+                            )
+                        },
+                        {
+                            title: t('internship.track_mentor'),
+                            key: 'track',
+                            render: (_, record: any) => (
+                                <div>
+                                    <Tag color="purple">{record.track}</Tag>
+                                    <div style={{ marginTop: '4px', fontSize: '12px' }}>
+                                        <Text type="secondary">Mentor: </Text>
+                                        <Text strong>{record.mentor}</Text>
+                                    </div>
+                                </div>
+                            )
+                        },
+                        {
+                            title: t('internship.duration'),
+                            key: 'duration',
+                            render: (_, record: any) => (
+                                <div style={{ fontSize: '13px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <CalendarOutlined style={{ color: '#8c8c8c' }} /> {record.startDate}
+                                    </div>
+                                    <Text type="secondary" style={{ fontSize: '11px', paddingLeft: '18px' }}>{t('internship.to')} {record.endDate}</Text>
+                                </div>
+                            )
+                        },
+                        {
+                            title: t('internship.progress'),
+                            dataIndex: 'progress',
+                            key: 'progress',
+                            width: 180,
+                            render: (progress) => (
+                                <div style={{ width: '100%' }}>
+                                    <Progress percent={progress} size="small" strokeColor="#136dec" />
+                                </div>
+                            )
+                        },
+                        {
+                            title: t('common.status'),
+                            dataIndex: 'status',
+                            key: 'status',
+                            render: (status) => {
+                                let color = 'processing';
+                                if (status === 'Completed') color = 'success';
+                                if (status === 'Dropped') color = 'error';
+                                return <Tag color={color} style={{ borderRadius: '10px' }}>{status}</Tag>;
+                            }
+                        },
+                        {
+                            title: t('common.actions'),
+                            key: 'action',
+                            render: (_, record: any) => (
+                                <Space>
+                                    <Button type="text" icon={<EyeOutlined />} onClick={() => message.info(`${t('common.view')} ${record.name}`)} />
+                                    <Button type="text" icon={<EditOutlined />} onClick={() => message.info(`${t('common.edit')} ${record.name}`)} />
+                                </Space>
+                            )
+                        }
+                    ]}
                     dataSource={filteredData}
                     pagination={{ pageSize: 10 }}
                 />

@@ -22,11 +22,13 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
 export const RecruitmentPlanCreate = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
@@ -35,10 +37,9 @@ export const RecruitmentPlanCreate = () => {
         setLoading(true);
         console.log('Form values:', values);
 
-        // Simulate API call
         setTimeout(() => {
             setLoading(false);
-            message.success('Recruitment plan created successfully!');
+            message.success(t('common.success'));
             navigate(RouteConfig.RecruitmentPlanList.path);
         }, 1500);
     };
@@ -48,9 +49,9 @@ export const RecruitmentPlanCreate = () => {
             <div style={{ marginBottom: '24px' }}>
                 <Breadcrumb
                     items={[
-                        { title: 'Recruitment', onClick: () => navigate(RouteConfig.RecruitmentPlanList.path) },
-                        { title: 'Plans', onClick: () => navigate(RouteConfig.RecruitmentPlanList.path) },
-                        { title: 'Create New Plan' },
+                        { title: t('menu.recruitment_management'), onClick: () => navigate(RouteConfig.RecruitmentPlanList.path) },
+                        { title: t('menu.recruitment_plans'), onClick: () => navigate(RouteConfig.RecruitmentPlanList.path) },
+                        { title: t('recruitment.create_new_plan') },
                     ]}
                 />
             </div>
@@ -62,17 +63,17 @@ export const RecruitmentPlanCreate = () => {
                         onClick={() => navigate(RouteConfig.RecruitmentPlanList.path)}
                         type="text"
                     />
-                    <Title level={3} style={{ margin: 0 }}>Create New Recruitment Plan</Title>
+                    <Title level={3} style={{ margin: 0 }}>{t('recruitment.create_new_plan')}</Title>
                 </Space>
                 <Space>
-                    <Button onClick={() => navigate(RouteConfig.RecruitmentPlanList.path)}>Cancel</Button>
+                    <Button onClick={() => navigate(RouteConfig.RecruitmentPlanList.path)}>{t('common.cancel')}</Button>
                     <Button
                         type="primary"
                         icon={loading ? <LoadingOutlined /> : <SaveOutlined />}
                         onClick={() => form.submit()}
                         loading={loading}
                     >
-                        Save Plan
+                        {t('recruitment.save_plan')}
                     </Button>
                 </Space>
             </div>
@@ -88,30 +89,30 @@ export const RecruitmentPlanCreate = () => {
             >
                 <Row gutter={24}>
                     <Col xs={24} lg={16}>
-                        <Card title="General Information" bordered={false} style={{ borderRadius: '12px', marginBottom: '24px' }}>
+                        <Card title={t('recruitment.general_info')} bordered={false} style={{ borderRadius: '12px', marginBottom: '24px' }}>
                             <Form.Item
-                                label="Campaign Name"
+                                label={t('recruitment.campaign_name')}
                                 name="name"
-                                rules={[{ required: true, message: 'Please enter the campaign name' }]}
+                                rules={[{ required: true, message: t('common.required_field') }]}
                             >
-                                <Input placeholder="e.g. Summer 2024 Engineering Internship" size="large" />
+                                <Input placeholder={t('recruitment.campaign_name')} size="large" />
                             </Form.Item>
 
                             <Row gutter={16}>
                                 <Col span={12}>
                                     <Form.Item
-                                        label="Batch/Batch Name"
+                                        label={t('recruitment.batch_name')}
                                         name="batch"
-                                        rules={[{ required: true, message: 'Please enter the batch name' }]}
+                                        rules={[{ required: true, message: t('common.required_field') }]}
                                     >
-                                        <Input placeholder="e.g. Batch A" />
+                                        <Input placeholder={t('recruitment.batch_name')} />
                                     </Form.Item>
                                 </Col>
                                 <Col span={12}>
                                     <Form.Item
-                                        label="Department"
+                                        label={t('common.department')}
                                         name="department"
-                                        rules={[{ required: true, message: 'Please select a department' }]}
+                                        rules={[{ required: true, message: t('common.required_field') }]}
                                     >
                                         <Select
                                             options={[
@@ -127,14 +128,14 @@ export const RecruitmentPlanCreate = () => {
                             </Row>
 
                             <Form.Item
-                                label="Campaign Description"
+                                label={t('recruitment.campaign_desc')}
                                 name="description"
                             >
-                                <Input.TextArea rows={4} placeholder="Describe the goals and requirements of this campaign..." />
+                                <Input.TextArea rows={4} placeholder={t('recruitment.campaign_desc')} />
                             </Form.Item>
                         </Card>
 
-                        <Card title="Positions & Requirements" bordered={false} style={{ borderRadius: '12px' }}>
+                        <Card title={t('recruitment.positions_reqs')} bordered={false} style={{ borderRadius: '12px' }}>
                             <Form.List name="positions">
                                 {(fields, { add, remove }) => (
                                     <>
@@ -145,18 +146,18 @@ export const RecruitmentPlanCreate = () => {
                                                         <Form.Item
                                                             {...restField}
                                                             name={[name, 'title']}
-                                                            label="Job Title"
-                                                            rules={[{ required: true, message: 'Missing title' }]}
+                                                            label={t('recruitment.job_title')}
+                                                            rules={[{ required: true, message: t('common.required_field') }]}
                                                         >
-                                                            <Input placeholder="e.g. Frontend Intern" />
+                                                            <Input placeholder={t('recruitment.job_title')} />
                                                         </Form.Item>
                                                     </Col>
                                                     <Col span={10}>
                                                         <Form.Item
                                                             {...restField}
                                                             name={[name, 'count']}
-                                                            label="Quantity"
-                                                            rules={[{ required: true, message: 'Missing quantity' }]}
+                                                            label={t('recruitment.quantity')}
+                                                            rules={[{ required: true, message: t('common.required_field') }]}
                                                         >
                                                             <InputNumber min={1} style={{ width: '100%' }} />
                                                         </Form.Item>
@@ -165,9 +166,9 @@ export const RecruitmentPlanCreate = () => {
                                                 <Form.Item
                                                     {...restField}
                                                     name={[name, 'requirements']}
-                                                    label="Key Requirements"
+                                                    label={t('recruitment.requirements')}
                                                 >
-                                                    <Input.TextArea rows={2} placeholder="Briefly list key requirements..." />
+                                                    <Input.TextArea rows={2} placeholder={t('recruitment.requirements')} />
                                                 </Form.Item>
                                                 {fields.length > 1 && (
                                                     <Button
@@ -176,13 +177,13 @@ export const RecruitmentPlanCreate = () => {
                                                         onClick={() => remove(name)}
                                                         style={{ position: 'absolute', top: 8, right: 8 }}
                                                     >
-                                                        Remove
+                                                        {t('common.delete')}
                                                     </Button>
                                                 )}
                                             </div>
                                         ))}
                                         <Button type="dashed" onClick={() => add()} block icon={<SaveOutlined />}>
-                                            Add Another Position
+                                            {t('recruitment.add_position')}
                                         </Button>
                                     </>
                                 )}
@@ -191,24 +192,24 @@ export const RecruitmentPlanCreate = () => {
                     </Col>
 
                     <Col xs={24} lg={8}>
-                        <Card title="Timeline & Status" bordered={false} style={{ borderRadius: '12px', marginBottom: '24px' }}>
+                        <Card title={t('recruitment.timeline_status')} bordered={false} style={{ borderRadius: '12px', marginBottom: '24px' }}>
                             <Form.Item
-                                label="Campaign Period"
+                                label={t('recruitment.campaign_period')}
                                 name="period"
-                                rules={[{ required: true, message: 'Please select the period' }]}
+                                rules={[{ required: true, message: t('common.required_field') }]}
                             >
                                 <RangePicker style={{ width: '100%' }} />
                             </Form.Item>
 
                             <Form.Item
-                                label="Status"
+                                label={t('common.status')}
                                 name="status"
                             >
                                 <Select
                                     options={[
-                                        { value: 'Active', label: 'Active (Hiring)' },
-                                        { value: 'Pending', label: 'Pending Approval' },
-                                        { value: 'Closed', label: 'Closed' }
+                                        { value: 'Active', label: t('recruitment.active_hiring') },
+                                        { value: 'Pending', label: t('recruitment.pending_approval') },
+                                        { value: 'Closed', label: t('recruitment.closed') }
                                     ]}
                                 />
                             </Form.Item>
@@ -222,13 +223,13 @@ export const RecruitmentPlanCreate = () => {
                             </div>
                         </Card>
 
-                        <Card title="Approval Workflow" bordered={false} style={{ borderRadius: '12px' }}>
+                        <Card title={t('recruitment.approval_workflow')} bordered={false} style={{ borderRadius: '12px' }}>
                             <Form.Item
-                                label="Assign Approver"
+                                label={t('recruitment.assign_approver')}
                                 name="approver"
                             >
                                 <Select
-                                    placeholder="Select Director"
+                                    placeholder={t('recruitment.assign_approver')}
                                     options={[
                                         { value: 'dir1', label: 'John Director (CTO)' },
                                         { value: 'dir2', label: 'Jane Director (CEO)' }
