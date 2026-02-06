@@ -13,7 +13,7 @@ export const themeConfig: ThemeConfig = {
         Button: {
             controlHeight: 40,
             boxShadow: 'none',
-            colorPrimaryShadow: '0 4px 14px 0 rgba(99, 102, 241, 0.39)'
+            primaryShadow: '0 4px 14px 0 rgba(99, 102, 241, 0.39)'
         },
         Input: {
             controlHeight: 42,
