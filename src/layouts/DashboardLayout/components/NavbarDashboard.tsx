@@ -1,5 +1,15 @@
 import { Layout, Menu, Avatar, Typography, theme, Button } from 'antd';
-import { DashboardOutlined, UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons';
+import {
+    DashboardOutlined,
+    UserOutlined,
+    SettingOutlined,
+    LogoutOutlined,
+    TeamOutlined,
+    SolutionOutlined,
+    BookOutlined,
+    FileProtectOutlined,
+    RocketOutlined
+} from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
 import { ReactNode } from 'react';
@@ -27,13 +37,6 @@ interface SubMenuItem {
     onClick: () => void;
 }
 
-const PATH_TO_KEYS_MAP: Record<string, string[]> = {
-    [RouteConfig.DashBoardPage.path]: ['dashboard'],
-    [RouteConfig.ListUserPage.path]: ['users', 'users-list'],
-    [RouteConfig.ProfilePage.path]: ['profile'],
-    [RouteConfig.SettingPage.path]: ['settings']
-};
-
 export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -60,6 +63,102 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
             ]
         },
         {
+            key: 'recruitment',
+            icon: <TeamOutlined />,
+            label: 'Tuyển dụng (HR)',
+            children: [
+                {
+                    key: 'rec-plans',
+                    label: 'Kế hoạch tuyển dụng',
+                    onClick: () => navigate(RouteConfig.RecruitmentPlanList.path)
+                },
+                {
+                    key: 'rec-jobs',
+                    label: 'Tin tuyển dụng',
+                    onClick: () => navigate(RouteConfig.RecruitmentJobList.path)
+                },
+                { key: 'rec-cvs', label: 'Quản lý CV', onClick: () => navigate(RouteConfig.CVList.path) },
+                {
+                    key: 'rec-interviews',
+                    label: 'Lịch phỏng vấn',
+                    onClick: () => navigate(RouteConfig.InterviewSchedule.path)
+                },
+                {
+                    key: 'rec-onboarding',
+                    label: 'Onboarding',
+                    onClick: () => navigate(RouteConfig.OnboardingList.path)
+                },
+                { key: 'rec-interns', label: 'Danh sách TTS', onClick: () => navigate(RouteConfig.InternList.path) }
+            ]
+        },
+        {
+            key: 'mentor',
+            icon: <SolutionOutlined />,
+            label: 'Mentor Portal',
+            children: [
+                {
+                    key: 'mentor-req',
+                    label: 'Đề xuất tuyển dụng',
+                    onClick: () => navigate(RouteConfig.MentorRequestList.path)
+                },
+                {
+                    key: 'mentor-path',
+                    label: 'Lộ trình đào tạo',
+                    onClick: () => navigate(RouteConfig.MentorLearningPath.path)
+                },
+                {
+                    key: 'mentor-eval1',
+                    label: 'Đánh giá GĐ1',
+                    onClick: () => navigate(RouteConfig.MentorEvalPhase1.path)
+                },
+                {
+                    key: 'mentor-tasks',
+                    label: 'Quản lý Task',
+                    onClick: () => navigate(RouteConfig.MentorTaskManagement.path)
+                },
+                {
+                    key: 'mentor-eval2',
+                    label: 'Đánh giá GĐ2',
+                    onClick: () => navigate(RouteConfig.MentorEvalPhase2.path)
+                },
+                {
+                    key: 'mentor-final',
+                    label: 'Đánh giá cuối kỳ',
+                    onClick: () => navigate(RouteConfig.MentorEvalFinal.path)
+                }
+            ]
+        },
+        {
+            key: 'intern',
+            icon: <BookOutlined />,
+            label: 'Intern Portal',
+            children: [
+                { key: 'intern-dash', label: 'Góc học tập', onClick: () => navigate(RouteConfig.InternDashboard.path) },
+                { key: 'intern-test', label: 'Bài kiểm tra', onClick: () => navigate(RouteConfig.InternTest.path) },
+                { key: 'intern-tasks', label: 'Task Board', onClick: () => navigate(RouteConfig.InternTaskBoard.path) }
+            ]
+        },
+        {
+            key: 'director',
+            icon: <FileProtectOutlined />,
+            label: 'Director Portal',
+            children: [
+                {
+                    key: 'dir-approvals',
+                    label: 'Phê duyệt kế hoạch',
+                    onClick: () => navigate(RouteConfig.DirectorApprovals.path)
+                }
+            ]
+        },
+        {
+            key: 'public',
+            icon: <RocketOutlined />,
+            label: 'Public Pages',
+            children: [
+                { key: 'pub-jobs', label: 'Job Board', onClick: () => navigate(RouteConfig.PublicJobBoard.path) }
+            ]
+        },
+        {
             key: 'settings',
             icon: <SettingOutlined />,
             label: 'Cài đặt',
@@ -69,10 +168,34 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
 
     const getSelectedKeys = (): string[] => {
         const path = location.pathname;
-        if (path.match(/\/users\/[^/]+\/update$/)) {
-            return ['users', 'users-list'];
-        }
-        return PATH_TO_KEYS_MAP[path] || ['dashboard'];
+        if (path.includes('/recruitment/plans')) return ['recruitment', 'rec-plans'];
+        if (path.includes('/recruitment/jobs')) return ['recruitment', 'rec-jobs'];
+        if (path.includes('/recruitment/cvs')) return ['recruitment', 'rec-cvs'];
+        if (path.includes('/recruitment/interviews')) return ['recruitment', 'rec-interviews'];
+        if (path.includes('/recruitment/onboarding')) return ['recruitment', 'rec-onboarding'];
+        if (path.includes('/recruitment/interns')) return ['recruitment', 'rec-interns'];
+
+        if (path.includes('/mentor/requests')) return ['mentor', 'mentor-req'];
+        if (path.includes('/mentor/learning-paths')) return ['mentor', 'mentor-path'];
+        if (path.includes('/mentor/eval-phase1')) return ['mentor', 'mentor-eval1'];
+        if (path.includes('/mentor/tasks')) return ['mentor', 'mentor-tasks'];
+        if (path.includes('/mentor/eval-phase2')) return ['mentor', 'mentor-eval2'];
+        if (path.includes('/mentor/eval-final')) return ['mentor', 'mentor-final'];
+
+        if (path.includes('/intern/dashboard')) return ['intern', 'intern-dash'];
+        if (path.includes('/intern/test')) return ['intern', 'intern-test'];
+        if (path.includes('/intern/tasks')) return ['intern', 'intern-tasks'];
+
+        if (path.includes('/director/approvals')) return ['director', 'dir-approvals'];
+
+        if (path.includes('/jobs')) return ['public', 'pub-jobs'];
+
+        if (path.match(/\/users\/[^/]+\/update$/)) return ['users', 'users-list'];
+        if (path === '/users') return ['users', 'users-list'];
+
+        if (path === '/setting') return ['settings'];
+
+        return ['dashboard'];
     };
 
     return (
@@ -128,7 +251,7 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
                     theme='light'
                     mode='inline'
                     selectedKeys={getSelectedKeys()}
-                    defaultOpenKeys={['users']}
+                    defaultOpenKeys={['recruitment', 'mentor', 'intern', 'director']}
                     items={menuItems}
                     style={{
                         borderRight: 0,

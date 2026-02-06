@@ -57,5 +57,78 @@ export const RouteConfig = {
         getPath: (_id: Account['_id']) => {
             return `/users/${_id}/detail`;
         }
+    },
+
+    PublicJobBoard: {
+        path: '/jobs'
+    },
+    PublicJobDetail: {
+        path: '/jobs/:id',
+        getPath: (id: string) => `/jobs/${id}`
+    },
+
+    RecruitmentPlanList: {
+        path: '/recruitment/plans'
+    },
+    RecruitmentPlanCreate: {
+        path: '/recruitment/plans/create'
+    },
+    RecruitmentPlanUpdate: {
+        path: '/recruitment/plans/:id/update',
+        getPath: (id: string) => `/recruitment/plans/${id}/update`
+    },
+    RecruitmentJobList: {
+        path: '/recruitment/jobs'
+    },
+
+    CVList: {
+        path: '/recruitment/cvs'
+    },
+    CVDetail: {
+        path: '/recruitment/cvs/:id',
+        getPath: (id: string) => `/recruitment/cvs/${id}`
+    },
+    InterviewSchedule: {
+        path: '/recruitment/interviews'
+    },
+
+    OnboardingList: {
+        path: '/recruitment/onboarding'
+    },
+    InternList: {
+        path: '/recruitment/interns'
+    },
+
+    MentorRequestList: {
+        path: '/mentor/requests'
+    },
+    MentorLearningPath: {
+        path: '/mentor/learning-paths'
+    },
+    MentorEvalPhase1: {
+        path: '/mentor/eval-phase1'
+    },
+    MentorTaskManagement: {
+        path: '/mentor/tasks'
+    },
+    MentorEvalPhase2: {
+        path: '/mentor/eval-phase2'
+    },
+    MentorEvalFinal: {
+        path: '/mentor/eval-final'
+    },
+
+    InternDashboard: {
+        path: '/intern/dashboard'
+    },
+    InternTest: {
+        path: '/intern/test'
+    },
+    InternTaskBoard: {
+        path: '/intern/tasks'
+    },
+
+    DirectorApprovals: {
+        path: '/director/approvals'
     }
 };
