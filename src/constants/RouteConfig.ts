@@ -127,6 +127,12 @@ export const RouteConfig = {
     InternTaskBoard: {
         path: '/intern/tasks'
     },
+    InternReports: {
+        path: '/intern/reports'
+    },
+    InternCertificate: {
+        path: '/intern/certificate'
+    },
 
     DirectorApprovals: {
         path: '/director/approvals'

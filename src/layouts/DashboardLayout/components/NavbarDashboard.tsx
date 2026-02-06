@@ -135,7 +135,9 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
             children: [
                 { key: 'intern-dash', label: 'Góc học tập', onClick: () => navigate(RouteConfig.InternDashboard.path) },
                 { key: 'intern-test', label: 'Bài kiểm tra', onClick: () => navigate(RouteConfig.InternTest.path) },
-                { key: 'intern-tasks', label: 'Task Board', onClick: () => navigate(RouteConfig.InternTaskBoard.path) }
+                { key: 'intern-tasks', label: 'Task Board', onClick: () => navigate(RouteConfig.InternTaskBoard.path) },
+                { key: 'intern-reports', label: 'Báo cáo', onClick: () => navigate(RouteConfig.InternReports.path) },
+                { key: 'intern-cert', label: 'Chứng chỉ', onClick: () => navigate(RouteConfig.InternCertificate.path) }
             ]
         },
         {
@@ -185,6 +187,8 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
         if (path.includes('/intern/dashboard')) return ['intern', 'intern-dash'];
         if (path.includes('/intern/test')) return ['intern', 'intern-test'];
         if (path.includes('/intern/tasks')) return ['intern', 'intern-tasks'];
+        if (path.includes('/intern/reports')) return ['intern', 'intern-reports'];
+        if (path.includes('/intern/certificate')) return ['intern', 'intern-cert'];
 
         if (path.includes('/director/approvals')) return ['director', 'dir-approvals'];
 
