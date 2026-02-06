@@ -18,17 +18,16 @@ import {
     Avatar,
     Button,
     Card,
-    Col,
     Divider,
     Input,
     Layout,
-    List,
-    Row,
     Select,
     Space,
     Tag,
     Typography,
-    Upload
+    Upload,
+    message,
+    Modal
 } from 'antd';
 import { useState } from 'react';
 
@@ -47,7 +46,7 @@ interface Task {
     tags?: string[];
 }
 
-const tasksData: Task[] = [
+const initialTasksData: Task[] = [
     {
         id: 1,
         title: 'Competitor Analysis Report',
@@ -88,7 +87,20 @@ const tasksData: Task[] = [
 ];
 
 export const InternTaskBoard = () => {
-    const [selectedTask, setSelectedTask] = useState<Task | null>(tasksData[2]);
+    const [tasks, setTasks] = useState<Task[]>(initialTasksData);
+    const [selectedTask, setSelectedTask] = useState<Task | null>(tasks[2]);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+    const moveTask = (task: Task, newStatus: Task['status']) => {
+        const updatedTasks = tasks.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t));
+        setTasks(updatedTasks);
+        message.success(`Task moved to ${newStatus}`);
+    };
+
+    const handleCreateTask = () => {
+        setIsCreateModalOpen(false);
+        message.success('New task created!');
+    };
 
     const renderTaskCard = (task: Task) => (
         <Card
@@ -102,6 +114,41 @@ export const InternTaskBoard = () => {
             }}
             bodyStyle={{ padding: '16px' }}
             onClick={() => setSelectedTask(task)}
+            actions={[
+                <Button
+                    type='text'
+                    size='small'
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        moveTask(task, 'To Do');
+                    }}
+                    disabled={task.status === 'To Do'}
+                >
+                    To Do
+                </Button>,
+                <Button
+                    type='text'
+                    size='small'
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        moveTask(task, 'In Progress');
+                    }}
+                    disabled={task.status === 'In Progress'}
+                >
+                    Progress
+                </Button>,
+                <Button
+                    type='text'
+                    size='small'
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        moveTask(task, 'Done');
+                    }}
+                    disabled={task.status === 'Done'}
+                >
+                    Done
+                </Button>
+            ]}
         >
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <Tag color={task.priority === 'High' ? 'red' : task.priority === 'Medium' ? 'orange' : 'green'}>
@@ -182,7 +229,12 @@ export const InternTaskBoard = () => {
                                 <UserOutlined /> Mentor: Sarah Jenkins
                             </div>
                         </div>
-                        <Button type='primary' icon={<PlusOutlined />} size='large'>
+                        <Button
+                            type='primary'
+                            icon={<PlusOutlined />}
+                            size='large'
+                            onClick={() => setIsCreateModalOpen(true)}
+                        >
                             New Task
                         </Button>
                     </div>
@@ -236,12 +288,15 @@ export const InternTaskBoard = () => {
                             }}
                         >
                             <div style={{ fontWeight: 600, color: '#374151' }}>
-                                To Do <Tag style={{ marginLeft: '8px', borderRadius: '12px' }}>2</Tag>
+                                To Do{' '}
+                                <Tag style={{ marginLeft: '8px', borderRadius: '12px' }}>
+                                    {tasks.filter((t) => t.status === 'To Do').length}
+                                </Tag>
                             </div>
                             <Button type='text' icon={<PlusOutlined />} size='small' />
                         </div>
                         <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px' }}>
-                            {tasksData.filter((t) => t.status === 'To Do').map(renderTaskCard)}
+                            {tasks.filter((t) => t.status === 'To Do').map(renderTaskCard)}
                         </div>
                     </div>
 
@@ -257,7 +312,7 @@ export const InternTaskBoard = () => {
                             <div style={{ fontWeight: 600, color: '#374151' }}>
                                 In Progress{' '}
                                 <Tag color='blue' style={{ marginLeft: '8px', borderRadius: '12px' }}>
-                                    1
+                                    {tasks.filter((t) => t.status === 'In Progress').length}
                                 </Tag>
                             </div>
                             <Button type='text' icon={<PlusOutlined />} size='small' />
@@ -273,7 +328,7 @@ export const InternTaskBoard = () => {
                                 border: '2px dashed #e5e7eb'
                             }}
                         >
-                            {tasksData.filter((t) => t.status === 'In Progress').map(renderTaskCard)}
+                            {tasks.filter((t) => t.status === 'In Progress').map(renderTaskCard)}
                         </div>
                     </div>
 
@@ -289,13 +344,13 @@ export const InternTaskBoard = () => {
                             <div style={{ fontWeight: 600, color: '#374151' }}>
                                 Done{' '}
                                 <Tag color='green' style={{ marginLeft: '8px', borderRadius: '12px' }}>
-                                    1
+                                    {tasks.filter((t) => t.status === 'Done').length}
                                 </Tag>
                             </div>
                             <Button type='text' icon={<PlusOutlined />} size='small' />
                         </div>
                         <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px', opacity: 0.7 }}>
-                            {tasksData.filter((t) => t.status === 'Done').map(renderTaskCard)}
+                            {tasks.filter((t) => t.status === 'Done').map(renderTaskCard)}
                         </div>
                     </div>
                 </div>
@@ -330,7 +385,7 @@ export const InternTaskBoard = () => {
                                 <div
                                     style={{ width: '8px', height: '8px', background: '#136dec', borderRadius: '50%' }}
                                 ></div>
-                                <span style={{ fontWeight: 500 }}>In Progress</span>
+                                <span style={{ fontWeight: 500 }}>{selectedTask.status}</span>
                             </div>
                         </div>
                         <Button type='text' icon={<CloseOutlined />} onClick={() => setSelectedTask(null)} />
@@ -400,7 +455,11 @@ export const InternTaskBoard = () => {
                                 </p>
                             </Upload.Dragger>
 
-                            <Button type='primary' block>
+                            <Button
+                                type='primary'
+                                block
+                                onClick={() => message.success('Deliverable submitted for review!')}
+                            >
                                 Submit for Review
                             </Button>
                         </div>
@@ -477,6 +536,7 @@ export const InternTaskBoard = () => {
                                                 alignItems: 'center',
                                                 justifyContent: 'center'
                                             }}
+                                            onClick={() => message.success('Reply posted')}
                                         />
                                     }
                                     placeholder='Write a reply...'
@@ -487,6 +547,27 @@ export const InternTaskBoard = () => {
                     </div>
                 </Sider>
             )}
+
+            <Modal
+                title='Create New Task'
+                open={isCreateModalOpen}
+                onOk={handleCreateTask}
+                onCancel={() => setIsCreateModalOpen(false)}
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 0' }}>
+                    <Input placeholder='Task Title' />
+                    <Input.TextArea placeholder='Description' rows={3} />
+                    <Select
+                        placeholder='Priority'
+                        options={[
+                            { value: 'High', label: 'High' },
+                            { value: 'Medium', label: 'Medium' },
+                            { value: 'Low', label: 'Low' }
+                        ]}
+                    />
+                    <Select placeholder='Assignee' options={[{ value: '1', label: 'Me' }]} />
+                </div>
+            </Modal>
         </Layout>
     );
 };

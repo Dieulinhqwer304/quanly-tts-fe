@@ -9,8 +9,27 @@ import {
     RiseOutlined,
     WarningOutlined
 } from '@ant-design/icons';
-import { Avatar, Button, Card, Col, Input, List, Progress, Row, Select, Space, Table, Tag, Typography } from 'antd';
+import {
+    Avatar,
+    Button,
+    Card,
+    Col,
+    Dropdown,
+    Input,
+    List,
+    MenuProps,
+    Modal,
+    Progress,
+    Row,
+    Select,
+    Space,
+    Table,
+    Tag,
+    Typography,
+    message
+} from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import { useState } from 'react';
 
 const { Title, Text } = Typography;
 
@@ -114,6 +133,26 @@ const internData: InternProgress[] = [
 ];
 
 export const MentorRequestList = () => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleAction = (action: string, item: string) => {
+        message.success(`${action} for ${item} successfully`);
+    };
+
+    const getActionMenu = (record: InternProgress): MenuProps => ({
+        items: [
+            { key: 'view', label: 'View Profile' },
+            { key: 'message', label: 'Message Intern' },
+            { type: 'divider' },
+            { key: 'report', label: 'Report Issue', danger: true }
+        ],
+        onClick: (e) => {
+            if (e.key === 'view') handleAction('Viewed profile', record.name);
+            else if (e.key === 'message') handleAction('Opened chat', record.name);
+            else handleAction('Reported', record.name);
+        }
+    });
+
     const columns: ColumnsType<InternProgress> = [
         {
             title: 'Intern',
@@ -177,7 +216,11 @@ export const MentorRequestList = () => {
             title: 'Actions',
             key: 'action',
             align: 'right',
-            render: () => <Button type='text' icon={<MoreOutlined />} />
+            render: (_, record) => (
+                <Dropdown menu={getActionMenu(record)} trigger={['click']}>
+                    <Button type='text' icon={<MoreOutlined />} />
+                </Dropdown>
+            )
         }
     ];
 
@@ -192,7 +235,7 @@ export const MentorRequestList = () => {
                     </Title>
                     <Text type='secondary'>Manage your interns' training progress and review pending tasks.</Text>
                 </div>
-                <Button type='primary' icon={<FileAddOutlined />} size='large'>
+                <Button type='primary' icon={<FileAddOutlined />} size='large' onClick={() => setIsModalOpen(true)}>
                     Assign New Task
                 </Button>
             </div>
@@ -331,17 +374,28 @@ export const MentorRequestList = () => {
                                             </Text>
                                         </div>
                                         <Space>
-                                            <Button type='primary' size='small'>
+                                            <Button
+                                                type='primary'
+                                                size='small'
+                                                onClick={() => handleAction('Reviewed', item.taskName)}
+                                            >
                                                 Review
                                             </Button>
-                                            <Button size='small'>Dismiss</Button>
+                                            <Button
+                                                size='small'
+                                                onClick={() => handleAction('Dismissed', item.taskName)}
+                                            >
+                                                Dismiss
+                                            </Button>
                                         </Space>
                                     </div>
                                 </List.Item>
                             )}
                         />
                         <div style={{ padding: '12px', textAlign: 'center', borderTop: '1px solid #f0f0f0' }}>
-                            <Button type='link'>View All Pending Tasks</Button>
+                            <Button type='link' onClick={() => message.info('View all pending tasks page')}>
+                                View All Pending Tasks
+                            </Button>
                         </div>
                     </Card>
                 </Col>
@@ -365,21 +419,47 @@ export const MentorRequestList = () => {
                                     { value: 'Phase 1', label: 'Phase 1: Training' },
                                     { value: 'Phase 2', label: 'Phase 2: Project' }
                                 ]}
+                                onChange={(val) => message.info(`Filter: ${val}`)}
                             />
                             <Button icon={<FilterOutlined />} />
                         </div>
                     </div>
                     <Card bordered={false} style={{ borderRadius: '12px' }} bodyStyle={{ padding: 0 }}>
                         <div style={{ padding: '16px' }}>
-                            <Input prefix={<SearchOutlined />} placeholder='Search interns, tasks...' />
+                            <Input
+                                prefix={<SearchOutlined />}
+                                placeholder='Search interns, tasks...'
+                                onChange={(e) => console.log(e.target.value)}
+                            />
                         </div>
                         <Table columns={columns} dataSource={internData} pagination={false} />
                         <div style={{ padding: '12px', textAlign: 'center', borderTop: '1px solid #f0f0f0' }}>
-                            <Button type='link'>View All Interns</Button>
+                            <Button type='link' onClick={() => message.info('View full intern list')}>
+                                View All Interns
+                            </Button>
                         </div>
                     </Card>
                 </Col>
             </Row>
+
+            <Modal
+                title='Assign New Task'
+                open={isModalOpen}
+                onOk={() => {
+                    setIsModalOpen(false);
+                    message.success('Task Assigned');
+                }}
+                onCancel={() => setIsModalOpen(false)}
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 0' }}>
+                    <Input placeholder='Task Title' />
+                    <Select
+                        placeholder='Assign to Intern'
+                        options={internData.map((i) => ({ label: i.name, value: i.key }))}
+                    />
+                    <Input.TextArea placeholder='Task Description' rows={4} />
+                </div>
+            </Modal>
         </div>
     );
 };
