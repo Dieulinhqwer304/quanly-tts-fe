@@ -1,0 +1,54 @@
+{
+    "accounts": [
+        {
+            "_id": "1",
+            "fullName": "Nguyễn Văn A",
+            "email": "nguyenvana@example.com",
+            "phone": "0901234567",
+            "role_id": "admin",
+            "status": "active",
+            "createdAt": "2024-01-15T08:00:00",
+            "updatedAt": "2024-01-15T08:00:00"
+        },
+        {
+            "_id": "2",
+            "fullName": "Trần Thị B",
+            "email": "tranthib@example.com",
+            "phone": "0912345678",
+            "role_id": "user",
+            "status": "active",
+            "createdAt": "2024-02-20T10:30:00",
+            "updatedAt": "2024-02-20T10:30:00"
+        },
+        {
+            "_id": "3",
+            "fullName": "Lê Văn C",
+            "email": "levanc@example.com",
+            "phone": "0923456789",
+            "role_id": "user",
+            "status": "inactive",
+            "createdAt": "2024-03-10T14:15:00",
+            "updatedAt": "2024-03-10T14:15:00"
+        },
+        {
+            "_id": "4",
+            "fullName": "Phạm Thị D",
+            "email": "phamthid@example.com",
+            "phone": "0934567890",
+            "role_id": "editor",
+            "status": "pending",
+            "createdAt": "2024-04-05T09:45:00",
+            "updatedAt": "2024-04-05T09:45:00"
+        },
+        {
+            "_id": "5",
+            "fullName": "Hoàng Văn E",
+            "email": "hoangvane@example.com",
+            "phone": "0945678901",
+            "role_id": "user",
+            "status": "active",
+            "createdAt": "2024-05-12T11:20:00",
+            "updatedAt": "2024-05-12T11:20:00"
+        }
+    ]
+}
