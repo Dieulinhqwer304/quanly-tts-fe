@@ -9,13 +9,31 @@ import {
     RiseOutlined,
     UserOutlined
 } from '@ant-design/icons';
-import { Avatar, Button, Card, Col, Input, Row, Select, Space, Table, Tag, Typography } from 'antd';
+import {
+    Avatar,
+    Button,
+    Card,
+    Col,
+    Dropdown,
+    Input,
+    MenuProps,
+    Row,
+    Select,
+    Space,
+    Table,
+    Tag,
+    Typography,
+    message
+} from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import { useNavigate } from 'react-router-dom';
+import { RouteConfig } from '../../../constants';
 
 const { Title, Text } = Typography;
 
 interface Campaign {
     key: string;
+    id: string;
     name: string;
     batch: string;
     department: string;
@@ -28,6 +46,7 @@ interface Campaign {
 const data: Campaign[] = [
     {
         key: '1',
+        id: '1',
         name: 'Summer 2024 Engineering',
         batch: 'Internship Batch A',
         department: 'Engineering',
@@ -38,6 +57,7 @@ const data: Campaign[] = [
     },
     {
         key: '2',
+        id: '2',
         name: 'Q3 Marketing Trainees',
         batch: 'Social Media Focus',
         department: 'Marketing',
@@ -48,6 +68,7 @@ const data: Campaign[] = [
     },
     {
         key: '3',
+        id: '3',
         name: 'Product Design Fellows',
         batch: 'UX/UI Research',
         department: 'Design',
@@ -58,6 +79,7 @@ const data: Campaign[] = [
     },
     {
         key: '4',
+        id: '4',
         name: 'Data Science Cohort',
         batch: 'Analytics Team',
         department: 'Data',
@@ -93,14 +115,36 @@ const schedule = [
 ];
 
 export const RecruitmentPlanList = () => {
+    const navigate = useNavigate();
+
+    const handleMenuClick = (e: any, campaignName: string) => {
+        if (e.key === 'edit') {
+            message.info(`Edit campaign: ${campaignName}`);
+        } else if (e.key === 'delete') {
+            message.warning(`Delete campaign: ${campaignName}`);
+        } else {
+            message.info(`View details for: ${campaignName}`);
+        }
+    };
+
+    const getActionMenu = (record: Campaign): MenuProps => ({
+        items: [
+            { key: 'view', label: 'View Details' },
+            { key: 'edit', label: 'Edit' },
+            { type: 'divider' },
+            { key: 'delete', label: 'Delete', danger: true }
+        ],
+        onClick: (e) => handleMenuClick(e, record.name)
+    });
+
     const columns: ColumnsType<Campaign> = [
         {
             title: 'Campaign Name',
             dataIndex: 'name',
             key: 'name',
             render: (text, record) => (
-                <div>
-                    <Text strong style={{ display: 'block' }}>
+                <div style={{ cursor: 'pointer' }} onClick={() => message.info(`View campaign: ${text}`)}>
+                    <Text strong style={{ display: 'block', color: '#136dec' }}>
                         {text}
                     </Text>
                     <Text type='secondary' style={{ fontSize: '12px' }}>
@@ -126,7 +170,10 @@ export const RecruitmentPlanList = () => {
             dataIndex: 'candidates',
             key: 'candidates',
             render: (count, record) => (
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div
+                    style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                    onClick={() => navigate(RouteConfig.CVList.path)}
+                >
                     <Avatar.Group maxCount={3} size='small'>
                         {record.avatars.map((url, index) => (
                             <Avatar key={index} src={url} />
@@ -157,7 +204,11 @@ export const RecruitmentPlanList = () => {
         {
             title: 'Actions',
             key: 'action',
-            render: () => <Button type='text' icon={<EllipsisOutlined />} />
+            render: (_, record) => (
+                <Dropdown menu={getActionMenu(record)} trigger={['click']}>
+                    <Button type='text' icon={<EllipsisOutlined />} />
+                </Dropdown>
+            )
         }
     ];
 
@@ -169,7 +220,12 @@ export const RecruitmentPlanList = () => {
 
             <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px' }}>
+                    <Card
+                        bordered={false}
+                        style={{ borderRadius: '12px', cursor: 'pointer' }}
+                        hoverable
+                        onClick={() => navigate(RouteConfig.RecruitmentJobList.path)}
+                    >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                             <div>
                                 <Text type='secondary'>Open Positions</Text>
@@ -187,7 +243,12 @@ export const RecruitmentPlanList = () => {
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px' }}>
+                    <Card
+                        bordered={false}
+                        style={{ borderRadius: '12px', cursor: 'pointer' }}
+                        hoverable
+                        onClick={() => navigate(RouteConfig.CVList.path)}
+                    >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                             <div>
                                 <Text type='secondary'>Pending Applications</Text>
@@ -205,7 +266,12 @@ export const RecruitmentPlanList = () => {
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px' }}>
+                    <Card
+                        bordered={false}
+                        style={{ borderRadius: '12px', cursor: 'pointer' }}
+                        hoverable
+                        onClick={() => navigate(RouteConfig.InterviewSchedule.path)}
+                    >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                             <div>
                                 <Text type='secondary'>Upcoming Interviews</Text>
@@ -247,7 +313,11 @@ export const RecruitmentPlanList = () => {
                         bordered={false}
                         style={{ borderRadius: '12px' }}
                         extra={
-                            <Button type='primary' icon={<PlusOutlined />}>
+                            <Button
+                                type='primary'
+                                icon={<PlusOutlined />}
+                                onClick={() => navigate(RouteConfig.RecruitmentPlanCreate.path)}
+                            >
                                 Create New Plan
                             </Button>
                         }
@@ -295,8 +365,10 @@ export const RecruitmentPlanList = () => {
                                             gap: '12px',
                                             padding: '8px',
                                             borderRadius: '8px',
-                                            background: '#fafafa'
+                                            background: '#fafafa',
+                                            cursor: 'pointer'
                                         }}
+                                        onClick={() => message.info(`View details for: ${item.title}`)}
                                     >
                                         <div
                                             style={{
@@ -338,7 +410,11 @@ export const RecruitmentPlanList = () => {
                                         </div>
                                     </div>
                                 ))}
-                                <Button type='default' block>
+                                <Button
+                                    type='default'
+                                    block
+                                    onClick={() => navigate(RouteConfig.InterviewSchedule.path)}
+                                >
                                     View Full Calendar
                                 </Button>
                             </div>
@@ -359,7 +435,12 @@ export const RecruitmentPlanList = () => {
                             <Text style={{ color: 'rgba(255,255,255,0.85)', display: 'block', marginBottom: '16px' }}>
                                 Assign mentors to the new batch of engineering interns.
                             </Text>
-                            <Button style={{ color: '#1890ff', fontWeight: 'bold' }}>Assign Now</Button>
+                            <Button
+                                style={{ color: '#1890ff', fontWeight: 'bold' }}
+                                onClick={() => navigate(RouteConfig.MentorRequestList.path)}
+                            >
+                                Assign Now
+                            </Button>
                         </Card>
                     </Space>
                 </Col>
