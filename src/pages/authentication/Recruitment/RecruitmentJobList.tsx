@@ -24,6 +24,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
 
@@ -105,6 +106,7 @@ const initialData: JobPosition[] = [
 
 export const RecruitmentJobList = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [searchText, setSearchText] = useState('');
     const [departmentFilter, setDepartmentFilter] = useState('All');
 
@@ -120,20 +122,20 @@ export const RecruitmentJobList = () => {
 
     const getActionMenu = (record: JobPosition): MenuProps => ({
         items: [
-            { key: 'view', label: 'View Details', icon: <EyeOutlined /> },
-            { key: 'edit', label: 'Edit', icon: <EditOutlined /> },
+            { key: 'view', label: t('recruitment.view_details'), icon: <EyeOutlined /> },
+            { key: 'edit', label: t('common.edit'), icon: <EditOutlined /> },
             { type: 'divider' },
-            { key: 'delete', label: 'Delete', icon: <DeleteOutlined />, danger: true }
+            { key: 'delete', label: t('common.delete'), icon: <DeleteOutlined />, danger: true }
         ],
         onClick: ({ key }) => handleMenuClick(key, record)
     });
 
     const columns: ColumnsType<JobPosition> = [
         {
-            title: 'Job Position',
+            title: t('recruitment.job_title'),
             dataIndex: 'title',
             key: 'title',
-            render: (text, record) => (
+            render: (text: any, record: any) => (
                 <div>
                     <Text strong style={{ display: 'block', color: '#136dec' }}>{text}</Text>
                     <Text type="secondary" style={{ fontSize: '12px' }}>{record.id}</Text>
@@ -141,26 +143,26 @@ export const RecruitmentJobList = () => {
             )
         },
         {
-            title: 'Campaign',
+            title: t('recruitment.campaigns'),
             dataIndex: 'campaign',
             key: 'campaign',
-            render: (text) => <Text style={{ fontSize: '13px' }}>{text}</Text>
+            render: (text: any) => <Text style={{ fontSize: '13px' }}>{text}</Text>
         },
         {
-            title: 'Department',
+            title: t('common.department'),
             dataIndex: 'department',
             key: 'department',
-            render: (text) => <Tag color="blue">{text}</Tag>
+            render: (text: any) => <Tag color="blue">{text}</Tag>
         },
         {
-            title: 'Level',
+            title: t('recruitment.level'),
             dataIndex: 'level',
             key: 'level'
         },
         {
-            title: 'Fulfillment',
+            title: t('recruitment.fulfillment'),
             key: 'fulfillment',
-            render: (_, record) => (
+            render: (_: any, record: any) => (
                 <div>
                     <Text strong>{record.filled}</Text> / <Text type="secondary">{record.required}</Text>
                     <div style={{ width: '100%', height: '4px', background: '#f0f0f0', marginTop: '4px', borderRadius: '2px', overflow: 'hidden' }}>
@@ -174,28 +176,38 @@ export const RecruitmentJobList = () => {
             )
         },
         {
-            title: 'Status',
+            title: t('common.status'),
             dataIndex: 'status',
             key: 'status',
-            render: (status) => {
+            render: (status: any) => {
                 let color = 'default';
-                if (status === 'Open') color = 'success';
-                if (status === 'On Hold') color = 'warning';
-                if (status === 'Closed') color = 'error';
-                return <Tag color={color}>{status}</Tag>;
+                let label = status;
+                if (status === 'Open') {
+                    color = 'success';
+                    label = t('common.open');
+                }
+                if (status === 'On Hold') {
+                    color = 'warning';
+                    label = t('recruitment.on_hold');
+                }
+                if (status === 'Closed') {
+                    color = 'error';
+                    label = t('common.closed');
+                }
+                return <Tag color={color}>{label}</Tag>;
             }
         },
         {
-            title: 'Posted',
+            title: t('recruitment.posted'),
             dataIndex: 'postedDate',
             key: 'postedDate',
-            render: (text) => <Text type="secondary" style={{ fontSize: '12px' }}>{text}</Text>
+            render: (text: any) => <Text type="secondary" style={{ fontSize: '12px' }}>{text}</Text>
         },
         {
-            title: 'Actions',
+            title: t('common.actions'),
             key: 'action',
             width: 80,
-            render: (_, record) => (
+            render: (_: any, record: any) => (
                 <Dropdown menu={getActionMenu(record)} trigger={['click']}>
                     <Button type="text" icon={<EditOutlined />} />
                 </Dropdown>
@@ -215,23 +227,23 @@ export const RecruitmentJobList = () => {
             <div style={{ marginBottom: '24px' }}>
                 <Breadcrumb
                     items={[
-                        { title: 'Recruitment' },
-                        { title: 'Job Management' },
+                        { title: t('menu.recruitment_management') },
+                        { title: t('recruitment.job_management') },
                     ]}
                 />
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
-                    <Title level={3} style={{ margin: 0 }}>Job Management</Title>
-                    <Text type="secondary">Manage all open positions across your recruitment campaigns.</Text>
+                    <Title level={3} style={{ margin: 0 }}>{t('recruitment.job_management')}</Title>
+                    <Text type="secondary">{t('recruitment.job_management_desc')}</Text>
                 </div>
                 <Button
                     type="primary"
                     icon={<PlusOutlined />}
                     onClick={() => navigate(RouteConfig.RecruitmentPlanCreate.path)}
                 >
-                    Create Job Post
+                    {t('recruitment.create_job_post')}
                 </Button>
             </div>
 
@@ -239,7 +251,7 @@ export const RecruitmentJobList = () => {
                 <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                     <Space size="middle">
                         <Input
-                            placeholder="Search by job or campaign..."
+                            placeholder={t('recruitment.search_job_placeholder')}
                             prefix={<SearchOutlined />}
                             style={{ width: 300 }}
                             onChange={(e) => setSearchText(e.target.value)}
@@ -249,17 +261,17 @@ export const RecruitmentJobList = () => {
                             style={{ width: 160 }}
                             onChange={setDepartmentFilter}
                             options={[
-                                { value: 'All', label: 'All Departments' },
+                                { value: 'All', label: t('common.all_departments') },
                                 { value: 'Engineering', label: 'Engineering' },
                                 { value: 'Marketing', label: 'Marketing' },
                                 { value: 'Design', label: 'Design' },
                                 { value: 'Data', label: 'Data Science' }
                             ]}
                         />
-                        <Button icon={<FilterOutlined />}>More Filters</Button>
+                        <Button icon={<FilterOutlined />}>{t('common.more_filters')}</Button>
                     </Space>
                     <Space>
-                        <Text type="secondary">{filteredData.length} Jobs found</Text>
+                        <Text type="secondary">{filteredData.length} {t('recruitment.jobs_found')}</Text>
                     </Space>
                 </div>
 

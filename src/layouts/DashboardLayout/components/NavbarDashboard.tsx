@@ -14,6 +14,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
 import { ReactNode } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from '../../../components';
 
 const { Sider } = Layout;
 const { Text } = Typography;
@@ -42,22 +44,23 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
     const location = useLocation();
     const { logout } = useAuth();
     const { token } = theme.useToken();
+    const { t } = useTranslation();
 
     const menuItems: MenuItem[] = [
         {
             key: 'dashboard',
             icon: <DashboardOutlined />,
-            label: 'Tổng quan',
+            label: t('menu.dashboard'),
             onClick: () => navigate(RouteConfig.DashBoardPage.path)
         },
         {
             key: 'users',
             icon: <UserOutlined />,
-            label: 'Quản lý người dùng',
+            label: t('menu.user_management'),
             children: [
                 {
                     key: 'users-list',
-                    label: 'Danh sách người dùng',
+                    label: t('menu.user_list'),
                     onClick: () => navigate('/users')
                 }
             ]
@@ -65,65 +68,65 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
         {
             key: 'recruitment',
             icon: <TeamOutlined />,
-            label: 'Tuyển dụng (HR)',
+            label: t('menu.recruitment_management'),
             children: [
                 {
                     key: 'rec-plans',
-                    label: 'Kế hoạch tuyển dụng',
+                    label: t('menu.recruitment_plans'),
                     onClick: () => navigate(RouteConfig.RecruitmentPlanList.path)
                 },
                 {
                     key: 'rec-jobs',
-                    label: 'Tin tuyển dụng',
+                    label: t('menu.recruitment_jobs'),
                     onClick: () => navigate(RouteConfig.RecruitmentJobList.path)
                 },
-                { key: 'rec-cvs', label: 'Quản lý CV', onClick: () => navigate(RouteConfig.CVList.path) },
+                { key: 'rec-cvs', label: t('menu.cv_management'), onClick: () => navigate(RouteConfig.CVList.path) },
                 {
                     key: 'rec-interviews',
-                    label: 'Lịch phỏng vấn',
+                    label: t('menu.interviews'),
                     onClick: () => navigate(RouteConfig.InterviewSchedule.path)
                 },
                 {
                     key: 'rec-onboarding',
-                    label: 'Onboarding',
+                    label: t('menu.onboarding'),
                     onClick: () => navigate(RouteConfig.OnboardingList.path)
                 },
-                { key: 'rec-interns', label: 'Danh sách TTS', onClick: () => navigate(RouteConfig.InternList.path) }
+                { key: 'rec-interns', label: t('menu.intern_list'), onClick: () => navigate(RouteConfig.InternList.path) }
             ]
         },
         {
             key: 'mentor',
             icon: <SolutionOutlined />,
-            label: 'Mentor Portal',
+            label: t('menu.mentor_portal'),
             children: [
                 {
                     key: 'mentor-req',
-                    label: 'Đề xuất tuyển dụng',
+                    label: t('menu.recruitment_requests'),
                     onClick: () => navigate(RouteConfig.MentorRequestList.path)
                 },
                 {
                     key: 'mentor-path',
-                    label: 'Lộ trình đào tạo',
+                    label: t('menu.learning_path'),
                     onClick: () => navigate(RouteConfig.MentorLearningPath.path)
                 },
                 {
                     key: 'mentor-eval1',
-                    label: 'Đánh giá GĐ1',
+                    label: t('menu.eval_phase_1'),
                     onClick: () => navigate(RouteConfig.MentorEvalPhase1.path)
                 },
                 {
                     key: 'mentor-tasks',
-                    label: 'Quản lý Task',
+                    label: t('menu.task_management'),
                     onClick: () => navigate(RouteConfig.MentorTaskManagement.path)
                 },
                 {
                     key: 'mentor-eval2',
-                    label: 'Đánh giá GĐ2',
+                    label: t('menu.eval_phase_2'),
                     onClick: () => navigate(RouteConfig.MentorEvalPhase2.path)
                 },
                 {
                     key: 'mentor-final',
-                    label: 'Đánh giá cuối kỳ',
+                    label: t('menu.final_eval'),
                     onClick: () => navigate(RouteConfig.MentorEvalFinal.path)
                 }
             ]
@@ -131,23 +134,23 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
         {
             key: 'intern',
             icon: <BookOutlined />,
-            label: 'Intern Portal',
+            label: t('menu.intern_portal'),
             children: [
-                { key: 'intern-dash', label: 'Góc học tập', onClick: () => navigate(RouteConfig.InternDashboard.path) },
-                { key: 'intern-test', label: 'Bài kiểm tra', onClick: () => navigate(RouteConfig.InternTest.path) },
-                { key: 'intern-tasks', label: 'Task Board', onClick: () => navigate(RouteConfig.InternTaskBoard.path) },
-                { key: 'intern-reports', label: 'Báo cáo', onClick: () => navigate(RouteConfig.InternReports.path) },
-                { key: 'intern-cert', label: 'Chứng chỉ', onClick: () => navigate(RouteConfig.InternCertificate.path) }
+                { key: 'intern-dash', label: t('menu.intern_dashboard'), onClick: () => navigate(RouteConfig.InternDashboard.path) },
+                { key: 'intern-test', label: t('menu.knowledge_test'), onClick: () => navigate(RouteConfig.InternTest.path) },
+                { key: 'intern-tasks', label: t('menu.task_board'), onClick: () => navigate(RouteConfig.InternTaskBoard.path) },
+                { key: 'intern-reports', label: t('menu.reports'), onClick: () => navigate(RouteConfig.InternReports.path) },
+                { key: 'intern-cert', label: t('menu.certificate'), onClick: () => navigate(RouteConfig.InternCertificate.path) }
             ]
         },
         {
             key: 'director',
             icon: <FileProtectOutlined />,
-            label: 'Director Portal',
+            label: t('menu.director_portal'),
             children: [
                 {
                     key: 'dir-approvals',
-                    label: 'Phê duyệt kế hoạch',
+                    label: t('menu.plan_approvals'),
                     onClick: () => navigate(RouteConfig.DirectorApprovals.path)
                 }
             ]
@@ -155,15 +158,15 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
         {
             key: 'public',
             icon: <RocketOutlined />,
-            label: 'Public Pages',
+            label: t('menu.public_pages'),
             children: [
-                { key: 'pub-jobs', label: 'Job Board', onClick: () => navigate(RouteConfig.PublicJobBoard.path) }
+                { key: 'pub-jobs', label: t('menu.job_board'), onClick: () => navigate(RouteConfig.PublicJobBoard.path) }
             ]
         },
         {
             key: 'settings',
             icon: <SettingOutlined />,
-            label: 'Cài đặt',
+            label: t('menu.settings'),
             onClick: () => navigate(RouteConfig.SettingPage.path)
         }
     ];
@@ -248,6 +251,9 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
                     A
                 </div>
                 {!collapsed && <span style={{ fontSize: '18px', fontWeight: '700', color: '#1f2937' }}>Admin</span>}
+                <div style={{ marginLeft: 'auto', paddingRight: collapsed ? 0 : '12px' }}>
+                    <LanguageSwitcher />
+                </div>
             </div>
 
             <div style={{ height: 'calc(100vh - 64px - 70px)', overflowY: 'auto', paddingTop: '16px' }}>

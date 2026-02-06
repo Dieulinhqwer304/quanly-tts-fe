@@ -10,14 +10,16 @@ import {
     VideoCameraOutlined,
     CheckCircleOutlined
 } from '@ant-design/icons';
-import { Avatar, Button, Card, Col, Divider, Input, Layout, List, Row, Select, Space, Tag, Typography } from 'antd';
+import { Button, Card, Col, Input, Layout, Row, Space, Tag, Typography } from 'antd';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Content, Sider } = Layout;
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 export const MentorLearningPath = () => {
+    const { t } = useTranslation();
     const [selectedModule, setSelectedModule] = useState(1);
 
     const modules = [
@@ -51,7 +53,7 @@ export const MentorLearningPath = () => {
                 <div style={{ padding: '24px', borderBottom: '1px solid #e5e7eb' }}>
                     <div style={{ marginBottom: '16px' }}>
                         <Text strong style={{ fontSize: '12px', textTransform: 'uppercase', color: '#6b7280' }}>
-                            Learning Path Title
+                            {t('learning_path.path_title')}
                         </Text>
                         <Input
                             defaultValue='Frontend Development Internship - Q3'
@@ -60,10 +62,10 @@ export const MentorLearningPath = () => {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Title level={5} style={{ margin: 0 }}>
-                            Modules
+                            {t('learning_path.modules')}
                         </Title>
                         <Button type='link' icon={<PlusOutlined />} size='small'>
-                            Add Module
+                            {t('learning_path.add_module')}
                         </Button>
                     </div>
                 </div>
@@ -103,11 +105,11 @@ export const MentorLearningPath = () => {
                                             module.status === 'Ready'
                                                 ? 'green'
                                                 : module.status === 'Draft'
-                                                  ? 'orange'
-                                                  : 'default'
+                                                    ? 'orange'
+                                                    : 'default'
                                         }
                                     >
-                                        {module.status}
+                                        {module.status === 'Ready' ? t('learning_path.ready') : module.status === 'Draft' ? t('learning_path.draft') : t('learning_path.empty')}
                                     </Tag>
                                 </div>
                                 <div style={{ paddingLeft: '24px', fontSize: '12px', color: '#6b7280' }}>
@@ -123,10 +125,10 @@ export const MentorLearningPath = () => {
                                                     </span>
                                                 </>
                                             )}
-                                            {module.id === 2 && <span>3 items configured</span>}
+                                            {module.id === 2 && <span>{module.count} {t('learning_path.items_configured')}</span>}
                                         </div>
                                     ) : (
-                                        <span style={{ fontStyle: 'italic' }}>No content added yet</span>
+                                        <span style={{ fontStyle: 'italic' }}>{t('learning_path.no_content')}</span>
                                     )}
                                 </div>
                             </Card>
@@ -152,13 +154,13 @@ export const MentorLearningPath = () => {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#4338ca' }}>
                                     <CheckCircleOutlined />
                                     <Text strong style={{ color: '#4338ca' }}>
-                                        Final Assessment
+                                        {t('learning_path.final_assessment')}
                                     </Text>
                                 </div>
                                 <Tag color='geekblue'>Quiz</Tag>
                             </div>
                             <div style={{ paddingLeft: '24px', fontSize: '12px', color: '#6366f1' }}>
-                                Passing Score: 80%
+                                {t('learning_path.passing_score')}: 80%
                             </div>
                         </Card>
                     </Space>
@@ -179,16 +181,16 @@ export const MentorLearningPath = () => {
                 >
                     <div>
                         <Title level={4} style={{ margin: 0 }}>
-                            Module 1: Company Culture
+                            {t('learning_path.modules')} {selectedModule}: Company Culture
                         </Title>
                         <Text type='secondary' style={{ fontSize: '12px' }}>
-                            Manage content, resources, and mini-quizzes for this module.
+                            {t('learning_path.desc')}
                         </Text>
                     </div>
                     <Space>
-                        <Button icon={<SettingOutlined />}>Settings</Button>
+                        <Button icon={<SettingOutlined />}>{t('menu.settings')}</Button>
                         <Button danger icon={<DeleteOutlined />}>
-                            Delete Module
+                            {t('learning_path.delete_module')}
                         </Button>
                     </Space>
                 </div>
@@ -205,7 +207,7 @@ export const MentorLearningPath = () => {
                                 display: 'block'
                             }}
                         >
-                            Module Content
+                            {t('learning_path.module_content')}
                         </Text>
                         <Space direction='vertical' style={{ width: '100%' }}>
                             {contentItems.map((item) => (
@@ -293,7 +295,7 @@ export const MentorLearningPath = () => {
 
                     <Card style={{ borderRadius: '12px', border: '1px dashed #d9d9d9', background: '#fafafa' }}>
                         <Title level={5} style={{ marginTop: 0 }}>
-                            Add Resource
+                            {t('learning_path.add_resource')}
                         </Title>
                         <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
                             <Button
@@ -310,7 +312,7 @@ export const MentorLearningPath = () => {
                                     />
                                 }
                             >
-                                Video Link
+                                {t('learning_path.video_link')}
                             </Button>
                             <Button
                                 style={{ flex: 1, height: '80px' }}
@@ -320,7 +322,7 @@ export const MentorLearningPath = () => {
                                     />
                                 }
                             >
-                                File Upload
+                                {t('learning_path.file_upload')}
                             </Button>
                             <Button
                                 style={{ flex: 1, height: '80px' }}
@@ -330,7 +332,7 @@ export const MentorLearningPath = () => {
                                     />
                                 }
                             >
-                                Add Quiz
+                                {t('learning_path.add_quiz')}
                             </Button>
                         </div>
 
@@ -344,21 +346,21 @@ export const MentorLearningPath = () => {
                         >
                             <Row gutter={16} style={{ marginBottom: '16px' }}>
                                 <Col span={12}>
-                                    <Text strong>Resource Title</Text>
+                                    <Text strong>{t('learning_path.resource_title')}</Text>
                                     <Input placeholder='e.g. Introduction Video' style={{ marginTop: '8px' }} />
                                 </Col>
                                 <Col span={12}>
-                                    <Text strong>Video URL</Text>
+                                    <Text strong>{t('learning_path.video_url')}</Text>
                                     <Input placeholder='https://youtube.com/...' style={{ marginTop: '8px' }} />
                                 </Col>
                             </Row>
                             <div style={{ marginBottom: '16px' }}>
-                                <Text strong>Description (Optional)</Text>
+                                <Text strong>{t('learning_path.description_optional')}</Text>
                                 <TextArea rows={3} style={{ marginTop: '8px' }} />
                             </div>
                             <div style={{ textAlign: 'right' }}>
                                 <Button type='primary' icon={<PlusOutlined />}>
-                                    Add Video to Module
+                                    {t('learning_path.add_video')}
                                 </Button>
                             </div>
                         </div>
@@ -378,14 +380,14 @@ export const MentorLearningPath = () => {
                                     type='secondary'
                                     style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}
                                 >
-                                    Checkpoints
+                                    {t('learning_path.checkpoints')}
                                 </Text>
                                 <Text type='secondary' style={{ display: 'block', fontSize: '12px' }}>
-                                    Short quizzes to verify understanding before proceeding.
+                                    {t('learning_path.checkpoints_desc')}
                                 </Text>
                             </div>
                             <Button type='link' icon={<PlusOutlined />}>
-                                New Question
+                                {t('learning_path.new_question')}
                             </Button>
                         </div>
 

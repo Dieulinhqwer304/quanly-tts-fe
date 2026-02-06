@@ -28,6 +28,7 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
 
@@ -76,6 +77,7 @@ const initialTasks: Task[] = [
 ];
 
 export const MentorTaskManagement = () => {
+    const { t } = useTranslation();
     const [tasks, setTasks] = useState(initialTasks);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
@@ -94,24 +96,24 @@ export const MentorTaskManagement = () => {
         setTasks([newTask, ...tasks]);
         setIsModalOpen(false);
         form.resetFields();
-        message.success('Task assigned successfully!');
+        message.success(t('common.success'));
     };
 
     const columns: ColumnsType<Task> = [
         {
-            title: 'Task ID',
+            title: t('task_mgmt.task_id'),
             dataIndex: 'id',
             key: 'id',
             render: (text) => <Text type="secondary" style={{ fontSize: '12px' }}>{text}</Text>
         },
         {
-            title: 'Title',
+            title: t('task_mgmt.task_title'),
             dataIndex: 'title',
             key: 'title',
             render: (text) => <Text strong>{text}</Text>
         },
         {
-            title: 'Intern',
+            title: t('task_mgmt.intern'),
             dataIndex: 'intern',
             key: 'intern',
             render: (text, record) => (
@@ -122,18 +124,18 @@ export const MentorTaskManagement = () => {
             )
         },
         {
-            title: 'Priority',
+            title: t('task_mgmt.priority'),
             dataIndex: 'priority',
             key: 'priority',
             render: (priority) => {
                 let color = 'blue';
                 if (priority === 'High') color = 'volcano';
                 if (priority === 'Medium') color = 'gold';
-                return <Tag color={color}>{priority}</Tag>;
+                return <Tag color={color}>{priority === 'High' ? t('task_mgmt.high') : priority === 'Medium' ? t('task_mgmt.medium') : t('task_mgmt.low')}</Tag>;
             }
         },
         {
-            title: 'Due Date',
+            title: t('task_mgmt.due_date'),
             dataIndex: 'dueDate',
             key: 'dueDate',
             render: (date) => (
@@ -144,19 +146,24 @@ export const MentorTaskManagement = () => {
             )
         },
         {
-            title: 'Status',
+            title: t('common.status'),
             dataIndex: 'status',
             key: 'status',
             render: (status) => {
                 let color = 'default';
                 if (status === 'In Progress') color = 'blue';
-                if (status === 'Under Review') color = 'purple';
                 if (status === 'Completed') color = 'success';
-                return <Tag color={color} style={{ borderRadius: '10px' }}>{status}</Tag>;
+                const statusMap: any = {
+                    'In Progress': t('task_mgmt.in_progress'),
+                    'Under Review': t('task_mgmt.under_review'),
+                    'Completed': t('task_mgmt.completed'),
+                    'To Do': t('task_mgmt.to_do')
+                };
+                return <Tag color={color} style={{ borderRadius: '10px' }}>{statusMap[status] || status}</Tag>;
             }
         },
         {
-            title: 'Actions',
+            title: t('common.actions'),
             key: 'action',
             render: () => (
                 <Button type="text" icon={<EllipsisOutlined />} />
@@ -168,8 +175,8 @@ export const MentorTaskManagement = () => {
         <div style={{ padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
                 <div>
-                    <Title level={2} style={{ margin: 0 }}>Task Management</Title>
-                    <Text type="secondary">Assign tasks to interns and monitor their progress in real-time.</Text>
+                    <Title level={2} style={{ margin: 0 }}>{t('task_mgmt.title')}</Title>
+                    <Text type="secondary">{t('task_mgmt.desc')}</Text>
                 </div>
                 <Button
                     type="primary"
@@ -177,31 +184,31 @@ export const MentorTaskManagement = () => {
                     size="large"
                     onClick={() => setIsModalOpen(true)}
                 >
-                    Assign New Task
+                    {t('task_mgmt.assign_task')}
                 </Button>
             </div>
 
             <Row gutter={[24, 24]}>
                 <Col xs={24} lg={6}>
                     <Space direction="vertical" style={{ width: '100%' }} size="large">
-                        <Card title="Mentor View Stats" bordered={false} style={{ borderRadius: '12px' }}>
+                        <Card title={t('task_mgmt.stats')} bordered={false} style={{ borderRadius: '12px' }}>
                             <div style={{ padding: '10px 0' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                    <Space><TeamOutlined style={{ color: '#136dec' }} /> <Text>Active Interns</Text></Space>
+                                    <Space><TeamOutlined style={{ color: '#136dec' }} /> <Text>{t('task_mgmt.active_interns')}</Text></Space>
                                     <Text strong>4</Text>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                    <Space><ProjectOutlined style={{ color: '#faad14' }} /> <Text>Open Tasks</Text></Space>
+                                    <Space><ProjectOutlined style={{ color: '#faad14' }} /> <Text>{t('task_mgmt.open_tasks')}</Text></Space>
                                     <Text strong>15</Text>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <Space><CheckCircleOutlined style={{ color: '#52c41a' }} /> <Text>Completed</Text></Space>
+                                    <Space><CheckCircleOutlined style={{ color: '#52c41a' }} /> <Text>{t('task_mgmt.completed')}</Text></Space>
                                     <Text strong>42</Text>
                                 </div>
                             </div>
                         </Card>
 
-                        <Card title="Intern Activity" bordered={false} style={{ borderRadius: '12px' }}>
+                        <Card title={t('task_mgmt.activity')} bordered={false} style={{ borderRadius: '12px' }}>
                             <List
                                 itemLayout="horizontal"
                                 dataSource={[
@@ -227,18 +234,18 @@ export const MentorTaskManagement = () => {
                     <Card bordered={false} style={{ borderRadius: '12px' }}>
                         <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
                             <Space size="middle">
-                                <Select defaultValue="All Interns" style={{ width: 150 }} options={[
-                                    { value: 'All Interns', label: 'All Interns' },
+                                <Select defaultValue={t('task_mgmt.all_interns')} style={{ width: 150 }} options={[
+                                    { value: 'All Interns', label: t('task_mgmt.all_interns') },
                                     { value: 'Sarah Jenkins', label: 'Sarah Jenkins' },
                                     { value: 'David Chen', label: 'David Chen' }
                                 ]} />
-                                <Select defaultValue="All Statuses" style={{ width: 150 }} options={[
-                                    { value: 'All Statuses', label: 'All Statuses' },
-                                    { value: 'In Progress', label: 'In Progress' },
-                                    { value: 'Completed', label: 'Completed' }
+                                <Select defaultValue={t('task_mgmt.all_statuses')} style={{ width: 150 }} options={[
+                                    { value: 'All Statuses', label: t('task_mgmt.all_statuses') },
+                                    { value: 'In Progress', label: t('task_mgmt.in_progress') },
+                                    { value: 'Completed', label: t('task_mgmt.completed') }
                                 ]} />
                             </Space>
-                            <Input prefix={<ProjectOutlined />} placeholder="Search tasks..." style={{ width: 250 }} />
+                            <Input prefix={<ProjectOutlined />} placeholder={t('task_mgmt.search_tasks')} style={{ width: 250 }} />
                         </div>
                         <Table columns={columns} dataSource={tasks} pagination={{ pageSize: 8 }} />
                     </Card>
@@ -246,19 +253,19 @@ export const MentorTaskManagement = () => {
             </Row>
 
             <Modal
-                title={<Space><PlusOutlined style={{ color: '#136dec' }} /> Assign New Task</Space>}
+                title={<Space><PlusOutlined style={{ color: '#136dec' }} /> {t('task_mgmt.assign_task')}</Space>}
                 open={isModalOpen}
                 onCancel={() => setIsModalOpen(false)}
                 onOk={() => form.submit()}
                 destroyOnClose
             >
                 <Form form={form} layout="vertical" onFinish={handleAddTask} style={{ marginTop: '16px' }}>
-                    <Form.Item label="Task Title" name="title" rules={[{ required: true, message: 'Please enter task title' }]}>
-                        <Input placeholder="Describe what needs to be done" />
+                    <Form.Item label={t('task_mgmt.task_title')} name="title" rules={[{ required: true, message: t('common.required_field') }]}>
+                        <Input placeholder={t('task_mgmt.task_title')} />
                     </Form.Item>
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Form.Item label="Assign To" name="intern" rules={[{ required: true, message: 'Select an intern' }]}>
+                            <Form.Item label={t('task_mgmt.intern')} name="intern" rules={[{ required: true, message: t('common.required_field') }]}>
                                 <Select placeholder="Choose intern" options={[
                                     { value: 'Sarah Jenkins', label: 'Sarah Jenkins' },
                                     { value: 'David Chen', label: 'David Chen' }
@@ -266,20 +273,20 @@ export const MentorTaskManagement = () => {
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item label="Due Date" name="dueDate" rules={[{ required: true, message: 'Select due date' }]}>
+                            <Form.Item label={t('task_mgmt.due_date')} name="dueDate" rules={[{ required: true, message: t('common.required_field') }]}>
                                 <DatePicker style={{ width: '100%' }} />
                             </Form.Item>
                         </Col>
                     </Row>
-                    <Form.Item label="Priority" name="priority" rules={[{ required: true, message: 'Select priority' }]}>
-                        <Select placeholder="Set priority" options={[
-                            { value: 'High', label: 'High Priority' },
-                            { value: 'Medium', label: 'Medium Priority' },
-                            { value: 'Low', label: 'Low Priority' }
+                    <Form.Item label={t('task_mgmt.priority')} name="priority" rules={[{ required: true, message: t('common.required_field') }]}>
+                        <Select placeholder={t('task_mgmt.priority')} options={[
+                            { value: 'High', label: t('task_mgmt.high') },
+                            { value: 'Medium', label: t('task_mgmt.medium') },
+                            { value: 'Low', label: t('task_mgmt.low') }
                         ]} />
                     </Form.Item>
-                    <Form.Item label="Task Description" name="description">
-                        <Input.TextArea rows={3} placeholder="Provide additional details, links, or requirements" />
+                    <Form.Item label={t('learning_path.description_optional')} name="description">
+                        <Input.TextArea rows={3} placeholder={t('learning_path.description_optional')} />
                     </Form.Item>
                 </Form>
             </Modal>
