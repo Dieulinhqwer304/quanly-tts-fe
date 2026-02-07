@@ -29,6 +29,7 @@ export interface GetJobPositionsParams {
     pagination?: PaginateParams;
     searcher?: SearchParams;
     department?: string;
+    status?: 'Open' | 'Closed' | 'On Hold';
 }
 
 export const getJobPositions = async (params?: GetJobPositionsParams): Promise<ResponseListSuccess<JobPosition>> => {

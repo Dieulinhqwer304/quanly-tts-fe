@@ -33,7 +33,8 @@ export const JobBoardPage = () => {
     const [searchText, setSearchText] = useState('');
 
     const { data: jobPositionsData, isLoading } = useJobPositions({
-        searcher: searchText ? { keyword: searchText, field: 'title' } : undefined
+        searcher: searchText ? { keyword: searchText, field: 'title' } : undefined,
+        status: 'Open' // Only show open positions on public job board
     });
 
     const jobs = jobPositionsData?.data?.hits || [];
