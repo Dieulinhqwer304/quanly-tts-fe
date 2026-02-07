@@ -65,6 +65,37 @@ export const getOnboarding = async (id: string): Promise<ResponseDetailSuccess<O
     };
 };
 
+export interface CreateOnboardingParams {
+    candidateId: string;
+    name: string;
+    avatar?: string;
+    track: string;
+    mentor?: string;
+    department?: string;
+    startDate: string;
+    endDate?: string;
+}
+
+export const createOnboarding = async (params: CreateOnboardingParams): Promise<ResponseDetailSuccess<Onboarding>> => {
+    const response = await http.post('/onboarding', {
+        ...params,
+        currentStep: 0,
+        status: 'In Progress',
+        steps: [
+            { title: 'Documents', status: 'process' },
+            { title: 'Account Setup', status: 'wait' },
+            { title: 'Orientation', status: 'wait' },
+            { title: 'First Assignment', status: 'wait' }
+        ],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    });
+    return {
+        code: 201,
+        data: response.data
+    };
+};
+
 export interface UpdateOnboardingParams {
     id: string;
     currentStep?: number;
