@@ -28,6 +28,17 @@ export const useOnboarding = (id: string) => {
     });
 };
 
+export const useCreateOnboarding = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (params: onboardingService.CreateOnboardingParams) =>
+            onboardingService.createOnboarding(params),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['onboardingList'] });
+        }
+    });
+};
+
 export const useUpdateOnboarding = () => {
     const queryClient = useQueryClient();
     return useMutation({
