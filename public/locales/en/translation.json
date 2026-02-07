@@ -69,7 +69,13 @@
         "closed": "Closed",
         "require_review": "Require review",
         "all_depts": "All Departments",
-        "status_all": "Status: All"
+        "status_all": "Status: All",
+        "level": "Level",
+        "on_hold": "On Hold",
+        "view_details": "View Details",
+        "period": "Period",
+        "approver": "Approver",
+        "export_csv": "Export CSV"
     },
     "internship": {
         "management": "Internship Management",
@@ -87,7 +93,18 @@
         "completed": "Completed",
         "dropped": "Dropped",
         "to": "to",
-        "interns": "interns"
+        "interns": "interns",
+        "add_intern": "Add Intern",
+        "edit_intern": "Edit Intern",
+        "intern_name": "Full Name",
+        "intern_email": "Email Address",
+        "intern_phone": "Phone Number",
+        "track": "Internship Track",
+        "mentor": "Mentor",
+        "internship_period": "Internship Period",
+        "select_mentor": "Select Mentor",
+        "select_track": "Select Track",
+        "all_tracks": "All Tracks"
     },
     "common": {
         "actions": "Actions",
@@ -117,7 +134,15 @@
         "of": "of",
         "candidates": "candidates",
         "open": "Open",
-        "closed": "Closed"
+        "closed": "Closed",
+        "close": "Close",
+        "required_field": "Required field",
+        "delete_confirm": "Confirm Delete",
+        "delete_confirm_desc": "Are you sure you want to delete",
+        "all_plans": "All Plans",
+        "phone": "Phone Number",
+        "email": "Email Address",
+        "invalid_email": "Invalid email"
     },
     "candidate": {
         "screening": "CV Screening",

@@ -4,7 +4,8 @@ import {
     EditOutlined,
     DeleteOutlined,
     EyeOutlined,
-    FilterOutlined
+    FilterOutlined,
+    MoreOutlined
 } from '@ant-design/icons';
 import {
     Button,
@@ -36,6 +37,7 @@ export const RecruitmentJobList = () => {
     const [departmentFilter, setDepartmentFilter] = useState('All');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingJob, setEditingJob] = useState<JobPosition | null>(null);
+    const [isViewOnly, setIsViewOnly] = useState(false);
 
     const { data: jobPositionsData, isLoading, refetch } = useJobPositions({
         searcher: searchText ? { keyword: searchText, field: 'title' } : undefined,
@@ -44,20 +46,29 @@ export const RecruitmentJobList = () => {
 
     const handleCreate = () => {
         setEditingJob(null);
+        setIsViewOnly(false);
         setIsModalOpen(true);
     };
 
     const handleEdit = (record: JobPosition) => {
         setEditingJob(record);
+        setIsViewOnly(false);
+        setIsModalOpen(true);
+    };
+
+    const handleView = (record: JobPosition) => {
+        setEditingJob(record);
+        setIsViewOnly(true);
         setIsModalOpen(true);
     };
 
     const handleMenuClick = (key: string, record: JobPosition) => {
         if (key === 'view') {
-            message.info(`Viewing ${record.title}`);
+            handleView(record);
         } else if (key === 'edit') {
             handleEdit(record);
         } else if (key === 'delete') {
+            // ... (keep delete logic)
             Modal.confirm({
                 title: t('common.delete_confirm'),
                 content: `${t('common.delete_confirm_desc')} ${record.title}?`,
@@ -176,7 +187,7 @@ export const RecruitmentJobList = () => {
             width: 80,
             render: (_: any, record: any) => (
                 <Dropdown menu={getActionMenu(record)} trigger={['click']}>
-                    <Button type='text' icon={<EditOutlined />} />
+                    <Button type='text' icon={<MoreOutlined />} />
                 </Dropdown>
             )
         }
@@ -268,6 +279,7 @@ export const RecruitmentJobList = () => {
                     refetch();
                 }}
                 initialValues={editingJob}
+                viewOnly={isViewOnly}
             />
         </div>
     );
