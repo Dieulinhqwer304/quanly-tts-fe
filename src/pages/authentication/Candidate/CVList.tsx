@@ -45,11 +45,11 @@ export const CVList = () => {
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-    const [viewingCandidateId, setViewingCandidateId] = useState<string | null>(null);
+    const [viewingCandidate, setViewingCandidate] = useState<Candidate | null>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-    const handleView = (id: string) => {
-        setViewingCandidateId(id);
+    const handleView = (candidate: Candidate) => {
+        setViewingCandidate(candidate);
         setIsDetailModalOpen(true);
     };
 
@@ -98,7 +98,7 @@ export const CVList = () => {
             render: (text: any, record: any) => (
                 <div
                     style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
-                    onClick={() => handleView(record.id)}
+                    onClick={() => handleView(record)}
                 >
                     {record.avatar?.includes('http') ? (
                         <Avatar src={record.avatar} size={40} />
@@ -196,7 +196,7 @@ export const CVList = () => {
                             key: 'view',
                             label: t('common.view'),
                             icon: <EyeOutlined />,
-                            onClick: () => handleView(record.id)
+                            onClick: () => handleView(record)
                         },
                         {
                             key: 'interview',
@@ -411,7 +411,7 @@ export const CVList = () => {
             <CVDetailModal
                 open={isDetailModalOpen}
                 onCancel={() => setIsDetailModalOpen(false)}
-                candidateId={viewingCandidateId}
+                candidate={viewingCandidate}
             />
         </div>
     );
