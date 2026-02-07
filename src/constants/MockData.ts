@@ -599,6 +599,59 @@ export const MOCK_DATA = {
             updatedAt: "2025-03-06T17:45:00"
         }
     ],
+    onboarding: [
+        {
+            id: "OB-001",
+            name: "Trần Thị Bình",
+            avatar: "",
+            track: "Frontend Development",
+            currentStep: 1,
+            startDate: "2025-03-10",
+            status: "In Progress",
+            steps: [
+                { title: "Documents", status: "finish" },
+                { title: "Account Setup", status: "process" },
+                { title: "Orientation", status: "wait" },
+                { title: "First Assignment", status: "wait" }
+            ],
+            createdAt: "2025-03-08T10:00:00",
+            updatedAt: "2025-03-08T10:00:00"
+        },
+        {
+            id: "OB-002",
+            name: "Phạm Quốc Dũng",
+            avatar: "",
+            track: "Backend Development",
+            currentStep: 2,
+            startDate: "2025-03-08",
+            status: "In Progress",
+            steps: [
+                { title: "Documents", status: "finish" },
+                { title: "Account Setup", status: "finish" },
+                { title: "Orientation", status: "process" },
+                { title: "First Assignment", status: "wait" }
+            ],
+            createdAt: "2025-03-06T09:00:00",
+            updatedAt: "2025-03-07T14:30:00"
+        },
+        {
+            id: "OB-003",
+            name: "Nguyễn Văn Cường",
+            avatar: "",
+            track: "Full Stack Development",
+            currentStep: 4,
+            startDate: "2025-03-01",
+            status: "Completed",
+            steps: [
+                { title: "Documents", status: "finish" },
+                { title: "Account Setup", status: "finish" },
+                { title: "Orientation", status: "finish" },
+                { title: "First Assignment", status: "finish" }
+            ],
+            createdAt: "2025-02-28T08:00:00",
+            updatedAt: "2025-03-05T16:00:00"
+        }
+    ],
     dashboardStats: {
         totalUsers: 50,
         activeUsers: 35,

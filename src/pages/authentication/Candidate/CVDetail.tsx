@@ -32,6 +32,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useCandidate, useShortlistCandidate, useRejectCandidate, usePassInterviewCandidate } from '../../../hooks/Recruitment/useCandidates';
+import { ConvertToInternModal } from './components/ConvertToInternModal';
 
 const { Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -42,6 +43,7 @@ export const CVDetail = () => {
     const navigate = useNavigate();
     const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
     const [rejectReason, setRejectReason] = useState('');
+    const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
 
     const { data: candidateData, isLoading: isCandidateLoading } = useCandidate(id || '');
     const shortlistMutation = useShortlistCandidate();
@@ -190,6 +192,15 @@ export const CVDetail = () => {
                             </div>
                             <Space>
                                 <Button icon={<DownloadOutlined />}>{t('candidate.download_cv')}</Button>
+                                {status === 'Passed Interview' && (
+                                    <Button
+                                        type='primary'
+                                        onClick={() => setIsConvertModalOpen(true)}
+                                        style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                                    >
+                                        {t('onboarding.convert_to_intern')}
+                                    </Button>
+                                )}
                                 {status !== 'Rejected' && status !== 'Passed Interview' && (
                                     <>
                                         <Button
@@ -401,6 +412,14 @@ export const CVDetail = () => {
                         onChange={(e) => setRejectReason(e.target.value)}
                     />
                 </Modal>
+
+                <ConvertToInternModal
+                    open={isConvertModalOpen}
+                    onCancel={() => setIsConvertModalOpen(false)}
+                    candidateId={candidate.id}
+                    candidateName={candidate.name}
+                    candidateAvatar={candidate.avatar}
+                />
             </Content>
         </Layout>
     );
