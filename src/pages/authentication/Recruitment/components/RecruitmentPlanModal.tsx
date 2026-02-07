@@ -144,24 +144,56 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
                                     {fields.map(({ key, name, ...restField }) => (
                                         <div key={key} style={{ marginBottom: '16px', padding: '16px', background: '#fafafa', borderRadius: '8px', position: 'relative' }}>
                                             <Row gutter={16}>
-                                                <Col span={14}>
+                                                <Col span={12}>
                                                     <Form.Item
                                                         {...restField}
                                                         name={[name, 'title']}
                                                         label={t('recruitment.job_title')}
                                                         rules={[{ required: true, message: t('common.required_field') }]}
                                                     >
-                                                        <Input placeholder={t('recruitment.job_title')} />
+                                                        <Input placeholder="VD: Frontend Developer Intern" />
                                                     </Form.Item>
                                                 </Col>
-                                                <Col span={10}>
+                                                <Col span={6}>
                                                     <Form.Item
                                                         {...restField}
                                                         name={[name, 'count']}
                                                         label={t('recruitment.quantity')}
                                                         rules={[{ required: true, message: t('common.required_field') }]}
                                                     >
-                                                        <InputNumber min={1} style={{ width: '100%' }} />
+                                                        <InputNumber min={1} style={{ width: '100%' }} placeholder="5" />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={6}>
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, 'level']}
+                                                        label={t('recruitment.level')}
+                                                    >
+                                                        <Select
+                                                            placeholder="Cấp bậc"
+                                                            options={[
+                                                                { value: 'Intern', label: 'Intern' },
+                                                                { value: 'Junior', label: 'Junior' },
+                                                                { value: 'Mid', label: 'Mid' },
+                                                                { value: 'Senior', label: 'Senior' }
+                                                            ]}
+                                                        />
+                                                    </Form.Item>
+                                                </Col>
+                                            </Row>
+                                            <Row gutter={16}>
+                                                <Col span={24}>
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, 'requirements']}
+                                                        label={t('recruitment.requirements')}
+                                                        rules={[{ required: true, message: 'Vui lòng nhập yêu cầu chính' }]}
+                                                    >
+                                                        <Input.TextArea
+                                                            rows={2}
+                                                            placeholder="VD: ReactJS, TypeScript, 6 tháng kinh nghiệm, có khả năng làm việc nhóm..."
+                                                        />
                                                     </Form.Item>
                                                 </Col>
                                             </Row>
