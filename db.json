@@ -388,6 +388,64 @@
             ],
             "createdAt": "2025-03-01T08:00:00",
             "updatedAt": "2025-03-06T11:00:00"
+        },
+        {
+            "id": "ONB-002",
+            "name": "Trần Thị Tuyết",
+            "avatar": "https://i.pravatar.cc/150?u=ONB-002",
+            "track": "Frontend (ReactJS)",
+            "currentStep": 3,
+            "startDate": "2025-03-10",
+            "status": "In Progress",
+            "steps": [
+                {
+                    "title": "Bổ sung hồ sơ",
+                    "status": "finish"
+                },
+                {
+                    "title": "Cấp tài khoản & Email",
+                    "status": "finish"
+                },
+                {
+                    "title": "Đào tạo nhập môn",
+                    "status": "process"
+                },
+                {
+                    "title": "Giao Task đầu tiên",
+                    "status": "wait"
+                }
+            ],
+            "createdAt": "2025-03-02T09:00:00",
+            "updatedAt": "2025-03-06T10:00:00"
+        },
+        {
+            "id": "ONB-003",
+            "name": "Phạm Quốc Bảo",
+            "avatar": "https://i.pravatar.cc/150?u=ONB-003",
+            "track": "Backend (NodeJS)",
+            "currentStep": 0,
+            "startDate": "2025-03-15",
+            "status": "Delayed",
+            "steps": [
+                {
+                    "title": "Bổ sung hồ sơ",
+                    "status": "error"
+                },
+                {
+                    "title": "Cấp tài khoản & Email",
+                    "status": "wait"
+                },
+                {
+                    "title": "Đào tạo nhập môn",
+                    "status": "wait"
+                },
+                {
+                    "title": "Giao Task đầu tiên",
+                    "status": "wait"
+                }
+            ],
+            "createdAt": "2025-03-05T08:30:00",
+            "updatedAt": "2025-03-06T09:00:00"
         }
     ],
     "evaluations": [
