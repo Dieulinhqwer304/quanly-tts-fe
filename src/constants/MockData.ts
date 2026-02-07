@@ -114,47 +114,7 @@ export const MOCK_DATA = {
             updatedAt: "2025-02-01T10:30:00"
         }
     ],
-    recruitmentPlans: [
-        {
-            id: "1",
-            name: "Kế hoạch Tuyển dụng Hè 2025",
-            batch: "Batch 2025-A",
-            department: "Engineering",
-            startDate: "2025-03-01",
-            endDate: "2025-08-31",
-            description: "Tuyển thực tập sinh cho các mảng FE, BE, Mobile tại TP.HCM và Hà Nội",
-            status: "Active",
-            candidates: 45,
-            createdAt: "2025-01-10T08:00:00",
-            updatedAt: "2025-01-10T08:00:00"
-        },
-        {
-            id: "2",
-            name: "Đào tạo Fresher Marketing Q1/2026",
-            batch: "Marketing-2026-Q1",
-            department: "Marketing",
-            startDate: "2026-01-01",
-            endDate: "2026-06-30",
-            description: "Chương trình đào tạo chuyên sâu về Performance Marketing",
-            status: "Pending",
-            candidates: 12,
-            createdAt: "2025-11-15T10:30:00",
-            updatedAt: "2025-11-15T10:30:00"
-        },
-        {
-            id: "3",
-            name: "Tuyển dụng UI/UX Design Spring 2025",
-            batch: "Design-25-S1",
-            department: "Design",
-            startDate: "2025-02-01",
-            endDate: "2025-05-30",
-            description: "Tìm kiếm tài năng thiết kế giao diện trẻ",
-            status: "Closed",
-            candidates: 20,
-            createdAt: "2024-12-20T09:00:00",
-            updatedAt: "2025-02-01T14:00:00"
-        }
-    ],
+
     jobPositions: [
         {
             id: "JOB-001",
@@ -211,74 +171,7 @@ export const MOCK_DATA = {
             updatedAt: "2025-02-25T10:00:00"
         }
     ],
-    candidates: [
-        {
-            id: "CAN-001",
-            name: "Nguyễn Hoàng Nam",
-            email: "nam.nh@student.hust.edu.vn",
-            phone: "0987654321",
-            location: "Hà Nội",
-            avatar: "https://i.pravatar.cc/150?u=CAN-001",
-            role: "Backend (NodeJS) Intern",
-            education: "Đại học Bách Khoa Hà Nội (Năm 4)",
-            experience: "Làm project cá nhân về E-commerce",
-            skills: ["JavaScript", "NodeJS", "MongoDB", "Docker"],
-            resumeUrl: "#",
-            appliedDate: "2025-03-01",
-            appliedFor: "JOB-002",
-            appliedForTitle: "Backend (NodeJS) Intern",
-            status: "Shortlisted",
-            matchScore: 88,
-            timeAgo: "2 ngày trước",
-            coverLetter: "Em mong muốn được thực tập tại công ty để trau dồi kỹ năng về Microservices...",
-            createdAt: "2025-03-01T08:00:00",
-            updatedAt: "2025-03-02T10:00:00"
-        },
-        {
-            id: "CAN-002",
-            name: "Lê Thị Thu Thảo",
-            email: "thao.ltt@uit.edu.vn",
-            phone: "0977889900",
-            location: "TP. Hồ Chí Minh",
-            avatar: "https://i.pravatar.cc/150?u=CAN-002",
-            role: "Frontend (ReactJS) Intern",
-            education: "Đại học Công nghệ Thông tin - ĐHQG TP.HCM",
-            experience: "Thực tập ngắn hạn tại startup X",
-            skills: ["React", "Tailwind", "TypeScript"],
-            resumeUrl: "#",
-            appliedDate: "2025-03-05",
-            appliedFor: "JOB-001",
-            appliedForTitle: "Frontend (ReactJS) Intern",
-            status: "CV Screened",
-            matchScore: 95,
-            timeAgo: "5 giờ trước",
-            coverLetter: "Em có niềm đam mê với việc xây dựng giao diện người dùng đẹp và tối ưu...",
-            createdAt: "2025-03-05T09:00:00",
-            updatedAt: "2025-03-05T09:00:00"
-        },
-        {
-            id: "CAN-003",
-            name: "Trần Minh Quân",
-            email: "quan.tm@example.com",
-            phone: "0911223344",
-            location: "Đà Nẵng",
-            avatar: "https://i.pravatar.cc/150?u=CAN-003",
-            role: "Mobile App (Flutter) Intern",
-            education: "Đại học Bách Khoa Đà Nẵng",
-            experience: "Fresher",
-            skills: ["Dart", "Flutter", "Firebase"],
-            resumeUrl: "#",
-            appliedDate: "2025-03-04",
-            appliedFor: "JOB-003",
-            appliedForTitle: "Mobile App (Flutter) Intern",
-            status: "Pending Review",
-            matchScore: 72,
-            timeAgo: "1 ngày trước",
-            coverLetter: "Em muốn thử sức với mảng Cross-platform...",
-            createdAt: "2025-03-04T11:00:00",
-            updatedAt: "2025-03-04T11:00:00"
-        }
-    ],
+
     interns: [
         {
             id: "ITS-001",
@@ -339,92 +232,9 @@ export const MOCK_DATA = {
             updatedAt: "2025-03-05T09:00:00"
         }
     ],
-    interviews: [
-        {
-            id: "1",
-            candidateId: "CAN-002",
-            candidateName: "Lê Thị Thu Thảo",
-            jobId: "JOB-001",
-            jobTitle: "Frontend (ReactJS) Intern",
-            date: "2025-03-15",
-            time: "14:00",
-            duration: "45 min",
-            format: "Online",
-            location: "Google Meet",
-            interviewer: "Nguyễn Văn Mentor",
-            status: "Scheduled",
-            notes: "Phỏng vấn kỹ thuật React cơ bản",
-            createdAt: "2025-03-10T08:00:00",
-            updatedAt: "2025-03-10T08:00:00"
-        }
-    ],
-    approvals: [
-        {
-            id: "1",
-            type: "Recruitment",
-            name: "Kế hoạch Hè 2025",
-            title: "Đề xuất mở rộng slot thực tập sinh cho team AI",
-            department: "Engineering",
-            hr: "Trần Thị HR",
-            priority: "High",
-            status: "Pending",
-            createdAt: "2025-03-06T10:30:00",
-            updatedAt: "2025-03-06T10:30:00"
-        }
-    ],
-    onboarding: [
-        {
-            id: "ONB-001",
-            name: "Lý Văn Hòa",
-            avatar: "https://i.pravatar.cc/150?u=123",
-            track: "Mobile App (Flutter)",
-            currentStep: 1,
-            startDate: "2025-03-12",
-            status: "In Progress",
-            steps: [
-                { title: "Bổ sung hồ sơ", status: "finish" },
-                { title: "Cấp tài khoản & Email", status: "process" },
-                { title: "Đào tạo nhập môn", status: "wait" },
-                { title: "Giao Task đầu tiên", status: "wait" }
-            ],
-            createdAt: "2025-03-01T08:00:00",
-            updatedAt: "2025-03-06T11:00:00"
-        },
-        {
-            id: "ONB-002",
-            name: "Trần Thị Tuyết",
-            avatar: "https://i.pravatar.cc/150?u=ONB-002",
-            track: "Frontend (ReactJS)",
-            currentStep: 3,
-            startDate: "2025-03-10",
-            status: "In Progress",
-            steps: [
-                { title: "Bổ sung hồ sơ", status: "finish" },
-                { title: "Cấp tài khoản & Email", status: "finish" },
-                { title: "Đào tạo nhập môn", status: "process" },
-                { title: "Giao Task đầu tiên", status: "wait" }
-            ],
-            createdAt: "2025-03-02T09:00:00",
-            updatedAt: "2025-03-06T10:00:00"
-        },
-        {
-            id: "ONB-003",
-            name: "Phạm Quốc Bảo",
-            avatar: "https://i.pravatar.cc/150?u=ONB-003",
-            track: "Backend (NodeJS)",
-            currentStep: 0,
-            startDate: "2025-03-15",
-            status: "Delayed",
-            steps: [
-                { title: "Bổ sung hồ sơ", status: "error" },
-                { title: "Cấp tài khoản & Email", status: "wait" },
-                { title: "Đào tạo nhập môn", status: "wait" },
-                { title: "Giao Task đầu tiên", status: "wait" }
-            ],
-            createdAt: "2025-03-05T08:30:00",
-            updatedAt: "2025-03-06T09:00:00"
-        }
-    ],
+
+
+
     evaluations: [
         {
             id: "EVL-201",
@@ -459,35 +269,7 @@ export const MOCK_DATA = {
             updatedAt: "2025-02-22T08:00:00"
         }
     ],
-    learningPaths: [
-        {
-            id: "LP-001",
-            track: "Frontend Development",
-            modules: [
-                {
-                    id: 1,
-                    title: "Văn hóa Công ty & Onboarding",
-                    status: "Ready",
-                    description: "Giới thiệu văn hóa, các công cụ làm việc và quy trình dự án.",
-                    progress: 100,
-                    items: [
-                        { id: 1, type: "video", title: "CEO Welcome & Company Vision", meta: "Link Video • 10 phút" },
-                        { id: 2, type: "file", title: "Sổ tay nhân viên 2025", meta: "PDF • 5 MB" }
-                    ]
-                },
-                {
-                    id: 2,
-                    title: "ReactJS Cơ bản đến Nâng cao",
-                    status: "In Progress",
-                    description: "Hooks, State Management, routing và tối ưu hiệu năng.",
-                    progress: 45,
-                    items: [
-                        { id: 3, type: "file", title: "React Design Patterns", meta: "Ebook • 2 MB" }
-                    ]
-                }
-            ]
-        }
-    ],
+
     approvals: [
         {
             id: "APR-001",
