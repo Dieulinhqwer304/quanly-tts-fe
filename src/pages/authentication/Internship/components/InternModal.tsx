@@ -85,7 +85,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues }: Intern
                             name="email"
                             rules={[
                                 { required: true, message: t('common.required_field') },
-                                { type: 'email', message: 'Invalid email' }
+                                { type: 'email', message: t('common.invalid_email') }
                             ]}
                         >
                             <Input placeholder={t('common.email')} />

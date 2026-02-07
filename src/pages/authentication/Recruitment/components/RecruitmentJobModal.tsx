@@ -1,4 +1,5 @@
 import {
+    Button,
     Col,
     Form,
     Input,
@@ -17,9 +18,10 @@ interface RecruitmentJobModalProps {
     onCancel: () => void;
     onSuccess: () => void;
     initialValues?: JobPosition | null;
+    viewOnly?: boolean;
 }
 
-export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues }: RecruitmentJobModalProps) => {
+export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, viewOnly }: RecruitmentJobModalProps) => {
     const { t } = useTranslation();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
@@ -45,20 +47,31 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues }
         }, 1500);
     };
 
+    const getTitle = () => {
+        if (viewOnly) return t('common.view');
+        return initialValues ? t('common.edit') : t('recruitment.create_job_post');
+    };
+
     return (
         <Modal
-            title={initialValues ? t('common.edit') : t('recruitment.create_job_post')}
+            title={getTitle()}
             open={open}
             onCancel={onCancel}
             onOk={() => form.submit()}
             confirmLoading={loading}
             width={700}
             destroyOnClose
+            footer={viewOnly ? [
+                <Button key="close" onClick={onCancel}>
+                    {t('common.close')}
+                </Button>
+            ] : undefined}
         >
             <Form
                 form={form}
                 layout="vertical"
                 onFinish={onFinish}
+                disabled={viewOnly}
                 initialValues={{
                     status: 'Open',
                     department: 'Engineering',
