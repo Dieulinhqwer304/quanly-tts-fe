@@ -11,11 +11,7 @@ import { DashboardLayout } from './layouts/DashboardLayout/DashboardLayout';
 import RootLayout from './layouts/RootLayout/RootLayout';
 import { ProtectRoute } from './components/ProtectRoute/ProtectRoute';
 
-import CreateUserPage from './pages/authentication/AccountPage/CreateUserPage';
-import ListUserPage from './pages/authentication/AccountPage/ListUserPage';
-import UpdateUserPage from './pages/authentication/AccountPage/UpdateUserPage';
 import { DashboardPage } from './pages/authentication/DashboardPage/DashboardPage';
-import ProfilePage from './pages/authentication/ProfilePage/ProfilePage';
 import SettingPage from './pages/authentication/SettingPage/SettingPage';
 import { ForbiddenPage } from './pages/unauthentication/ForbiddenPage/ForbiddenPage';
 import { FormLogout } from './pages/unauthentication/FormLogout/FormLogout';
@@ -42,8 +38,6 @@ import { MentorEvalFinal } from './pages/authentication/Internship/MentorEvalFin
 import { InternDashboard } from './pages/authentication/Internship/InternDashboard';
 import { InternTest } from './pages/authentication/Internship/InternTest';
 import { InternTaskBoard } from './pages/authentication/Internship/InternTaskBoard';
-import { InternReportPage } from './pages/authentication/Internship/InternReportPage';
-import { CertificatePage } from './pages/authentication/Internship/CertificatePage';
 import { DirectorApprovals } from './pages/authentication/Director/DirectorApprovals';
 
 const dashboardRoutes: RouteObject[] = [
@@ -52,30 +46,6 @@ const dashboardRoutes: RouteObject[] = [
         element: (
             <ProtectRoute>
                 <DashboardPage />
-            </ProtectRoute>
-        )
-    },
-    {
-        path: RouteConfig.ListUserPage.path,
-        element: (
-            <ProtectRoute>
-                <ListUserPage />
-            </ProtectRoute>
-        )
-    },
-    {
-        path: RouteConfig.CreateUserPage.path,
-        element: (
-            <ProtectRoute>
-                <CreateUserPage />
-            </ProtectRoute>
-        )
-    },
-    {
-        path: RouteConfig.UpdateUserPage.path,
-        element: (
-            <ProtectRoute>
-                <UpdateUserPage />
             </ProtectRoute>
         )
     },
@@ -225,22 +195,6 @@ const dashboardRoutes: RouteObject[] = [
             </ProtectRoute>
         )
     },
-    {
-        path: RouteConfig.InternReports.path,
-        element: (
-            <ProtectRoute>
-                <InternReportPage />
-            </ProtectRoute>
-        )
-    },
-    {
-        path: RouteConfig.InternCertificate.path,
-        element: (
-            <ProtectRoute>
-                <CertificatePage />
-            </ProtectRoute>
-        )
-    },
 
     {
         path: RouteConfig.DirectorApprovals.path,
@@ -270,7 +224,6 @@ export const App: FC = () => {
                                     </Route>
 
                                     <Route element={<DashboardLayout />}>
-                                        <Route path={RouteConfig.ProfilePage.path} element={<ProfilePage />} />
                                         {dashboardRoutes.map((route) => (
                                             <Route key={route.path} path={route.path} element={route.element} />
                                         ))}
