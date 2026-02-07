@@ -10,16 +10,34 @@ import {
 import { MOCK_DATA } from '../../constants/MockData';
 
 export const useCandidates = (params?: GetCandidatesParams) => {
+    // Filter candidates based on params
+    let filteredCandidates = MOCK_DATA.candidates;
+
+    // Filter by status
+    if (params?.status && params.status !== 'all') {
+        filteredCandidates = filteredCandidates.filter(c => c.status === params.status);
+    }
+
+    // Search by keyword
+    if (params?.searcher?.keyword) {
+        const keyword = params.searcher.keyword.toLowerCase();
+        filteredCandidates = filteredCandidates.filter(c =>
+            c.name.toLowerCase().includes(keyword) ||
+            c.email.toLowerCase().includes(keyword) ||
+            c.appliedForTitle.toLowerCase().includes(keyword)
+        );
+    }
+
     return useQuery({
         queryKey: ['candidates', params],
         queryFn: () => candidatesService.getCandidates(params),
         initialData: {
             code: 200,
             data: {
-                hits: MOCK_DATA.candidates,
+                hits: filteredCandidates,
                 pagination: {
                     totalPages: 1,
-                    totalRows: MOCK_DATA.candidates.length
+                    totalRows: filteredCandidates.length
                 }
             }
         }
