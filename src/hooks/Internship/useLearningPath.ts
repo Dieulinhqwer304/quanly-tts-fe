@@ -1,11 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as learningPathService from '../../services/Internship/learningPath';
 import { LearningPath } from '../../services/Internship/learningPath';
+import { MOCK_DATA } from '../../constants/MockData';
 
 export const useLearningPaths = () => {
     return useQuery({
         queryKey: ['learningPaths'],
-        queryFn: learningPathService.getLearningPaths
+        queryFn: learningPathService.getLearningPaths,
+        initialData: {
+            code: 200,
+            data: {
+                hits: MOCK_DATA.learningPaths,
+                pagination: {
+                    totalPages: 1,
+                    totalRows: MOCK_DATA.learningPaths.length
+                }
+            }
+        }
     });
 };
 

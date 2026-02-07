@@ -7,11 +7,22 @@ import {
     ShortlistCandidateParams,
     RejectCandidateParams
 } from '../../services/Recruitment/candidates';
+import { MOCK_DATA } from '../../constants/MockData';
 
 export const useCandidates = (params?: GetCandidatesParams) => {
     return useQuery({
         queryKey: ['candidates', params],
-        queryFn: () => candidatesService.getCandidates(params)
+        queryFn: () => candidatesService.getCandidates(params),
+        initialData: {
+            code: 200,
+            data: {
+                hits: MOCK_DATA.candidates,
+                pagination: {
+                    totalPages: 1,
+                    totalRows: MOCK_DATA.candidates.length
+                }
+            }
+        }
     });
 };
 

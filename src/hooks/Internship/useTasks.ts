@@ -1,11 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as tasksService from '../../services/Internship/tasks';
 import { GetTasksParams, CreateTaskParams, UpdateTaskParams } from '../../services/Internship/tasks';
+import { MOCK_DATA } from '../../constants/MockData';
 
 export const useTasks = (params?: GetTasksParams) => {
     return useQuery({
         queryKey: ['tasks', params],
-        queryFn: () => tasksService.getTasks(params)
+        queryFn: () => tasksService.getTasks(params),
+        initialData: {
+            code: 200,
+            data: {
+                hits: MOCK_DATA.tasks,
+                pagination: {
+                    totalPages: 1,
+                    totalRows: MOCK_DATA.tasks.length
+                }
+            }
+        }
     });
 };
 

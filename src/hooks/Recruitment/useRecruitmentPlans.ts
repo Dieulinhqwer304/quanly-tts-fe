@@ -5,11 +5,22 @@ import {
     CreateRecruitmentPlanParams,
     UpdateRecruitmentPlanParams
 } from '../../services/Recruitment/recruitmentPlans';
+import { MOCK_DATA } from '../../constants/MockData';
 
 export const useRecruitmentPlans = (params?: GetRecruitmentPlansParams) => {
     return useQuery({
         queryKey: ['recruitmentPlans', params],
-        queryFn: () => recruitmentPlansService.getRecruitmentPlans(params)
+        queryFn: () => recruitmentPlansService.getRecruitmentPlans(params),
+        initialData: {
+            code: 200,
+            data: {
+                hits: MOCK_DATA.recruitmentPlans,
+                pagination: {
+                    totalPages: 1,
+                    totalRows: MOCK_DATA.recruitmentPlans.length
+                }
+            }
+        }
     });
 };
 

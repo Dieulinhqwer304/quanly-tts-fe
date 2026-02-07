@@ -22,7 +22,6 @@ import { NotFoundPage } from './pages/unauthentication/NotFoundPage/NotFoundPage
 import { JobBoardPage } from './pages/public/JobBoard/JobBoardPage';
 import { JobDetailPage } from './pages/public/JobBoard/JobDetailPage';
 import { RecruitmentPlanList } from './pages/authentication/Recruitment/RecruitmentPlanList';
-import { RecruitmentPlanCreate } from './pages/authentication/Recruitment/RecruitmentPlanCreate';
 import { RecruitmentJobList } from './pages/authentication/Recruitment/RecruitmentJobList';
 import { CVList } from './pages/authentication/Candidate/CVList';
 import { CVDetail } from './pages/authentication/Candidate/CVDetail';
@@ -62,14 +61,6 @@ const dashboardRoutes: RouteObject[] = [
         element: (
             <ProtectRoute>
                 <RecruitmentPlanList />
-            </ProtectRoute>
-        )
-    },
-    {
-        path: RouteConfig.RecruitmentPlanCreate.path,
-        element: (
-            <ProtectRoute>
-                <RecruitmentPlanCreate />
             </ProtectRoute>
         )
     },
