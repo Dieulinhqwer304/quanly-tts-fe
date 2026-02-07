@@ -8,16 +8,40 @@ import {
 import { MOCK_DATA } from '../../constants/MockData';
 
 export const useJobPositions = (params?: GetJobPositionsParams) => {
+    // Filter job positions based on params
+    let filteredJobs = MOCK_DATA.jobPositions;
+
+    // Filter by status (for public job board, only show "Open" jobs)
+    if (params?.status) {
+        filteredJobs = filteredJobs.filter(j => j.status === params.status);
+    }
+
+    // Filter by department
+    if (params?.department) {
+        filteredJobs = filteredJobs.filter(j => j.department === params.department);
+    }
+
+    // Search by keyword
+    if (params?.searcher?.keyword) {
+        const keyword = params.searcher.keyword.toLowerCase();
+        filteredJobs = filteredJobs.filter(j =>
+            j.title.toLowerCase().includes(keyword) ||
+            j.description.toLowerCase().includes(keyword) ||
+            j.department.toLowerCase().includes(keyword) ||
+            j.requirements.toLowerCase().includes(keyword)
+        );
+    }
+
     return useQuery({
         queryKey: ['jobPositions', params],
         queryFn: () => jobPositionsService.getJobPositions(params),
         initialData: {
             code: 200,
             data: {
-                hits: MOCK_DATA.jobPositions,
+                hits: filteredJobs,
                 pagination: {
                     totalPages: 1,
-                    totalRows: MOCK_DATA.jobPositions.length
+                    totalRows: filteredJobs.length
                 }
             }
         }
@@ -25,10 +49,16 @@ export const useJobPositions = (params?: GetJobPositionsParams) => {
 };
 
 export const useJobPosition = (id: string) => {
+    const job = MOCK_DATA.jobPositions.find(j => j.id === id);
+
     return useQuery({
         queryKey: ['jobPosition', id],
         queryFn: () => jobPositionsService.getJobPosition(id),
-        enabled: !!id
+        enabled: !!id,
+        initialData: job ? {
+            code: 200,
+            data: job
+        } : undefined
     });
 };
 
