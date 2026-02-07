@@ -1,4 +1,5 @@
 import {
+    Button,
     Col,
     Form,
     Input,
@@ -17,9 +18,10 @@ interface InternModalProps {
     onCancel: () => void;
     onSuccess: () => void;
     initialValues?: any;
+    viewOnly?: boolean;
 }
 
-export const InternModal = ({ open, onCancel, onSuccess, initialValues }: InternModalProps) => {
+export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly }: InternModalProps) => {
     const { t } = useTranslation();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
@@ -50,20 +52,31 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues }: Intern
         }, 1500);
     };
 
+    const getTitle = () => {
+        if (viewOnly) return t('common.view');
+        return initialValues ? t('common.edit') : t('internship.add_intern');
+    };
+
     return (
         <Modal
-            title={initialValues ? t('common.edit') : t('internship.add_intern')}
+            title={getTitle()}
             open={open}
             onCancel={onCancel}
             onOk={() => form.submit()}
             confirmLoading={loading}
             width={700}
             destroyOnClose
+            footer={viewOnly ? [
+                <Button key="close" onClick={onCancel}>
+                    {t('common.close')}
+                </Button>
+            ] : undefined}
         >
             <Form
                 form={form}
                 layout="vertical"
                 onFinish={onFinish}
+                disabled={viewOnly}
                 initialValues={{
                     status: 'Active',
                     track: 'Frontend'

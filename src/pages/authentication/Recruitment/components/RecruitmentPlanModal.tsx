@@ -25,9 +25,10 @@ interface RecruitmentPlanModalProps {
     onCancel: () => void;
     onSuccess: () => void;
     initialValues?: any;
+    viewOnly?: boolean;
 }
 
-export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues }: RecruitmentPlanModalProps) => {
+export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues, viewOnly }: RecruitmentPlanModalProps) => {
     const { t } = useTranslation();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
@@ -59,20 +60,31 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues 
         }, 1500);
     };
 
+    const getTitle = () => {
+        if (viewOnly) return t('common.view');
+        return initialValues ? t('common.edit') : t('recruitment.create_new_plan');
+    };
+
     return (
         <Modal
-            title={initialValues ? t('common.edit') : t('recruitment.create_new_plan')}
+            title={getTitle()}
             open={open}
             onCancel={onCancel}
             onOk={() => form.submit()}
             confirmLoading={loading}
             width={800}
             destroyOnClose
+            footer={viewOnly ? [
+                <Button key="close" onClick={onCancel}>
+                    {t('common.close')}
+                </Button>
+            ] : undefined}
         >
             <Form
                 form={form}
                 layout="vertical"
                 onFinish={onFinish}
+                disabled={viewOnly}
                 initialValues={{
                     status: 'Active',
                     department: 'Engineering'

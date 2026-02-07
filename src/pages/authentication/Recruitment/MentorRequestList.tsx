@@ -31,6 +31,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { MentorProfileModal } from './components/MentorProfileModal';
 
 const { Title, Text } = Typography;
 
@@ -136,9 +137,16 @@ const internData: InternProgress[] = [
 export const MentorRequestList = () => {
     const { t } = useTranslation();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedIntern, setSelectedIntern] = useState<InternProgress | null>(null);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
     const handleAction = (action: string, item: string) => {
         message.success(`${action} for ${item} successfully`);
+    };
+
+    const handleViewProfile = (intern: InternProgress) => {
+        setSelectedIntern(intern);
+        setIsProfileModalOpen(true);
     };
 
     const getActionMenu = (record: InternProgress): MenuProps => ({
@@ -149,7 +157,7 @@ export const MentorRequestList = () => {
             { key: 'report', label: t('task_mgmt.report_issue'), danger: true }
         ],
         onClick: (e) => {
-            if (e.key === 'view') handleAction('Viewed profile', record.name);
+            if (e.key === 'view') handleViewProfile(record);
             else if (e.key === 'message') handleAction('Opened chat', record.name);
             else handleAction('Reported', record.name);
         }
@@ -462,6 +470,12 @@ export const MentorRequestList = () => {
                     <Input.TextArea placeholder={t('task_mgmt.desc')} rows={4} />
                 </div>
             </Modal>
+
+            <MentorProfileModal
+                open={isProfileModalOpen}
+                onCancel={() => setIsProfileModalOpen(false)}
+                intern={selectedIntern}
+            />
         </div>
     );
 };

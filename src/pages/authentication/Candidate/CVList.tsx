@@ -10,9 +10,11 @@ import {
     Space,
     Table,
     Tag,
-    Tooltip,
     Typography,
-    message
+    message,
+    Dropdown,
+    MenuProps,
+    Breadcrumb
 } from 'antd';
 import {
     CheckCircleOutlined,
@@ -23,16 +25,17 @@ import {
     RiseOutlined,
     SearchOutlined,
     SortAscendingOutlined,
-    TeamOutlined
+    TeamOutlined,
+    MoreOutlined,
+    CalendarOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RouteConfig } from '../../../constants';
 import { useTranslation } from 'react-i18next';
 import { useCandidates, useShortlistCandidate, useRejectCandidate } from '../../../hooks/Recruitment/useCandidates';
 import { Candidate } from '../../../services/Recruitment/candidates';
-import { RecruitmentJobModal } from '../Recruitment/components/RecruitmentJobModal';
+import { CVDetailModal } from './components/CVDetailModal';
 
 const { Title, Text } = Typography;
 
@@ -41,7 +44,25 @@ export const CVList = () => {
     const navigate = useNavigate();
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+    const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+    const [viewingCandidateId, setViewingCandidateId] = useState<string | null>(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+    const handleView = (id: string) => {
+        setViewingCandidateId(id);
+        setIsDetailModalOpen(true);
+    };
+
+    const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
+        setSelectedRowKeys(newSelectedRowKeys);
+    };
+
+    const rowSelection = {
+        selectedRowKeys,
+        onChange: onSelectChange
+    };
+
+    const hasSelected = selectedRowKeys.length > 0;
 
     const { data: candidatesData, isLoading } = useCandidates({
         searcher: searchText ? { keyword: searchText, field: 'name' } : undefined,
@@ -77,7 +98,7 @@ export const CVList = () => {
             render: (text: any, record: any) => (
                 <div
                     style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
-                    onClick={() => navigate(RouteConfig.CVDetail.getPath(record.id))}
+                    onClick={() => handleView(record.id)}
                 >
                     {record.avatar?.includes('http') ? (
                         <Avatar src={record.avatar} size={40} />
@@ -96,6 +117,12 @@ export const CVList = () => {
                     </div>
                 </div>
             )
+        },
+        {
+            title: t('candidate.job_title'),
+            dataIndex: 'appliedForTitle',
+            key: 'job',
+            render: (text: any) => <Text style={{ fontSize: '13px' }}>{text}</Text>
         },
         {
             title: t('candidate.applied_date'),
@@ -147,7 +174,7 @@ export const CVList = () => {
             key: 'matchScore',
             sorter: (a, b) => a.matchScore - b.matchScore,
             render: (score: any) => (
-                <div style={{ width: 120 }}>
+                <div style={{ width: 100 }}>
                     <Progress
                         percent={score}
                         size='small'
@@ -162,37 +189,47 @@ export const CVList = () => {
             title: t('common.actions'),
             key: 'action',
             align: 'right',
-            render: (_: any, record: any) => (
-                <Space>
-                    <Tooltip title={t('common.view')}>
-                        <Button
-                            type='text'
-                            icon={<EyeOutlined />}
-                            onClick={() => navigate(RouteConfig.CVDetail.getPath(record.id))}
-                        />
-                    </Tooltip>
-                    {record.status !== 'Rejected' && record.status !== 'Shortlisted' && (
-                        <Tooltip title={t('candidate.shortlist_candidate')}>
-                            <Button
-                                type='text'
-                                icon={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-                                onClick={() => handleShortlist(record.id, record.name)}
-                                loading={shortlistMutation.isPending}
-                            />
-                        </Tooltip>
-                    )}
-                    {record.status !== 'Rejected' && (
-                        <Tooltip title={t('candidate.reject_candidate')}>
-                            <Button
-                                type='text'
-                                icon={<CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
-                                onClick={() => handleReject(record.id, record.name)}
-                                loading={rejectMutation.isPending}
-                            />
-                        </Tooltip>
-                    )}
-                </Space>
-            )
+            render: (_: any, record: any) => {
+                const actionMenu: MenuProps = {
+                    items: [
+                        {
+                            key: 'view',
+                            label: t('common.view'),
+                            icon: <EyeOutlined />,
+                            onClick: () => handleView(record.id)
+                        },
+                        {
+                            key: 'interview',
+                            label: t('interview.schedule_title'),
+                            icon: <CalendarOutlined />,
+                            disabled: record.status !== 'Shortlisted',
+                            onClick: () => navigate('/recruitment/interviews')
+                        },
+                        { type: 'divider' },
+                        {
+                            key: 'shortlist',
+                            label: t('candidate.shortlist_candidate'),
+                            icon: <CheckCircleOutlined />,
+                            disabled: record.status === 'Shortlisted' || record.status === 'Rejected',
+                            onClick: () => handleShortlist(record.id, record.name)
+                        },
+                        {
+                            key: 'reject',
+                            label: t('candidate.reject_candidate'),
+                            icon: <CloseCircleOutlined />,
+                            danger: true,
+                            disabled: record.status === 'Rejected',
+                            onClick: () => handleReject(record.id, record.name)
+                        }
+                    ]
+                };
+
+                return (
+                    <Dropdown menu={actionMenu} trigger={['click']}>
+                        <Button type='text' icon={<MoreOutlined />} />
+                    </Dropdown>
+                );
+            }
         }
     ];
 
@@ -200,6 +237,12 @@ export const CVList = () => {
 
     return (
         <div style={{ padding: '24px' }}>
+            <div style={{ marginBottom: '24px' }}>
+                <Breadcrumb
+                    items={[{ title: t('menu.recruitment_management') }, { title: t('candidate.screening') }]}
+                />
+            </div>
+
             <div
                 style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
             >
@@ -210,10 +253,7 @@ export const CVList = () => {
                     <Text type='secondary'>{t('candidate.screening_desc')}</Text>
                 </div>
                 <Space>
-                    <Button onClick={() => message.info(t('candidate.edit_job'))}>{t('candidate.edit_job')}</Button>
-                    <Button type='primary' icon={<TeamOutlined />} onClick={() => setIsJobModalOpen(true)}>
-                        {t('candidate.post_new_job')}
-                    </Button>
+                    <Button icon={<DownloadOutlined />}>{t('recruitment.export_csv')}</Button>
                 </Space>
             </div>
 
@@ -312,7 +352,49 @@ export const CVList = () => {
                         <Button icon={<DownloadOutlined />}>{t('recruitment.export_csv')}</Button>
                     </Space>
                 </div>
+                {hasSelected && (
+                    <div
+                        style={{
+                            marginBottom: '16px',
+                            padding: '12px 24px',
+                            background: '#e6f7ff',
+                            border: '1px solid #91d5ff',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}
+                    >
+                        <Text strong>
+                            {t('interview.selected')} {selectedRowKeys.length} {t('common.candidates')}
+                        </Text>
+                        <Space>
+                            <Button
+                                type='primary'
+                                icon={<CheckCircleOutlined />}
+                                onClick={() => {
+                                    message.success('Batch shortlist successful');
+                                    setSelectedRowKeys([]);
+                                }}
+                            >
+                                {t('candidate.shortlist_candidate_btn')}
+                            </Button>
+                            <Button
+                                danger
+                                icon={<CloseCircleOutlined />}
+                                onClick={() => {
+                                    message.success('Batch reject successful');
+                                    setSelectedRowKeys([]);
+                                }}
+                            >
+                                {t('candidate.reject_candidate_btn')}
+                            </Button>
+                            <Button onClick={() => setSelectedRowKeys([])}>{t('common.cancel')}</Button>
+                        </Space>
+                    </div>
+                )}
                 <Table
+                    rowSelection={rowSelection}
                     columns={columns as any}
                     dataSource={dataSource}
                     loading={isLoading}
@@ -326,10 +408,10 @@ export const CVList = () => {
                 />
             </Card>
 
-            <RecruitmentJobModal
-                open={isJobModalOpen}
-                onCancel={() => setIsJobModalOpen(false)}
-                onSuccess={() => setIsJobModalOpen(false)}
+            <CVDetailModal
+                open={isDetailModalOpen}
+                onCancel={() => setIsDetailModalOpen(false)}
+                candidateId={viewingCandidateId}
             />
         </div>
     );
