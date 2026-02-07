@@ -27,9 +27,6 @@ export const RouteConfig = {
     Logout: {
         path: '/logout'
     },
-    ProfilePage: {
-        path: '/profile'
-    },
 
     DashBoardPage: {
         path: '/'
@@ -37,26 +34,6 @@ export const RouteConfig = {
 
     SettingPage: {
         path: '/setting'
-    },
-
-    ListUserPage: {
-        path: '/users'
-    },
-    CreateUserPage: {
-        path: '/users/create'
-    },
-    UpdateUserPage: {
-        path: '/users/:id/update',
-        getPath: (_id: Account['_id']) => {
-            return `/users/${_id}/update`;
-        }
-    },
-    DetailUserPage: {
-        path: '/users/:id/detail',
-        paramKey: 'id',
-        getPath: (_id: Account['_id']) => {
-            return `/users/${_id}/detail`;
-        }
     },
 
     PublicJobBoard: {
@@ -129,12 +106,6 @@ export const RouteConfig = {
     },
     InternTaskBoard: {
         path: '/intern/tasks'
-    },
-    InternReports: {
-        path: '/intern/reports'
-    },
-    InternCertificate: {
-        path: '/intern/certificate'
     },
 
     DirectorApprovals: {

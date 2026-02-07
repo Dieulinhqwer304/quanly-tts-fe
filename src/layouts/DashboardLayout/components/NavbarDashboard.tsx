@@ -54,18 +54,6 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
             onClick: () => navigate(RouteConfig.DashBoardPage.path)
         },
         {
-            key: 'users',
-            icon: <UserOutlined />,
-            label: t('menu.user_management'),
-            children: [
-                {
-                    key: 'users-list',
-                    label: t('menu.user_list'),
-                    onClick: () => navigate('/users')
-                }
-            ]
-        },
-        {
             key: 'recruitment',
             icon: <TeamOutlined />,
             label: t('menu.recruitment_management'),
@@ -138,9 +126,7 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
             children: [
                 { key: 'intern-dash', label: t('menu.intern_dashboard'), onClick: () => navigate(RouteConfig.InternDashboard.path) },
                 { key: 'intern-test', label: t('menu.knowledge_test'), onClick: () => navigate(RouteConfig.InternTest.path) },
-                { key: 'intern-tasks', label: t('menu.task_board'), onClick: () => navigate(RouteConfig.InternTaskBoard.path) },
-                { key: 'intern-reports', label: t('menu.reports'), onClick: () => navigate(RouteConfig.InternReports.path) },
-                { key: 'intern-cert', label: t('menu.certificate'), onClick: () => navigate(RouteConfig.InternCertificate.path) }
+                { key: 'intern-tasks', label: t('menu.task_board'), onClick: () => navigate(RouteConfig.InternTaskBoard.path) }
             ]
         },
         {
