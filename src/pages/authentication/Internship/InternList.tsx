@@ -42,6 +42,7 @@ export const InternList = () => {
     const [statusFilter, setStatusFilter] = useState('All');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingIntern, setEditingIntern] = useState<any>(null);
+    const [isViewOnly, setIsViewOnly] = useState(false);
 
     const { data: internsData, isLoading, refetch } = useInterns({
         searcher: searchText ? { keyword: searchText, field: 'name' } : undefined,
@@ -50,11 +51,19 @@ export const InternList = () => {
 
     const handleCreate = () => {
         setEditingIntern(null);
+        setIsViewOnly(false);
         setIsModalOpen(true);
     };
 
     const handleEdit = (record: any) => {
         setEditingIntern(record);
+        setIsViewOnly(false);
+        setIsModalOpen(true);
+    };
+
+    const handleView = (record: any) => {
+        setEditingIntern(record);
+        setIsViewOnly(true);
         setIsModalOpen(true);
     };
 
@@ -211,7 +220,7 @@ export const InternList = () => {
                                         <Button
                                             type='text'
                                             icon={<EyeOutlined />}
-                                            onClick={() => message.info(`${t('common.view')} ${record.name}`)}
+                                            onClick={() => handleView(record)}
                                         />
                                     </Tooltip>
                                     <Tooltip title={t('menu.eval_phase_1')}>
@@ -252,6 +261,7 @@ export const InternList = () => {
                     refetch();
                 }}
                 initialValues={editingIntern}
+                viewOnly={isViewOnly}
             />
         </div>
     );
