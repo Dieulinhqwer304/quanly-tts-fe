@@ -69,7 +69,13 @@
         "closed": "Đã đóng",
         "require_review": "Cần xem xét",
         "all_depts": "Tất cả phòng ban",
-        "status_all": "Trạng thái: Tất cả"
+        "status_all": "Trạng thái: Tất cả",
+        "level": "Cấp bậc",
+        "on_hold": "Tạm dừng",
+        "view_details": "Xem chi tiết",
+        "period": "Thời hạn",
+        "approver": "Người phê duyệt",
+        "export_csv": "Xuất CSV"
     },
     "internship": {
         "management": "Quản lý Thực tập",
@@ -87,7 +93,18 @@
         "completed": "Đã hoàn thành",
         "dropped": "Đã nghỉ",
         "to": "đến",
-        "interns": "thực tập sinh"
+        "interns": "thực tập sinh",
+        "add_intern": "Thêm thực tập sinh",
+        "edit_intern": "Sửa thực tập sinh",
+        "intern_name": "Họ và tên",
+        "intern_email": "Địa chỉ Email",
+        "intern_phone": "Số điện thoại",
+        "track": "Chuyên ngành thực tập",
+        "mentor": "Người hướng dẫn",
+        "internship_period": "Thời gian thực tập",
+        "select_mentor": "Chọn người hướng dẫn",
+        "select_track": "Chọn chuyên ngành",
+        "all_tracks": "Tất cả chuyên ngành"
     },
     "common": {
         "actions": "Hành động",
@@ -117,7 +134,15 @@
         "of": "trên",
         "candidates": "ứng viên",
         "open": "Mở",
-        "closed": "Đóng"
+        "closed": "Đóng",
+        "close": "Đóng",
+        "required_field": "Trường bắt buộc",
+        "delete_confirm": "Xác nhận xóa",
+        "delete_confirm_desc": "Bạn có chắc chắn muốn xóa",
+        "all_plans": "Tất cả kế hoạch",
+        "phone": "Số điện thoại",
+        "email": "Địa chỉ Email",
+        "invalid_email": "Email không hợp lệ"
     },
     "candidate": {
         "screening": "Sàng lọc hồ sơ",
