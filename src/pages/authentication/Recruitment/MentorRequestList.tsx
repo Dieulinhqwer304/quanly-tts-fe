@@ -24,125 +24,115 @@ import {
     InputNumber,
     message,
     Breadcrumb,
-    Dropdown
+    Dropdown,
+    DatePicker
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import TextArea from 'antd/es/input/TextArea';
+import dayjs from 'dayjs';
+import {
+    useMentorRequests,
+    useCreateMentorRequest,
+    useUpdateMentorRequest,
+    useDeleteMentorRequest
+} from '../../../hooks/Recruitment/useMentorRequests';
+import { MentorRequest } from '../../../services/Recruitment/mentorRequests';
 
 const { Title, Text } = Typography;
-
-interface RecruitmentRequest {
-    id: string;
-    type: 'Recruitment' | 'Training' | 'Equipment';
-    name: string;
-    title: string;
-    department: string;
-    requestedBy: string;
-    priority: 'High' | 'Medium' | 'Low';
-    status: 'Pending' | 'Approved' | 'Rejected' | 'In Progress';
-    positions?: string[];
-    quantity?: number;
-    requiredSkills?: string[];
-    expectedStartDate?: string;
-    createdAt: string;
-    updatedAt: string;
-}
-
-const mockRequests: RecruitmentRequest[] = [
-    {
-        id: 'REQ-001',
-        type: 'Recruitment',
-        name: 'Kế hoạch Hè 2025',
-        title: 'Đề xuất mở rộng slot thực tập sinh cho team AI',
-        department: 'Engineering',
-        requestedBy: 'Nguyễn Văn Mentor',
-        priority: 'High',
-        status: 'Pending',
-        positions: ['AI/ML Intern', 'Data Science Intern'],
-        quantity: 5,
-        requiredSkills: ['Python', 'TensorFlow', 'PyTorch', 'Machine Learning'],
-        expectedStartDate: '2025-06-01',
-        createdAt: '2025-03-06T10:30:00',
-        updatedAt: '2025-03-06T10:30:00'
-    },
-    {
-        id: 'REQ-002',
-        type: 'Recruitment',
-        name: 'Tuyển Frontend Q2',
-        title: 'Cần thực tập sinh Frontend cho dự án mới',
-        department: 'Product',
-        requestedBy: 'Trần Thị Leader',
-        priority: 'Medium',
-        status: 'Approved',
-        positions: ['Frontend Developer Intern'],
-        quantity: 3,
-        requiredSkills: ['ReactJS', 'TypeScript', 'CSS', 'HTML'],
-        expectedStartDate: '2025-04-15',
-        createdAt: '2025-03-01T09:00:00',
-        updatedAt: '2025-03-05T14:20:00'
-    },
-    {
-        id: 'REQ-003',
-        type: 'Recruitment',
-        name: 'Backend Team Expansion',
-        title: 'Mở rộng đội Backend cho microservices',
-        department: 'Engineering',
-        requestedBy: 'Lê Văn Tech Lead',
-        priority: 'High',
-        status: 'In Progress',
-        positions: ['Backend Developer Intern'],
-        quantity: 4,
-        requiredSkills: ['NodeJS', 'NestJS', 'MongoDB', 'PostgreSQL'],
-        expectedStartDate: '2025-05-01',
-        createdAt: '2025-02-28T11:15:00',
-        updatedAt: '2025-03-04T16:45:00'
-    }
-];
 
 export const MentorRequestList = () => {
     const { t } = useTranslation();
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
+
+    // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
     const [form] = Form.useForm();
-    const [requests, setRequests] = useState<RecruitmentRequest[]>(mockRequests);
 
-    const handleCreateRequest = (values: any) => {
-        const newRequest: RecruitmentRequest = {
-            id: `REQ-${String(requests.length + 1).padStart(3, '0')}`,
-            type: values.type || 'Recruitment',
-            name: values.name,
-            title: values.title,
-            department: values.department,
-            requestedBy: 'Current User', // Should come from auth context
-            priority: values.priority,
-            status: 'Pending',
-            positions: values.positions?.split(',').map((p: string) => p.trim()),
-            quantity: values.quantity,
-            requiredSkills: values.requiredSkills?.split(',').map((s: string) => s.trim()),
-            expectedStartDate: values.expectedStartDate,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
+    // Data fetching
+    const { data: requestsData, isLoading } = useMentorRequests({
+        searcher: searchText ? { keyword: searchText, field: 'title' } : undefined,
+        status: statusFilter === 'all' ? undefined : statusFilter
+    });
 
-        setRequests([newRequest, ...requests]);
-        message.success('Đề xuất đã được tạo thành công!');
-        setIsModalOpen(false);
+    const createMutation = useCreateMentorRequest();
+    const updateMutation = useUpdateMentorRequest();
+    const deleteMutation = useDeleteMentorRequest();
+
+    const requests = requestsData?.data?.hits || [];
+
+    const handleOpenCreate = () => {
+        setEditingId(null);
         form.resetFields();
+        setIsModalOpen(true);
+    };
+
+    const handleOpenEdit = (record: MentorRequest) => {
+        setEditingId(record.id);
+        form.setFieldsValue({
+            ...record,
+            positions: record.positions?.join(', '),
+            requiredSkills: record.requiredSkills?.join(', '),
+            expectedStartDate: record.expectedStartDate ? dayjs(record.expectedStartDate) : undefined
+        });
+        setIsModalOpen(true);
+    };
+
+    const handleSubmit = async (values: any) => {
+        try {
+            const formData = {
+                ...values,
+                positions:
+                    typeof values.positions === 'string'
+                        ? values.positions
+                            .split(',')
+                            .map((p: string) => p.trim())
+                            .filter(Boolean)
+                        : values.positions,
+                requiredSkills:
+                    typeof values.requiredSkills === 'string'
+                        ? values.requiredSkills
+                            .split(',')
+                            .map((s: string) => s.trim())
+                            .filter(Boolean)
+                        : values.requiredSkills,
+                expectedStartDate: values.expectedStartDate ? values.expectedStartDate.format('YYYY-MM-DD') : undefined
+            };
+
+            if (editingId) {
+                await updateMutation.mutateAsync({
+                    id: editingId,
+                    ...formData
+                });
+                message.success(t('mentor_request.update_success'));
+            } else {
+                await createMutation.mutateAsync(formData);
+                message.success(t('mentor_request.create_success'));
+            }
+            setIsModalOpen(false);
+            form.resetFields();
+        } catch {
+            message.error(t('common.error'));
+        }
     };
 
     const handleDelete = (id: string) => {
         Modal.confirm({
-            title: 'Xác nhận xóa',
-            content: 'Bạn có chắc chắn muốn xóa đề xuất này?',
-            okText: 'Xóa',
-            cancelText: 'Hủy',
+            title: t('mentor_request.confirm_delete'),
+            content: t('mentor_request.confirm_delete_msg'),
+            okText: t('common.delete'),
+            cancelText: t('common.cancel'),
             okButtonProps: { danger: true },
-            onOk: () => {
-                setRequests(requests.filter((r) => r.id !== id));
-                message.success('Đã xóa đề xuất');
+            onOk: async () => {
+                try {
+                    await deleteMutation.mutateAsync(id);
+                    message.success(t('mentor_request.delete_success'));
+                } catch {
+                    message.error(t('common.error'));
+                }
             }
         });
     };
@@ -175,6 +165,21 @@ export const MentorRequestList = () => {
         }
     };
 
+    const getStatusText = (status: string) => {
+        switch (status) {
+            case 'Pending':
+                return t('mentor_request.pending');
+            case 'Approved':
+                return t('mentor_request.approved');
+            case 'Rejected':
+                return t('mentor_request.rejected');
+            case 'In Progress':
+                return t('mentor_request.in_progress');
+            default:
+                return status;
+        }
+    };
+
     const getPriorityColor = (priority: string) => {
         switch (priority) {
             case 'High':
@@ -188,37 +193,50 @@ export const MentorRequestList = () => {
         }
     };
 
-    const columns: ColumnsType<RecruitmentRequest> = [
+    const getPriorityText = (priority: string) => {
+        switch (priority) {
+            case 'High':
+                return t('mentor_request.high');
+            case 'Medium':
+                return t('mentor_request.medium');
+            case 'Low':
+                return t('mentor_request.low');
+            default:
+                return priority;
+        }
+    };
+
+    const columns: ColumnsType<MentorRequest> = [
         {
-            title: 'Mã đề xuất',
+            title: t('mentor_request.request_id'),
             dataIndex: 'id',
             key: 'id',
             width: 120,
             render: (text) => <Text strong>{text}</Text>
         },
         {
-            title: 'Tiêu đề đề xuất',
+            title: t('mentor_request.request_title'),
             dataIndex: 'title',
             key: 'title',
             render: (text, record) => (
                 <div>
                     <div style={{ fontWeight: 600, marginBottom: '4px' }}>{text}</div>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                    <Text type='secondary' style={{ fontSize: '12px' }}>
                         {record.name}
                     </Text>
                 </div>
             )
         },
         {
-            title: 'Phòng ban',
+            title: t('mentor_request.department'),
             dataIndex: 'department',
             key: 'department',
             width: 150
         },
         {
-            title: 'Vị trí & Số lượng',
+            title: t('mentor_request.positions_quantity'),
             key: 'positions',
-            width: 200,
+            width: 250,
             render: (_, record) => (
                 <div>
                     {record.positions?.map((pos, idx) => (
@@ -228,8 +246,8 @@ export const MentorRequestList = () => {
                     ))}
                     {record.quantity && (
                         <div style={{ marginTop: '4px' }}>
-                            <Text type="secondary" style={{ fontSize: '12px' }}>
-                                Số lượng: {record.quantity}
+                            <Text type='secondary' style={{ fontSize: '12px' }}>
+                                {t('mentor_request.form.quantity')}: {record.quantity}
                             </Text>
                         </div>
                     )}
@@ -237,31 +255,25 @@ export const MentorRequestList = () => {
             )
         },
         {
-            title: 'Độ ưu tiên',
+            title: t('mentor_request.priority'),
             dataIndex: 'priority',
             key: 'priority',
             width: 120,
-            render: (priority) => <Tag color={getPriorityColor(priority)}>{priority}</Tag>
+            render: (priority) => <Tag color={getPriorityColor(priority)}>{getPriorityText(priority)}</Tag>
         },
         {
-            title: 'Trạng thái',
+            title: t('mentor_request.status'),
             dataIndex: 'status',
             key: 'status',
             width: 150,
             render: (status) => (
                 <Tag icon={getStatusIcon(status)} color={getStatusColor(status)}>
-                    {status === 'Pending'
-                        ? 'Chờ duyệt'
-                        : status === 'Approved'
-                            ? 'Đã duyệt'
-                            : status === 'Rejected'
-                                ? 'Từ chối'
-                                : 'Đang xử lý'}
+                    {getStatusText(status)}
                 </Tag>
             )
         },
         {
-            title: 'Ngày tạo',
+            title: t('mentor_request.created_at'),
             dataIndex: 'createdAt',
             key: 'createdAt',
             width: 120,
@@ -278,272 +290,292 @@ export const MentorRequestList = () => {
                         items: [
                             {
                                 key: 'edit',
-                                label: 'Chỉnh sửa',
+                                label: t('common.edit'),
                                 icon: <EditOutlined />,
-                                disabled: record.status !== 'Pending'
+                                disabled: record.status !== 'Pending',
+                                onClick: () => handleOpenEdit(record)
                             },
                             {
                                 key: 'delete',
-                                label: 'Xóa',
+                                label: t('common.delete'),
                                 icon: <DeleteOutlined />,
                                 danger: true,
-                                disabled: record.status === 'Approved'
+                                disabled: record.status === 'Approved',
+                                onClick: () => handleDelete(record.id)
                             }
-                        ],
-                        onClick: ({ key }) => {
-                            if (key === 'delete') {
-                                handleDelete(record.id);
-                            }
-                        }
+                        ]
                     }}
                     trigger={['click']}
                 >
-                    <Button type="text">...</Button>
+                    <Button type='text' icon={<EditOutlined rotate={90} />} />
                 </Dropdown>
             )
         }
     ];
 
-    const filteredData = requests.filter((req) => {
-        const matchSearch =
-            req.title.toLowerCase().includes(searchText.toLowerCase()) ||
-            req.name.toLowerCase().includes(searchText.toLowerCase()) ||
-            req.department.toLowerCase().includes(searchText.toLowerCase());
-        const matchStatus = statusFilter === 'all' || req.status === statusFilter;
-        return matchSearch && matchStatus;
-    });
-
-    const stats = {
-        total: requests.length,
-        pending: requests.filter((r) => r.status === 'Pending').length,
-        approved: requests.filter((r) => r.status === 'Approved').length,
-        rejected: requests.filter((r) => r.status === 'Rejected').length
-    };
+    // Stats Calculation
+    const pendingCount = requests.filter((r) => r.status === 'Pending').length;
+    const approvedCount = requests.filter((r) => r.status === 'Approved').length;
+    const processingCount = requests.filter((r) => r.status === 'In Progress').length;
 
     return (
         <div style={{ padding: '24px' }}>
-            <div style={{ marginBottom: '24px' }}>
+            <div style={{ marginBottom: '16px' }}>
                 <Breadcrumb
-                    items={[{ title: t('menu.recruitment_management') }, { title: 'Đề xuất tuyển dụng' }]}
+                    items={[
+                        { title: t('menu.recruitment_management') },
+                        { title: t('mentor_request.title') }
+                    ]}
                 />
             </div>
 
             <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}
+                style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    marginBottom: '24px'
+                }}
             >
                 <div>
-                    <Title level={3} style={{ margin: 0 }}>
-                        Đề xuất tuyển dụng
+                    <Title level={2} style={{ margin: 0 }}>
+                        {t('mentor_request.title')}
                     </Title>
-                    <Text type="secondary">Quản lý các đề xuất nhu cầu tuyển dụng từ các phòng ban</Text>
+                    <Text type='secondary'>{t('mentor_request.desc')}</Text>
                 </div>
-                <Button type="primary" icon={<PlusOutlined />} size="large" onClick={() => setIsModalOpen(true)}>
-                    Tạo đề xuất mới
+                <Button type='primary' icon={<PlusOutlined />} onClick={handleOpenCreate}>
+                    {t('mentor_request.create_request')}
                 </Button>
             </div>
 
-            {/* Statistics Cards */}
-            <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px' }}>
-                        <div style={{ color: '#8c8c8c', marginBottom: '8px' }}>Tổng đề xuất</div>
-                        <Title level={2} style={{ margin: 0 }}>
-                            {stats.total}
-                        </Title>
+            <Row gutter={16} style={{ marginBottom: '24px' }}>
+                <Col span={6}>
+                    <Card bordered={false}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div
+                                style={{
+                                    width: 48,
+                                    height: 48,
+                                    borderRadius: '50%',
+                                    background: '#e6f7ff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#1890ff',
+                                    fontSize: '20px'
+                                }}
+                            >
+                                <CheckCircleOutlined />
+                            </div>
+                            <div>
+                                <Text type='secondary'>Total Requests</Text>
+                                <Title level={4} style={{ margin: 0 }}>
+                                    {requests.length}
+                                </Title>
+                            </div>
+                        </div>
                     </Card>
                 </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px' }}>
-                        <div style={{ color: '#8c8c8c', marginBottom: '8px' }}>Chờ duyệt</div>
-                        <Title level={2} style={{ margin: 0, color: '#faad14' }}>
-                            {stats.pending}
-                        </Title>
+                <Col span={6}>
+                    <Card bordered={false}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div
+                                style={{
+                                    width: 48,
+                                    height: 48,
+                                    borderRadius: '50%',
+                                    background: '#fff7e6',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#fa8c16',
+                                    fontSize: '20px'
+                                }}
+                            >
+                                <ClockCircleOutlined />
+                            </div>
+                            <div>
+                                <Text type='secondary'>{t('mentor_request.pending')}</Text>
+                                <Title level={4} style={{ margin: 0 }}>
+                                    {pendingCount}
+                                </Title>
+                            </div>
+                        </div>
                     </Card>
                 </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px' }}>
-                        <div style={{ color: '#8c8c8c', marginBottom: '8px' }}>Đã duyệt</div>
-                        <Title level={2} style={{ margin: 0, color: '#52c41a' }}>
-                            {stats.approved}
-                        </Title>
+                <Col span={6}>
+                    <Card bordered={false}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div
+                                style={{
+                                    width: 48,
+                                    height: 48,
+                                    borderRadius: '50%',
+                                    background: '#f6ffed',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#52c41a',
+                                    fontSize: '20px'
+                                }}
+                            >
+                                <CheckCircleOutlined />
+                            </div>
+                            <div>
+                                <Text type='secondary'>{t('mentor_request.approved')}</Text>
+                                <Title level={4} style={{ margin: 0 }}>
+                                    {approvedCount}
+                                </Title>
+                            </div>
+                        </div>
                     </Card>
                 </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px' }}>
-                        <div style={{ color: '#8c8c8c', marginBottom: '8px' }}>Từ chối</div>
-                        <Title level={2} style={{ margin: 0, color: '#ff4d4f' }}>
-                            {stats.rejected}
-                        </Title>
+                <Col span={6}>
+                    <Card bordered={false}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div
+                                style={{
+                                    width: 48,
+                                    height: 48,
+                                    borderRadius: '50%',
+                                    background: '#e6f7ff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#096dd9',
+                                    fontSize: '20px'
+                                }}
+                            >
+                                <ClockCircleOutlined />
+                            </div>
+                            <div>
+                                <Text type='secondary'>{t('mentor_request.in_progress')}</Text>
+                                <Title level={4} style={{ margin: 0 }}>
+                                    {processingCount}
+                                </Title>
+                            </div>
+                        </div>
                     </Card>
                 </Col>
             </Row>
 
-            {/* Filters */}
-            <Card bordered={false} style={{ borderRadius: '12px', marginBottom: '16px' }}>
-                <Row gutter={16}>
-                    <Col xs={24} md={12}>
+            <Card bordered={false}>
+                <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
+                    <Space>
                         <Input
-                            placeholder="Tìm kiếm theo tiêu đề, tên kế hoạch, phòng ban..."
+                            placeholder={t('mentor_request.search_placeholder')}
                             prefix={<SearchOutlined />}
-                            value={searchText}
+                            style={{ width: 250 }}
                             onChange={(e) => setSearchText(e.target.value)}
-                            allowClear
                         />
-                    </Col>
-                    <Col xs={24} md={6}>
                         <Select
-                            style={{ width: '100%' }}
-                            placeholder="Lọc theo trạng thái"
-                            value={statusFilter}
+                            defaultValue='all'
+                            style={{ width: 150 }}
                             onChange={setStatusFilter}
                             options={[
-                                { label: 'Tất cả trạng thái', value: 'all' },
-                                { label: 'Chờ duyệt', value: 'Pending' },
-                                { label: 'Đã duyệt', value: 'Approved' },
-                                { label: 'Từ chối', value: 'Rejected' },
-                                { label: 'Đang xử lý', value: 'In Progress' }
+                                { value: 'all', label: 'All Status' },
+                                { value: 'Pending', label: t('mentor_request.pending') },
+                                { value: 'Approved', label: t('mentor_request.approved') },
+                                { value: 'Rejected', label: t('mentor_request.rejected') },
+                                { value: 'In Progress', label: t('mentor_request.in_progress') }
                             ]}
                         />
-                    </Col>
-                    <Col xs={24} md={6}>
-                        <Button icon={<FilterOutlined />} block>
-                            Bộ lọc nâng cao
-                        </Button>
-                    </Col>
-                </Row>
-            </Card>
+                    </Space>
+                    <Button icon={<FilterOutlined />}>{t('common.filter')}</Button>
+                </div>
 
-            {/* Table */}
-            <Card bordered={false} style={{ borderRadius: '12px' }}>
                 <Table
                     columns={columns}
-                    dataSource={filteredData}
-                    rowKey="id"
-                    pagination={{
-                        pageSize: 10,
-                        showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} đề xuất`
-                    }}
+                    dataSource={requests}
+                    rowKey='id'
+                    loading={isLoading}
+                    pagination={{ pageSize: 10 }}
                 />
             </Card>
 
-            {/* Create Request Modal */}
             <Modal
-                title="Tạo đề xuất tuyển dụng mới"
+                title={editingId ? t('mentor_request.edit_request') : t('mentor_request.create_request')}
                 open={isModalOpen}
-                onCancel={() => {
-                    setIsModalOpen(false);
-                    form.resetFields();
-                }}
-                footer={null}
+                onCancel={() => setIsModalOpen(false)}
+                onOk={() => form.submit()}
+                confirmLoading={createMutation.isPending || updateMutation.isPending}
                 width={700}
+                destroyOnClose
             >
-                <Form form={form} layout="vertical" onFinish={handleCreateRequest} style={{ marginTop: '24px' }}>
-                    <Form.Item
-                        label="Loại đề xuất"
-                        name="type"
-                        initialValue="Recruitment"
-                        rules={[{ required: true, message: 'Vui lòng chọn loại đề xuất' }]}
-                    >
-                        <Select
-                            options={[
-                                { label: 'Tuyển dụng (Recruitment)', value: 'Recruitment' },
-                                { label: 'Đào tạo (Training)', value: 'Training' },
-                                { label: 'Thiết bị (Equipment)', value: 'Equipment' }
-                            ]}
-                        />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Tên kế hoạch"
-                        name="name"
-                        rules={[{ required: true, message: 'Vui lòng nhập tên kế hoạch' }]}
-                    >
-                        <Input placeholder="VD: Kế hoạch Hè 2025" />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Tiêu đề đề xuất"
-                        name="title"
-                        rules={[{ required: true, message: 'Vui lòng nhập tiêu đề' }]}
-                    >
-                        <Input placeholder="VD: Đề xuất mở rộng slot thực tập sinh cho team AI" />
-                    </Form.Item>
-
+                <Form
+                    form={form}
+                    layout='vertical'
+                    onFinish={handleSubmit}
+                    initialValues={{ type: 'Recruitment', priority: 'Medium' }}
+                >
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Form.Item
-                                label="Phòng ban"
-                                name="department"
-                                rules={[{ required: true, message: 'Vui lòng chọn phòng ban' }]}
-                            >
-                                <Select
-                                    placeholder="Chọn phòng ban"
-                                    options={[
-                                        { label: 'Engineering', value: 'Engineering' },
-                                        { label: 'Product', value: 'Product' },
-                                        { label: 'Design', value: 'Design' },
-                                        { label: 'Marketing', value: 'Marketing' },
-                                        { label: 'HR', value: 'HR' }
-                                    ]}
-                                />
+                            <Form.Item label={t('mentor_request.form.type')} name='type'>
+                                <Select>
+                                    <Select.Option value='Recruitment'>Recruitment</Select.Option>
+                                    <Select.Option value='Training'>Training</Select.Option>
+                                    <Select.Option value='Equipment'>Equipment</Select.Option>
+                                </Select>
                             </Form.Item>
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                label="Độ ưu tiên"
-                                name="priority"
-                                initialValue="Medium"
-                                rules={[{ required: true, message: 'Vui lòng chọn độ ưu tiên' }]}
+                                label={t('mentor_request.form.priority')}
+                                name='priority'
+                                rules={[{ required: true, message: t('common.required_field') }]}
                             >
-                                <Select
-                                    options={[
-                                        { label: 'Cao (High)', value: 'High' },
-                                        { label: 'Trung bình (Medium)', value: 'Medium' },
-                                        { label: 'Thấp (Low)', value: 'Low' }
-                                    ]}
-                                />
+                                <Select>
+                                    <Select.Option value='High'>{t('mentor_request.high')}</Select.Option>
+                                    <Select.Option value='Medium'>{t('mentor_request.medium')}</Select.Option>
+                                    <Select.Option value='Low'>{t('mentor_request.low')}</Select.Option>
+                                </Select>
                             </Form.Item>
                         </Col>
                     </Row>
-
-                    <Form.Item label="Vị trí cần tuyển" name="positions">
-                        <Input placeholder="VD: Frontend Developer Intern, Backend Developer Intern (phân cách bằng dấu phẩy)" />
+                    <Form.Item
+                        label={t('mentor_request.form.name')}
+                        name='name'
+                        rules={[{ required: true, message: t('common.required_field') }]}
+                    >
+                        <Input placeholder='VD: Kế hoạch Tuyển dụng Hè 2025' />
                     </Form.Item>
-
+                    <Form.Item
+                        label={t('mentor_request.form.title')}
+                        name='title'
+                        rules={[{ required: true, message: t('common.required_field') }]}
+                    >
+                        <Input placeholder='VD: Đề xuất tuyển thêm 5 thực tập sinh Backend' />
+                    </Form.Item>
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Form.Item label="Số lượng" name="quantity">
-                                <InputNumber min={1} max={100} style={{ width: '100%' }} placeholder="VD: 5" />
+                            <Form.Item
+                                label={t('mentor_request.form.department')}
+                                name='department'
+                                rules={[{ required: true, message: t('common.required_field') }]}
+                            >
+                                <Select>
+                                    <Select.Option value='Engineering'>Engineering</Select.Option>
+                                    <Select.Option value='Product'>Product</Select.Option>
+                                    <Select.Option value='Design'>Design</Select.Option>
+                                    <Select.Option value='QA'>QA</Select.Option>
+                                    <Select.Option value='HR'>HR</Select.Option>
+                                </Select>
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item label="Thời gian dự kiến" name="expectedStartDate">
-                                <Input type="date" />
+                            <Form.Item label={t('mentor_request.form.quantity')} name='quantity'>
+                                <InputNumber style={{ width: '100%' }} min={1} />
                             </Form.Item>
                         </Col>
                     </Row>
-
-                    <Form.Item label="Yêu cầu kỹ năng" name="requiredSkills">
-                        <TextArea
-                            rows={3}
-                            placeholder="VD: ReactJS, TypeScript, NodeJS (phân cách bằng dấu phẩy)"
-                        />
+                    <Form.Item label={t('mentor_request.form.positions')} name='positions'>
+                        <TextArea rows={2} placeholder={t('mentor_request.form.positions_placeholder')} />
                     </Form.Item>
-
-                    <Form.Item>
-                        <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-                            <Button
-                                onClick={() => {
-                                    setIsModalOpen(false);
-                                    form.resetFields();
-                                }}
-                            >
-                                Hủy
-                            </Button>
-                            <Button type="primary" htmlType="submit">
-                                Gửi đề xuất
-                            </Button>
-                        </Space>
+                    <Form.Item label={t('mentor_request.form.skills')} name='requiredSkills'>
+                        <TextArea rows={2} placeholder={t('mentor_request.form.skills_placeholder')} />
+                    </Form.Item>
+                    <Form.Item label={t('mentor_request.form.expected_date')} name='expectedStartDate'>
+                        <DatePicker style={{ width: '100%' }} format='DD/MM/YYYY' />
                     </Form.Item>
                 </Form>
             </Modal>
