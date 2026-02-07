@@ -21,7 +21,7 @@ export interface Candidate {
     appliedDate: string;
     appliedFor: string;
     appliedForTitle: string;
-    status: 'Pending Review' | 'CV Screened' | 'Shortlisted' | 'Rejected';
+    status: 'Pending Review' | 'CV Screened' | 'Shortlisted' | 'Interview Scheduled' | 'Passed Interview' | 'Rejected';
     matchScore: number;
     timeAgo: string;
     coverLetter: string;
@@ -111,6 +111,19 @@ export const rejectCandidate = async (params: RejectCandidateParams): Promise<Re
     return updateCandidate({
         id: params.id,
         status: 'Rejected'
+    });
+};
+
+export interface PassInterviewCandidateParams {
+    id: string;
+}
+
+export const passInterviewCandidate = async (
+    params: PassInterviewCandidateParams
+): Promise<ResponseDetailSuccess<Candidate>> => {
+    return updateCandidate({
+        id: params.id,
+        status: 'Passed Interview'
     });
 };
 
