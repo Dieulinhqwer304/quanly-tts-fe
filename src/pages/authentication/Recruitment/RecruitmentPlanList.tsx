@@ -45,6 +45,7 @@ export const RecruitmentPlanList = () => {
     const { t } = useTranslation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPlan, setEditingPlan] = useState<RecruitmentPlan | null>(null);
+    const [isViewOnly, setIsViewOnly] = useState(false);
 
     const { data: plansData, isLoading: plansLoading, refetch } = useRecruitmentPlans();
     const { data: statsData, isLoading: statsLoading } = useDashboardStats();
@@ -54,17 +55,27 @@ export const RecruitmentPlanList = () => {
 
     const handleCreate = () => {
         setEditingPlan(null);
+        setIsViewOnly(false);
         setIsModalOpen(true);
     };
 
     const handleEdit = (record: RecruitmentPlan) => {
         setEditingPlan(record);
+        setIsViewOnly(false);
+        setIsModalOpen(true);
+    };
+
+    const handleView = (record: RecruitmentPlan) => {
+        setEditingPlan(record);
+        setIsViewOnly(true);
         setIsModalOpen(true);
     };
 
     const handleMenuClick = (e: any, record: RecruitmentPlan) => {
         if (e.key === 'edit') {
             handleEdit(record);
+        } else if (e.key === 'view') {
+            handleView(record);
         } else if (e.key === 'delete') {
             Modal.confirm({
                 title: t('common.delete_confirm'),
@@ -73,8 +84,6 @@ export const RecruitmentPlanList = () => {
                     message.success(t('common.success'));
                 }
             });
-        } else {
-            message.info(`View details for: ${record.name}`);
         }
     };
 
@@ -94,7 +103,7 @@ export const RecruitmentPlanList = () => {
             dataIndex: 'name',
             key: 'name',
             render: (text, record) => (
-                <div style={{ cursor: 'pointer' }} onClick={() => message.info(`View campaign: ${text}`)}>
+                <div style={{ cursor: 'pointer' }} onClick={() => handleView(record)}>
                     <Text strong style={{ display: 'block', color: '#136dec' }}>
                         {text}
                     </Text>
@@ -330,6 +339,7 @@ export const RecruitmentPlanList = () => {
                         refetch();
                     }}
                     initialValues={editingPlan}
+                    viewOnly={isViewOnly}
                 />
 
                 <Col xs={24} lg={8}>
