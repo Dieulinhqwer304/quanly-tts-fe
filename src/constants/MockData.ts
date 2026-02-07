@@ -1,4 +1,97 @@
 export const MOCK_DATA = {
+    users: [
+        { id: "USR-001", name: "Nguyễn Văn A", email: "nguyen.van.a@example.com", role: "Interviewer", department: "Engineering", avatar: "https://i.pravatar.cc/150?u=USR-001" },
+        { id: "USR-002", name: "Trần Thị B", email: "tran.thi.b@example.com", role: "HR", department: "Human Resources", avatar: "https://i.pravatar.cc/150?u=USR-002" },
+        { id: "USR-003", name: "Lê Văn C", email: "le.van.c@example.com", role: "Manager", department: "Product", avatar: "https://i.pravatar.cc/150?u=USR-003" },
+        { id: "USR-004", name: "Phạm Thị D", email: "pham.thi.d@example.com", role: "Interviewer", department: "Design", avatar: "https://i.pravatar.cc/150?u=USR-004" }
+    ],
+    learningPaths: [
+        {
+            id: "LP-001",
+            track: "Frontend Development",
+            modules: [
+                {
+                    id: 1,
+                    title: "HTML/CSS Fundamentals",
+                    status: "Ready",
+                    items: [
+                        { id: "M1-I1", type: "video", title: "Introduction to HTML5", duration: "10:30", url: "#", meta: "10:30" },
+                        { id: "M1-I2", type: "document", title: "CSS Box Model Guide", url: "#", meta: "PDF" },
+                        { id: "M1-Q1", type: "quiz", title: "HTML/CSS Quiz 1", questionsCount: 10, meta: "10 Questions" }
+                    ]
+                },
+                {
+                    id: 2,
+                    title: "JavaScript Basics",
+                    status: "In Progress",
+                    items: [
+                        { id: "M2-I1", type: "video", title: "ES6 Features", duration: "15:00", url: "#", meta: "15:00" },
+                        { id: "M2-Q1", type: "quiz", title: "JS Quiz 1", questionsCount: 15, meta: "15 Questions" }
+                    ]
+                },
+                {
+                    id: 3,
+                    title: "React Fundamentals",
+                    status: "Locked",
+                    items: []
+                }
+            ]
+        }
+    ],
+    quizzes: [
+        {
+            id: "QZ-001",
+            moduleId: 1,
+            title: "HTML/CSS Quiz 1",
+            questions: [
+                { id: "Q1", text: "What does HTML stand for?", options: ["Hyper Text Markup Language", "Home Tool Markup Language"], correct: 0 },
+                { id: "Q2", text: "Which tag is used for the largest heading?", options: ["<h1>", "<h6>", "<head>"], correct: 0 }
+            ]
+        }
+    ],
+    studentProgress: [
+        {
+            internId: "OB-001",
+            learningPathId: "LP-001",
+            modulesCompleted: [1],
+            currentModuleId: 2,
+            quizScores: { "QZ-001": 85 }
+        }
+    ],
+    recruitmentPlans: [
+        {
+            id: "PLAN-2025-01",
+            name: "Tuyển dụng Thực tập sinh Hè 2025",
+            campaignName: "Summer Internship 2025",
+            description: "Chương trình tuyển dụng thực tập sinh quy mô lớn cho các phòng ban Engineering, Product và Design.",
+            startDate: "2025-05-01",
+            endDate: "2025-08-31",
+            status: "Active",
+            positions: [
+                { title: "Frontend Developer Intern", quantity: 5, requirements: ["ReactJS", "TypeScript", "HTML/CSS"] },
+                { title: "Backend Developer Intern", quantity: 5, requirements: ["NodeJS", "NestJS", "PostgreSQL"] }
+            ],
+            approver: "Giám đốc Nhân sự",
+            createdAt: "2025-03-01T08:00:00",
+            updatedAt: "2025-03-05T10:00:00"
+        }
+    ],
+    interviews: [
+        {
+            id: "INT-001",
+            candidateId: "CAN-001",
+            candidateName: "Nguyễn Văn Nam",
+            interviewerId: "USR-001",
+            interviewerName: "Nguyễn Văn A",
+            date: "2025-03-15",
+            time: "09:00 - 10:00",
+            duration: 60,
+            type: "Online",
+            location: "Google Meet",
+            status: "Scheduled",
+            round: "Technical Round 1"
+        }
+    ],
     accounts: [
         {
             _id: "1",
