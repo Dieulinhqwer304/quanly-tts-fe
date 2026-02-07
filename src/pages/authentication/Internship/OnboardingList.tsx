@@ -26,11 +26,13 @@ import {
 } from 'antd';
 import { useState } from 'react';
 import { useOnboardingList, useUpdateOnboarding } from '../../../hooks/Recruitment/useOnboarding';
-import { Onboarding } from '../../../services/Recruitment/onboarding';
+import { Onboarding, OnboardingStep } from '../../../services/Recruitment/onboarding';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
 
 export const OnboardingList = () => {
+    const { t } = useTranslation();
     const [searchText, setSearchText] = useState('');
     const { data: onboardingData, isLoading } = useOnboardingList({
         searcher: { keyword: searchText, field: 'name' }
@@ -50,7 +52,7 @@ export const OnboardingList = () => {
                     currentStep: nextStep,
                     steps: newSteps
                 });
-                message.success(`Advanced ${item.name} to next step`);
+                message.success(t('onboarding.advance_success', { name: item.name }));
             } else if (nextStep === item.steps.length) {
                 const newSteps = [...item.steps];
                 newSteps[item.currentStep].status = 'finish';
@@ -60,7 +62,7 @@ export const OnboardingList = () => {
                     steps: newSteps,
                     status: 'Completed'
                 });
-                message.success(`${item.name} has completed onboarding`);
+                message.success(t('onboarding.complete_success', { name: item.name }));
             }
         } else {
             message.info(`${key} for ${item.name}`);
@@ -69,10 +71,10 @@ export const OnboardingList = () => {
 
     const getActionMenu = (item: Onboarding): MenuProps => ({
         items: [
-            { key: 'reminder', label: 'Send Reminder' },
-            { key: 'approve', label: 'Approve Next Step' },
+            { key: 'reminder', label: t('onboarding.send_reminder') },
+            { key: 'approve', label: t('onboarding.approve_step') },
             { type: 'divider' },
-            { key: 'cancel', label: 'Cancel Onboarding', danger: true }
+            { key: 'cancel', label: t('onboarding.cancel_onboarding'), danger: true }
         ],
         onClick: ({ key }) => handleAction(key, item)
     });
@@ -82,7 +84,7 @@ export const OnboardingList = () => {
     return (
         <div style={{ padding: '24px' }}>
             <div style={{ marginBottom: '24px' }}>
-                <Breadcrumb items={[{ title: 'Recruitment' }, { title: 'Onboarding' }]} />
+                <Breadcrumb items={[{ title: t('menu.recruitment_management') }, { title: t('menu.onboarding') }]} />
             </div>
 
             <div
@@ -90,20 +92,20 @@ export const OnboardingList = () => {
             >
                 <div>
                     <Title level={3} style={{ margin: 0 }}>
-                        Onboarding Status
+                        {t('onboarding.title')}
                     </Title>
-                    <Text type='secondary'>Track the progress of newly hired interns as they join the company.</Text>
+                    <Text type='secondary'>{t('onboarding.desc')}</Text>
                 </div>
                 <Space>
                     <Input
-                        placeholder='Search interns...'
+                        placeholder={t('onboarding.search_placeholder')}
                         prefix={<SearchOutlined />}
                         style={{ width: 250 }}
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                     />
                     <Button type='primary' icon={<RocketOutlined />}>
-                        Bulk Actions
+                        {t('onboarding.bulk_actions')}
                     </Button>
                 </Space>
             </div>
@@ -113,10 +115,10 @@ export const OnboardingList = () => {
                     {isLoading ? (
                         <Skeleton active paragraph={{ rows: 10 }} />
                     ) : (
-                        <List
+                        <List<Onboarding>
                             grid={{ gutter: 16, column: 1 }}
                             dataSource={data}
-                            renderItem={(item) => (
+                            renderItem={(item: Onboarding) => (
                                 <List.Item>
                                     <Card
                                         bordered={false}
@@ -139,12 +141,14 @@ export const OnboardingList = () => {
                                                                 item.status === 'Delayed'
                                                                     ? 'red'
                                                                     : item.status === 'Completed'
-                                                                      ? 'success'
-                                                                      : 'processing'
+                                                                        ? 'success'
+                                                                        : 'processing'
                                                             }
                                                             style={{ marginTop: '4px' }}
                                                         >
-                                                            {item.status}
+                                                            {item.status === 'Delayed' ? t('onboarding.delayed') :
+                                                                item.status === 'Completed' ? t('onboarding.completed') :
+                                                                    t('onboarding.in_onboarding')}
                                                         </Tag>
                                                     </div>
                                                 </Space>
@@ -154,7 +158,7 @@ export const OnboardingList = () => {
                                                     <Steps
                                                         size='small'
                                                         current={item.currentStep}
-                                                        items={item.steps.map((s) => ({
+                                                        items={item.steps.map((s: OnboardingStep) => ({
                                                             title: s.title,
                                                             status: s.status
                                                         }))}
@@ -169,11 +173,11 @@ export const OnboardingList = () => {
                                                         onClick={() => handleAction('next', item)}
                                                         disabled={item.status === 'Completed'}
                                                     >
-                                                        {item.status === 'Completed' ? 'Completed' : 'Advance'}
+                                                        {item.status === 'Completed' ? t('onboarding.completed') : t('onboarding.advance')}
                                                     </Button>
                                                     <Dropdown menu={getActionMenu(item)} trigger={['click']}>
                                                         <Button size='small' icon={<MoreOutlined />}>
-                                                            More
+                                                            {t('onboarding.more')}
                                                         </Button>
                                                     </Dropdown>
                                                 </div>
@@ -188,32 +192,32 @@ export const OnboardingList = () => {
 
                 <Col xs={24} lg={6}>
                     <Space direction='vertical' size='large' style={{ width: '100%' }}>
-                        <Card title='Quick Stats' bordered={false} style={{ borderRadius: '12px' }}>
+                        <Card title={t('onboarding.quick_stats')} bordered={false} style={{ borderRadius: '12px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                                <Text type='secondary'>In Onboarding</Text>
-                                <Text strong>{data.filter((i) => i.status === 'In Progress').length}</Text>
+                                <Text type='secondary'>{t('onboarding.in_onboarding')}</Text>
+                                <Text strong>{data.filter((i: Onboarding) => i.status === 'In Progress').length}</Text>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                                <Text type='secondary'>Delayed</Text>
+                                <Text type='secondary'>{t('onboarding.delayed')}</Text>
                                 <Text strong style={{ color: '#ff4d4f' }}>
-                                    {data.filter((i) => i.status === 'Delayed').length}
+                                    {data.filter((i: Onboarding) => i.status === 'Delayed').length}
                                 </Text>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Text type='secondary'>Ready for Work</Text>
+                                <Text type='secondary'>{t('onboarding.ready_for_work')}</Text>
                                 <Text strong style={{ color: '#52c41a' }}>
-                                    {data.filter((i) => i.status === 'Completed').length}
+                                    {data.filter((i: Onboarding) => i.status === 'Completed').length}
                                 </Text>
                             </div>
                         </Card>
 
-                        <Card title='Next Steps' bordered={false} style={{ borderRadius: '12px' }}>
+                        <Card title={t('onboarding.next_steps')} bordered={false} style={{ borderRadius: '12px' }}>
                             <List
                                 size='small'
                                 dataSource={[
-                                    { icon: <ClockCircleOutlined />, text: 'Review 3 ID docs' },
-                                    { icon: <CheckCircleOutlined />, text: 'Setup 2 GitLab accounts' },
-                                    { icon: <UserOutlined />, text: 'Assign 1 mentor' }
+                                    { icon: <ClockCircleOutlined />, text: t('onboarding.next_steps_items.docs') },
+                                    { icon: <CheckCircleOutlined />, text: t('onboarding.next_steps_items.accounts') },
+                                    { icon: <UserOutlined />, text: t('onboarding.next_steps_items.mentor') }
                                 ]}
                                 renderItem={(item) => (
                                     <List.Item style={{ padding: '12px 0' }}>
