@@ -31,7 +31,7 @@ import {
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useCandidate, useShortlistCandidate, useRejectCandidate } from '../../../hooks/Recruitment/useCandidates';
+import { useCandidate, useShortlistCandidate, useRejectCandidate, usePassInterviewCandidate } from '../../../hooks/Recruitment/useCandidates';
 
 const { Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -46,12 +46,23 @@ export const CVDetail = () => {
     const { data: candidateData, isLoading: isCandidateLoading } = useCandidate(id || '');
     const shortlistMutation = useShortlistCandidate();
     const rejectMutation = useRejectCandidate();
+    const passInterviewMutation = usePassInterviewCandidate();
 
     const handleApprove = async () => {
         if (!id) return;
         try {
             await shortlistMutation.mutateAsync({ id });
             message.success(t('common.success'));
+        } catch {
+            message.error(t('common.error'));
+        }
+    };
+
+    const handlePassInterview = async () => {
+        if (!id) return;
+        try {
+            await passInterviewMutation.mutateAsync({ id });
+            message.success(t('candidate.passed_interview_success'));
         } catch {
             message.error(t('common.error'));
         }
@@ -156,24 +167,30 @@ export const CVDetail = () => {
                             <div style={{ marginBottom: '16px' }}>
                                 <Tag
                                     color={
-                                        status === 'Shortlisted'
+                                        status === 'Passed Interview'
                                             ? 'success'
-                                            : status === 'Rejected'
-                                              ? 'error'
-                                              : 'warning'
+                                            : status === 'Shortlisted' || status === 'Interview Scheduled'
+                                                ? 'processing'
+                                                : status === 'Rejected'
+                                                    ? 'error'
+                                                    : 'warning'
                                     }
                                     style={{ fontSize: '14px', padding: '4px 12px' }}
                                 >
-                                    {status === 'Shortlisted'
-                                        ? t('candidate.shortlisted')
-                                        : status === 'Rejected'
-                                          ? t('candidate.rejected')
-                                          : t('candidate.pending_review')}
+                                    {status === 'Passed Interview'
+                                        ? t('candidate.passed_interview')
+                                        : status === 'Interview Scheduled'
+                                            ? t('candidate.interview_scheduled')
+                                            : status === 'Shortlisted'
+                                                ? t('candidate.shortlisted')
+                                                : status === 'Rejected'
+                                                    ? t('candidate.rejected')
+                                                    : t('candidate.pending_review')}
                                 </Tag>
                             </div>
                             <Space>
                                 <Button icon={<DownloadOutlined />}>{t('candidate.download_cv')}</Button>
-                                {status !== 'Rejected' && (
+                                {status !== 'Rejected' && status !== 'Passed Interview' && (
                                     <>
                                         <Button
                                             danger
@@ -182,16 +199,27 @@ export const CVDetail = () => {
                                         >
                                             {t('candidate.reject_candidate_btn')}
                                         </Button>
-                                        <Button
-                                            type='primary'
-                                            onClick={handleApprove}
-                                            disabled={status === 'Shortlisted'}
-                                            loading={shortlistMutation.isPending}
-                                        >
-                                            {status === 'Shortlisted'
-                                                ? t('candidate.shortlisted')
-                                                : t('candidate.shortlist_candidate_btn')}
-                                        </Button>
+                                        {status === 'Interview Scheduled' ? (
+                                            <Button
+                                                type='primary'
+                                                onClick={handlePassInterview}
+                                                loading={passInterviewMutation.isPending}
+                                                style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                                            >
+                                                {t('candidate.pass_interview_btn')}
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                type='primary'
+                                                onClick={handleApprove}
+                                                disabled={status === 'Shortlisted'}
+                                                loading={shortlistMutation.isPending}
+                                            >
+                                                {status === 'Shortlisted'
+                                                    ? t('candidate.shortlisted')
+                                                    : t('candidate.shortlist_candidate_btn')}
+                                            </Button>
+                                        )}
                                     </>
                                 )}
                             </Space>
