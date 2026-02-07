@@ -144,6 +144,36 @@
         "email": "Địa chỉ Email",
         "invalid_email": "Email không hợp lệ"
     },
+    "onboarding": {
+        "title": "Trạng thái Onboarding",
+        "desc": "Theo dõi tiến độ của các thực tập sinh mới khi gia nhập công ty.",
+        "search_placeholder": "Tìm kiếm thực tập sinh...",
+        "bulk_actions": "Thao tác hàng loạt",
+        "in_onboarding": "Đang Onboarding",
+        "delayed": "Bị chậm",
+        "ready_for_work": "Sẵn sàng làm việc",
+        "quick_stats": "Thống kê nhanh",
+        "next_steps": "Các bước tiếp theo",
+        "next_steps_items": {
+            "docs": "Kiểm tra 3 tài liệu ID còn thiếu",
+            "accounts": "Cấp 2 tài khoản GitLab mới",
+            "mentor": "Phân công 1 Mentor hướng dẫn"
+        },
+        "advance": "Tiến cấp",
+        "completed": "Đã hoàn thành",
+        "more": "Thêm",
+        "send_reminder": "Gửi nhắc nhở",
+        "approve_step": "Duyệt bước tiếp theo",
+        "cancel_onboarding": "Hủy Onboarding",
+        "advance_success": "Đã chuyển {{name}} sang bước tiếp theo",
+        "complete_success": "{{name}} đã hoàn thành quy trình onboarding",
+        "steps": {
+            "document": "Bổ sung hồ sơ",
+            "account": "Cấp tài khoản & Email",
+            "training": "Đào tạo nhập môn",
+            "task": "Giao Task đầu tiên"
+        }
+    },
     "candidate": {
         "screening": "Sàng lọc hồ sơ",
         "screening_desc": "Quản lý và sàng lọc các hồ sơ ứng tuyển mới.",
