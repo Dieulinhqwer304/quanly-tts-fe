@@ -45,10 +45,16 @@ export const useCandidates = (params?: GetCandidatesParams) => {
 };
 
 export const useCandidate = (id: string) => {
+    const candidate = MOCK_DATA.candidates.find(c => c.id === id);
+
     return useQuery({
         queryKey: ['candidate', id],
         queryFn: () => candidatesService.getCandidate(id),
-        enabled: !!id
+        enabled: !!id,
+        initialData: candidate ? {
+            code: 200,
+            data: candidate
+        } : undefined
     });
 };
 
@@ -88,6 +94,18 @@ export const useRejectCandidate = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (params: RejectCandidateParams) => candidatesService.rejectCandidate(params),
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ['candidates'] });
+            queryClient.invalidateQueries({ queryKey: ['candidate', data.data.id] });
+        }
+    });
+};
+
+export const usePassInterviewCandidate = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (params: candidatesService.PassInterviewCandidateParams) =>
+            candidatesService.passInterviewCandidate(params),
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['candidates'] });
             queryClient.invalidateQueries({ queryKey: ['candidate', data.data.id] });
