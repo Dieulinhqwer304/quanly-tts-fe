@@ -33,12 +33,14 @@ import {
 } from 'antd';
 import { useState, useEffect } from 'react';
 import { useApprovals, useUpdateApproval } from '../../../hooks/Recruitment/useApprovals';
+import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 
 const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
 
 export const DirectorApprovals = () => {
+    const { t } = useTranslation();
     const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
     const [directorNote, setDirectorNote] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
@@ -96,7 +98,7 @@ export const DirectorApprovals = () => {
 
     const renderEmpty = () => (
         <div style={{ padding: '100px 0', textAlign: 'center' }}>
-            <Empty description={`No ${statusFilter.toLowerCase()} requests found.`} />
+            <Empty description={statusFilter === 'Pending' ? t('director.no_pending_requests') : t('director.no_approved_requests')} />
         </div>
     );
 
@@ -113,7 +115,7 @@ export const DirectorApprovals = () => {
                         }}
                     >
                         <Title level={5} style={{ margin: 0 }}>
-                            Request Queue
+                            {t('director.request_queue')}
                         </Title>
                         <Space>
                             <Button
@@ -121,26 +123,26 @@ export const DirectorApprovals = () => {
                                 type={statusFilter === 'Pending' ? 'primary' : 'text'}
                                 onClick={() => setStatusFilter('Pending')}
                             >
-                                Pending
+                                {t('director.pending')}
                             </Button>
                             <Button
                                 size='small'
                                 type={statusFilter === 'Approved' ? 'primary' : 'text'}
                                 onClick={() => setStatusFilter('Approved')}
                             >
-                                History
+                                {t('director.history')}
                             </Button>
                         </Space>
                     </div>
                     <Input
                         prefix={<SearchOutlined />}
-                        placeholder='Search requests...'
+                        placeholder={t('director.search_requests')}
                         onChange={(e) => setSearchKeyword(e.target.value)}
                     />
                 </div>
                 {isLoading ? (
                     <div style={{ textAlign: 'center', padding: '50px' }}>
-                        <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} tip='Loading queue...' />
+                        <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} tip={t('director.loading_queue')} />
                     </div>
                 ) : (
                     <List
@@ -153,12 +155,12 @@ export const DirectorApprovals = () => {
                                     borderBottom: '1px solid #f0f0f0',
                                     borderLeft:
                                         selectedRequestId === item.id ||
-                                        (!selectedRequestId && queue[0]?.id === item.id)
+                                            (!selectedRequestId && queue[0]?.id === item.id)
                                             ? '4px solid #136dec'
                                             : '4px solid transparent',
                                     background:
                                         selectedRequestId === item.id ||
-                                        (!selectedRequestId && queue[0]?.id === item.id)
+                                            (!selectedRequestId && queue[0]?.id === item.id)
                                             ? 'rgba(19, 109, 236, 0.05)'
                                             : '#fff',
                                     cursor: 'pointer',
@@ -178,8 +180,8 @@ export const DirectorApprovals = () => {
                                             item.status === 'Pending'
                                                 ? 'orange'
                                                 : item.status === 'Approved'
-                                                  ? 'success'
-                                                  : 'error'
+                                                    ? 'success'
+                                                    : 'error'
                                         }
                                     >
                                         {item.status}
@@ -259,12 +261,12 @@ export const DirectorApprovals = () => {
                                         marginBottom: '8px'
                                     }}
                                 >
-                                    <span>Requests</span>
+                                    <span>{t('director.requests')}</span>
                                     <span style={{ fontSize: '10px' }}>▶</span>
                                     <span>#{selectedRequest.id}</span>
                                 </div>
                                 <Title level={2} style={{ margin: '0 0 8px 0' }}>
-                                    {selectedRequest.type} Proposal: {selectedRequest.name}
+                                    {selectedRequest.type} {t('director.proposal')}: {selectedRequest.name}
                                 </Title>
                                 <div
                                     style={{
@@ -279,7 +281,7 @@ export const DirectorApprovals = () => {
                                         {selectedRequest.department || 'General Dept'}
                                     </Tag>
                                     <span>|</span>
-                                    <span>Submitted on {dayjs(selectedRequest.createdAt).format('MMM DD, YYYY')}</span>
+                                    <span>{t('director.submitted_on')} {dayjs(selectedRequest.createdAt).format('MMM DD, YYYY')}</span>
                                 </div>
                             </div>
                             <Tag
@@ -287,12 +289,16 @@ export const DirectorApprovals = () => {
                                     selectedRequest.status === 'Pending'
                                         ? 'warning'
                                         : selectedRequest.status === 'Approved'
-                                          ? 'success'
-                                          : 'error'
+                                            ? 'success'
+                                            : 'error'
                                 }
                                 style={{ fontSize: '14px', padding: '4px 12px', borderRadius: '16px' }}
                             >
-                                {selectedRequest.status} Review
+                                {selectedRequest.status === 'Pending'
+                                    ? t('director.pending_review')
+                                    : selectedRequest.status === 'Approved'
+                                        ? t('director.approved_review')
+                                        : t('director.rejected_review')}
                             </Tag>
                         </div>
 
@@ -316,7 +322,7 @@ export const DirectorApprovals = () => {
                                                 marginBottom: '24px'
                                             }}
                                         >
-                                            <AuditOutlined style={{ color: '#136dec' }} /> Candidate Summary
+                                            <AuditOutlined style={{ color: '#136dec' }} /> {t('director.candidate_summary')}
                                         </Title>
                                         <div style={{ display: 'flex', gap: '24px' }}>
                                             <Avatar size={96} shape='square' icon={<UserOutlined />} />
@@ -331,8 +337,8 @@ export const DirectorApprovals = () => {
                                                         }}
                                                     >
                                                         {selectedRequest.type === 'Conversion'
-                                                            ? 'Current Role'
-                                                            : 'Role Name'}
+                                                            ? t('director.current_role')
+                                                            : t('director.role_name')}
                                                     </Text>
                                                     <div style={{ fontWeight: 500 }}>
                                                         {selectedRequest.currentRole || selectedRequest.name}
@@ -348,8 +354,8 @@ export const DirectorApprovals = () => {
                                                         }}
                                                     >
                                                         {selectedRequest.type === 'Conversion'
-                                                            ? 'Proposed Role'
-                                                            : 'Department'}
+                                                            ? t('director.proposed_role')
+                                                            : t('director.department')}
                                                     </Text>
                                                     <div style={{ fontWeight: 500 }}>
                                                         {selectedRequest.proposedRole || selectedRequest.department}
@@ -364,7 +370,7 @@ export const DirectorApprovals = () => {
                                                             fontWeight: 600
                                                         }}
                                                     >
-                                                        {selectedRequest.mentor ? 'Mentor' : 'HR Owner'}
+                                                        {selectedRequest.mentor ? t('director.mentor') : t('director.hr_owner')}
                                                     </Text>
                                                     <div style={{ fontWeight: 500 }}>
                                                         {selectedRequest.mentor || selectedRequest.hr || 'N/A'}
@@ -379,7 +385,7 @@ export const DirectorApprovals = () => {
                                                             fontWeight: 600
                                                         }}
                                                     >
-                                                        Submission Date
+                                                        {t('director.submission_date')}
                                                     </Text>
                                                     <div style={{ fontWeight: 500 }}>
                                                         {dayjs(selectedRequest.createdAt).format('MMM DD, YYYY')}
@@ -407,7 +413,7 @@ export const DirectorApprovals = () => {
                                                 marginBottom: '24px'
                                             }}
                                         >
-                                            <LineChartOutlined style={{ color: '#136dec' }} /> Performance
+                                            <LineChartOutlined style={{ color: '#136dec' }} /> {t('director.performance')}
                                         </Title>
                                         <div
                                             style={{
@@ -422,7 +428,7 @@ export const DirectorApprovals = () => {
                                             </span>
                                             {selectedRequest.score && (
                                                 <Text type='secondary' style={{ marginBottom: '8px' }}>
-                                                    / 5.0 Overall
+                                                    / 5.0 {t('director.overall')}
                                                 </Text>
                                             )}
                                         </div>
@@ -436,7 +442,7 @@ export const DirectorApprovals = () => {
                                                         marginBottom: '4px'
                                                     }}
                                                 >
-                                                    <Text type='secondary'>Technical Skills</Text>
+                                                    <Text type='secondary'>{t('director.technical_skills')}</Text>
                                                     <Text strong>90%</Text>
                                                 </div>
                                                 <Progress
@@ -455,7 +461,7 @@ export const DirectorApprovals = () => {
                                                         marginBottom: '4px'
                                                     }}
                                                 >
-                                                    <Text type='secondary'>Teamwork</Text>
+                                                    <Text type='secondary'>{t('director.teamwork')}</Text>
                                                     <Text strong>85%</Text>
                                                 </div>
                                                 <Progress
@@ -474,7 +480,7 @@ export const DirectorApprovals = () => {
                                                         marginBottom: '4px'
                                                     }}
                                                 >
-                                                    <Text type='secondary'>Project Delivery</Text>
+                                                    <Text type='secondary'>{t('director.project_delivery')}</Text>
                                                     <Text strong>95%</Text>
                                                 </div>
                                                 <Progress
@@ -488,6 +494,83 @@ export const DirectorApprovals = () => {
                                     </Card>
                                 </Col>
                             </Row>
+
+                            {/* Recruitment Positions Detail */}
+                            {selectedRequest.type === 'Recruitment' && (
+                                <Card
+                                    bordered={false}
+                                    style={{
+                                        marginBottom: '24px',
+                                        borderRadius: '12px',
+                                        border: '1px solid #e5e7eb'
+                                    }}
+                                >
+                                    <Title
+                                        level={5}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            marginBottom: '24px'
+                                        }}
+                                    >
+                                        <FileTextOutlined style={{ color: '#136dec' }} /> Recruitment Positions & Requirements
+                                    </Title>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                        {/* Mock positions data - in real app, this would come from selectedRequest.positions */}
+                                        <div
+                                            style={{
+                                                padding: '16px',
+                                                background: '#f8f9fa',
+                                                borderRadius: '8px',
+                                                borderLeft: '3px solid #136dec'
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                                                <Text strong style={{ fontSize: '15px' }}>Frontend Developer Intern</Text>
+                                                <Tag color="blue">5 {t('director.positions')}</Tag>
+                                            </div>
+                                            <div style={{ marginBottom: '8px' }}>
+                                                <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>
+                                                    {t('director.requirements')}:
+                                                </Text>
+                                                <Text style={{ fontSize: '13px' }}>
+                                                    ReactJS, TypeScript, HTML/CSS, 6 months experience, team collaboration skills
+                                                </Text>
+                                            </div>
+                                            <Tag>Intern Level</Tag>
+                                        </div>
+                                        <div
+                                            style={{
+                                                padding: '16px',
+                                                background: '#f8f9fa',
+                                                borderRadius: '8px',
+                                                borderLeft: '3px solid #52c41a'
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                                                <Text strong style={{ fontSize: '15px' }}>Backend Developer Intern</Text>
+                                                <Tag color="green">3 {t('director.positions')}</Tag>
+                                            </div>
+                                            <div style={{ marginBottom: '8px' }}>
+                                                <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>
+                                                    {t('director.requirements')}:
+                                                </Text>
+                                                <Text style={{ fontSize: '13px' }}>
+                                                    NodeJS, NestJS, MongoDB/PostgreSQL, RESTful API design, basic DevOps knowledge
+                                                </Text>
+                                            </div>
+                                            <Tag>{t('director.level')}: Intern</Tag>
+                                        </div>
+                                        <div style={{ padding: '12px', background: '#e6f7ff', borderRadius: '8px' }}>
+                                            <Text strong>{t('director.total_positions')}: 8</Text>
+                                            <Text type="secondary" style={{ marginLeft: '16px', fontSize: '12px' }}>
+                                                {t('director.expected_start')}: June 1, 2025
+                                            </Text>
+                                        </div>
+                                    </div>
+                                </Card>
+                            )}
 
                             <Row gutter={24}>
                                 <Col span={12}>
@@ -504,7 +587,7 @@ export const DirectorApprovals = () => {
                                                 marginBottom: '24px'
                                             }}
                                         >
-                                            <DollarOutlined style={{ color: '#136dec' }} /> Financial Impact
+                                            <DollarOutlined style={{ color: '#136dec' }} /> {t('director.financial_impact')}
                                         </Title>
                                         <div
                                             style={{
@@ -524,11 +607,11 @@ export const DirectorApprovals = () => {
                                                     paddingBottom: '12px'
                                                 }}
                                             >
-                                                <Text type='secondary'>Allocated Budget (FY23)</Text>
+                                                <Text type='secondary'>{t('director.allocated_budget')}</Text>
                                                 <Text strong>${selectedRequest.budget?.toLocaleString() || '0'}</Text>
                                             </div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                <Text type='secondary'>Proposed Salary</Text>
+                                                <Text type='secondary'>{t('director.proposed_salary')}</Text>
                                                 <Text strong style={{ fontSize: '18px' }}>
                                                     ${selectedRequest.salary?.toLocaleString() || '0'}
                                                 </Text>
@@ -556,7 +639,7 @@ export const DirectorApprovals = () => {
                                                         {Math.round(
                                                             ((selectedRequest.salary - selectedRequest.budget) /
                                                                 selectedRequest.budget) *
-                                                                100
+                                                            100
                                                         )}
                                                         %)
                                                     </div>
@@ -578,7 +661,7 @@ export const DirectorApprovals = () => {
                                                 marginBottom: '24px'
                                             }}
                                         >
-                                            <MessageOutlined style={{ color: '#136dec' }} /> Stakeholder Justification
+                                            <MessageOutlined style={{ color: '#136dec' }} /> {t('director.stakeholder_justification')}
                                         </Title>
                                         <div
                                             style={{ position: 'relative', paddingLeft: '16px', marginBottom: '16px' }}
@@ -631,10 +714,10 @@ export const DirectorApprovals = () => {
                             >
                                 <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
                                     <div style={{ marginBottom: '16px' }}>
-                                        <Text strong>Director's Notes (Optional)</Text>
+                                        <Text strong>{t('director.directors_notes')}</Text>
                                         <Input.TextArea
                                             rows={2}
-                                            placeholder='Add a comment regarding your decision...'
+                                            placeholder={t('director.add_comment')}
                                             style={{ marginTop: '8px' }}
                                             value={directorNote}
                                             onChange={(e) => setDirectorNote(e.target.value)}
@@ -656,7 +739,7 @@ export const DirectorApprovals = () => {
                                                 fontSize: '12px'
                                             }}
                                         >
-                                            <InfoCircleOutlined /> Only visible to HR & Mentor
+                                            <InfoCircleOutlined /> {t('director.only_visible')}
                                         </div>
                                         <Space>
                                             <Button
@@ -665,20 +748,20 @@ export const DirectorApprovals = () => {
                                                 loading={updateApproval.isPending}
                                                 onClick={() =>
                                                     Modal.confirm({
-                                                        title: 'Confirm Rejection',
-                                                        content: `Are you sure you want to reject the proposal for ${selectedRequest.name}?`,
+                                                        title: t('director.confirm_rejection'),
+                                                        content: `${t('director.confirm_rejection_msg')} ${selectedRequest.name}?`,
                                                         onOk: () => handleAction('reject')
                                                     })
                                                 }
                                             >
-                                                Reject
+                                                {t('director.reject')}
                                             </Button>
                                             <Button
                                                 icon={<HistoryOutlined />}
                                                 loading={updateApproval.isPending}
                                                 onClick={() => handleAction('adjust')}
                                             >
-                                                Request Adjustment
+                                                {t('director.request_adjustment')}
                                             </Button>
                                             <Button
                                                 type='primary'
@@ -687,13 +770,13 @@ export const DirectorApprovals = () => {
                                                 loading={updateApproval.isPending}
                                                 onClick={() =>
                                                     Modal.confirm({
-                                                        title: 'Confirm Approval',
-                                                        content: `Are you sure you want to approve the proposal for ${selectedRequest.name}?`,
+                                                        title: t('director.confirm_approval'),
+                                                        content: `${t('director.confirm_approval_msg')} ${selectedRequest.name}?`,
                                                         onOk: () => handleAction('approve')
                                                     })
                                                 }
                                             >
-                                                Approve Request
+                                                {t('director.approve_request')}
                                             </Button>
                                         </Space>
                                     </div>
@@ -711,7 +794,7 @@ export const DirectorApprovals = () => {
                             color: '#8c8c8c'
                         }}
                     >
-                        <Empty description='Select a request to view details' />
+                        <Empty description={t('director.select_request')} />
                     </div>
                 )}
             </Content>
