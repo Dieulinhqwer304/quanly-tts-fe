@@ -1,481 +1,552 @@
 import {
-    FileAddOutlined,
-    TrophyOutlined,
-    FilterOutlined,
-    GroupOutlined,
-    MoreOutlined,
-    ClockCircleOutlined,
+    PlusOutlined,
     SearchOutlined,
-    RiseOutlined,
-    WarningOutlined
+    FilterOutlined,
+    CheckCircleOutlined,
+    ClockCircleOutlined,
+    CloseCircleOutlined,
+    EditOutlined,
+    DeleteOutlined
 } from '@ant-design/icons';
 import {
-    Avatar,
     Button,
     Card,
     Col,
-    Dropdown,
     Input,
-    List,
-    MenuProps,
-    Modal,
-    Progress,
     Row,
     Select,
     Space,
     Table,
     Tag,
     Typography,
-    message
+    Modal,
+    Form,
+    InputNumber,
+    message,
+    Breadcrumb,
+    Dropdown
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MentorProfileModal } from './components/MentorProfileModal';
+import TextArea from 'antd/es/input/TextArea';
 
 const { Title, Text } = Typography;
 
-interface PendingReview {
-    id: number;
-    phase: string;
-    phaseColor: string;
-    timeAgo: string;
-    taskName: string;
-    internName: string;
-    avatar: string;
-}
-
-const pendingReviews: PendingReview[] = [
-    {
-        id: 1,
-        phase: 'Phase 1: Training',
-        phaseColor: 'purple',
-        timeAgo: '2h ago',
-        taskName: 'Module 3: Advanced React Patterns',
-        internName: 'Sarah Jenkins',
-        avatar: 'https://i.pravatar.cc/150?u=1'
-    },
-    {
-        id: 2,
-        phase: 'Phase 2: Project',
-        phaseColor: 'green',
-        timeAgo: '5h ago',
-        taskName: 'API Integration Code Review',
-        internName: 'David Chen',
-        avatar: 'https://i.pravatar.cc/150?u=2'
-    },
-    {
-        id: 3,
-        phase: 'Phase 1: Training',
-        phaseColor: 'purple',
-        timeAgo: '1d ago',
-        taskName: 'Weekly Reflection Log',
-        internName: 'Emily Davis',
-        avatar: 'https://i.pravatar.cc/150?u=3'
-    }
-];
-
-interface InternProgress {
-    key: string;
+interface RecruitmentRequest {
+    id: string;
+    type: 'Recruitment' | 'Training' | 'Equipment';
     name: string;
-    track: string;
-    avatar: string;
-    currentPhase: string;
-    phaseColor: string;
-    moduleProgress: string;
-    progressPercent: number;
-    status: 'On Track' | 'Behind';
+    title: string;
+    department: string;
+    requestedBy: string;
+    priority: 'High' | 'Medium' | 'Low';
+    status: 'Pending' | 'Approved' | 'Rejected' | 'In Progress';
+    positions?: string[];
+    quantity?: number;
+    requiredSkills?: string[];
+    expectedStartDate?: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
-const internData: InternProgress[] = [
+const mockRequests: RecruitmentRequest[] = [
     {
-        key: '1',
-        name: 'Sarah Jenkins',
-        track: 'Frontend Track',
-        avatar: 'https://i.pravatar.cc/150?u=1',
-        currentPhase: 'Training',
-        phaseColor: 'purple',
-        moduleProgress: 'Module 3/5',
-        progressPercent: 60,
-        status: 'On Track'
+        id: 'REQ-001',
+        type: 'Recruitment',
+        name: 'Kế hoạch Hè 2025',
+        title: 'Đề xuất mở rộng slot thực tập sinh cho team AI',
+        department: 'Engineering',
+        requestedBy: 'Nguyễn Văn Mentor',
+        priority: 'High',
+        status: 'Pending',
+        positions: ['AI/ML Intern', 'Data Science Intern'],
+        quantity: 5,
+        requiredSkills: ['Python', 'TensorFlow', 'PyTorch', 'Machine Learning'],
+        expectedStartDate: '2025-06-01',
+        createdAt: '2025-03-06T10:30:00',
+        updatedAt: '2025-03-06T10:30:00'
     },
     {
-        key: '2',
-        name: 'David Chen',
-        track: 'Backend Track',
-        avatar: 'https://i.pravatar.cc/150?u=2',
-        currentPhase: 'Project',
-        phaseColor: 'green',
-        moduleProgress: 'Milestone 1',
-        progressPercent: 25,
-        status: 'Behind'
+        id: 'REQ-002',
+        type: 'Recruitment',
+        name: 'Tuyển Frontend Q2',
+        title: 'Cần thực tập sinh Frontend cho dự án mới',
+        department: 'Product',
+        requestedBy: 'Trần Thị Leader',
+        priority: 'Medium',
+        status: 'Approved',
+        positions: ['Frontend Developer Intern'],
+        quantity: 3,
+        requiredSkills: ['ReactJS', 'TypeScript', 'CSS', 'HTML'],
+        expectedStartDate: '2025-04-15',
+        createdAt: '2025-03-01T09:00:00',
+        updatedAt: '2025-03-05T14:20:00'
     },
     {
-        key: '3',
-        name: 'Emily Davis',
-        track: 'UI/UX Track',
-        avatar: 'https://i.pravatar.cc/150?u=3',
-        currentPhase: 'Training',
-        phaseColor: 'purple',
-        moduleProgress: 'Module 4/5',
-        progressPercent: 85,
-        status: 'On Track'
-    },
-    {
-        key: '4',
-        name: 'Michael Ross',
-        track: 'Fullstack Track',
-        avatar: 'https://i.pravatar.cc/150?u=4',
-        currentPhase: 'Project',
-        phaseColor: 'green',
-        moduleProgress: 'Final Submission',
-        progressPercent: 95,
-        status: 'On Track'
+        id: 'REQ-003',
+        type: 'Recruitment',
+        name: 'Backend Team Expansion',
+        title: 'Mở rộng đội Backend cho microservices',
+        department: 'Engineering',
+        requestedBy: 'Lê Văn Tech Lead',
+        priority: 'High',
+        status: 'In Progress',
+        positions: ['Backend Developer Intern'],
+        quantity: 4,
+        requiredSkills: ['NodeJS', 'NestJS', 'MongoDB', 'PostgreSQL'],
+        expectedStartDate: '2025-05-01',
+        createdAt: '2025-02-28T11:15:00',
+        updatedAt: '2025-03-04T16:45:00'
     }
 ];
 
 export const MentorRequestList = () => {
     const { t } = useTranslation();
+    const [searchText, setSearchText] = useState('');
+    const [statusFilter, setStatusFilter] = useState<string>('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedIntern, setSelectedIntern] = useState<InternProgress | null>(null);
-    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [form] = Form.useForm();
+    const [requests, setRequests] = useState<RecruitmentRequest[]>(mockRequests);
 
-    const handleAction = (action: string, item: string) => {
-        message.success(`${action} for ${item} successfully`);
+    const handleCreateRequest = (values: any) => {
+        const newRequest: RecruitmentRequest = {
+            id: `REQ-${String(requests.length + 1).padStart(3, '0')}`,
+            type: values.type || 'Recruitment',
+            name: values.name,
+            title: values.title,
+            department: values.department,
+            requestedBy: 'Current User', // Should come from auth context
+            priority: values.priority,
+            status: 'Pending',
+            positions: values.positions?.split(',').map((p: string) => p.trim()),
+            quantity: values.quantity,
+            requiredSkills: values.requiredSkills?.split(',').map((s: string) => s.trim()),
+            expectedStartDate: values.expectedStartDate,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        setRequests([newRequest, ...requests]);
+        message.success('Đề xuất đã được tạo thành công!');
+        setIsModalOpen(false);
+        form.resetFields();
     };
 
-    const handleViewProfile = (intern: InternProgress) => {
-        setSelectedIntern(intern);
-        setIsProfileModalOpen(true);
+    const handleDelete = (id: string) => {
+        Modal.confirm({
+            title: 'Xác nhận xóa',
+            content: 'Bạn có chắc chắn muốn xóa đề xuất này?',
+            okText: 'Xóa',
+            cancelText: 'Hủy',
+            okButtonProps: { danger: true },
+            onOk: () => {
+                setRequests(requests.filter((r) => r.id !== id));
+                message.success('Đã xóa đề xuất');
+            }
+        });
     };
 
-    const getActionMenu = (record: InternProgress): MenuProps => ({
-        items: [
-            { key: 'view', label: t('task_mgmt.view_profile') },
-            { key: 'message', label: t('task_mgmt.message_intern') },
-            { type: 'divider' },
-            { key: 'report', label: t('task_mgmt.report_issue'), danger: true }
-        ],
-        onClick: (e) => {
-            if (e.key === 'view') handleViewProfile(record);
-            else if (e.key === 'message') handleAction('Opened chat', record.name);
-            else handleAction('Reported', record.name);
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'Pending':
+                return 'warning';
+            case 'Approved':
+                return 'success';
+            case 'Rejected':
+                return 'error';
+            case 'In Progress':
+                return 'processing';
+            default:
+                return 'default';
         }
-    });
+    };
 
-    const columns: ColumnsType<InternProgress> = [
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'Pending':
+                return <ClockCircleOutlined />;
+            case 'Approved':
+                return <CheckCircleOutlined />;
+            case 'Rejected':
+                return <CloseCircleOutlined />;
+            default:
+                return <ClockCircleOutlined />;
+        }
+    };
+
+    const getPriorityColor = (priority: string) => {
+        switch (priority) {
+            case 'High':
+                return 'red';
+            case 'Medium':
+                return 'orange';
+            case 'Low':
+                return 'blue';
+            default:
+                return 'default';
+        }
+    };
+
+    const columns: ColumnsType<RecruitmentRequest> = [
         {
-            title: t('task_mgmt.intern'),
-            dataIndex: 'name',
-            key: 'name',
+            title: 'Mã đề xuất',
+            dataIndex: 'id',
+            key: 'id',
+            width: 120,
+            render: (text) => <Text strong>{text}</Text>
+        },
+        {
+            title: 'Tiêu đề đề xuất',
+            dataIndex: 'title',
+            key: 'title',
             render: (text, record) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Avatar src={record.avatar} />
-                    <div>
-                        <div style={{ fontWeight: 600 }}>{text}</div>
-                        <div style={{ fontSize: '12px', color: '#8c8c8c' }}>{record.track}</div>
-                    </div>
-                </div>
-            )
-        },
-        {
-            title: t('task_mgmt.project_phase'),
-            dataIndex: 'currentPhase',
-            key: 'currentPhase',
-            render: (text, record) => <Tag color={record.phaseColor}>{text === 'Training' ? t('task_mgmt.training') : t('task_mgmt.project')}</Tag>
-        },
-        {
-            title: t('learning_path.progress'),
-            dataIndex: 'progressPercent',
-            key: 'progress',
-            width: '25%',
-            render: (percent, record) => (
                 <div>
-                    <div
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            fontSize: '12px',
-                            marginBottom: '4px'
-                        }}
-                    >
-                        <span>{record.moduleProgress}</span>
-                        <span>{percent}%</span>
-                    </div>
-                    <Progress percent={percent} showInfo={false} size='small' strokeColor='#136dec' />
+                    <div style={{ fontWeight: 600, marginBottom: '4px' }}>{text}</div>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                        {record.name}
+                    </Text>
                 </div>
             )
         },
         {
-            title: t('common.status'),
+            title: 'Phòng ban',
+            dataIndex: 'department',
+            key: 'department',
+            width: 150
+        },
+        {
+            title: 'Vị trí & Số lượng',
+            key: 'positions',
+            width: 200,
+            render: (_, record) => (
+                <div>
+                    {record.positions?.map((pos, idx) => (
+                        <Tag key={idx} style={{ marginBottom: '4px' }}>
+                            {pos}
+                        </Tag>
+                    ))}
+                    {record.quantity && (
+                        <div style={{ marginTop: '4px' }}>
+                            <Text type="secondary" style={{ fontSize: '12px' }}>
+                                Số lượng: {record.quantity}
+                            </Text>
+                        </div>
+                    )}
+                </div>
+            )
+        },
+        {
+            title: 'Độ ưu tiên',
+            dataIndex: 'priority',
+            key: 'priority',
+            width: 120,
+            render: (priority) => <Tag color={getPriorityColor(priority)}>{priority}</Tag>
+        },
+        {
+            title: 'Trạng thái',
             dataIndex: 'status',
             key: 'status',
-            align: 'right',
+            width: 150,
             render: (status) => (
-                <Tag color={status === 'On Track' ? 'success' : 'warning'} style={{ borderRadius: '10px' }}>
-                    {status === 'On Track' ? (
-                        <span style={{ marginRight: '4px' }}>●</span>
-                    ) : (
-                        <span style={{ marginRight: '4px', color: '#faad14' }}>●</span>
-                    )}
-                    {status === 'On Track' ? t('task_mgmt.on_track') : t('task_mgmt.behind')}
+                <Tag icon={getStatusIcon(status)} color={getStatusColor(status)}>
+                    {status === 'Pending'
+                        ? 'Chờ duyệt'
+                        : status === 'Approved'
+                            ? 'Đã duyệt'
+                            : status === 'Rejected'
+                                ? 'Từ chối'
+                                : 'Đang xử lý'}
                 </Tag>
             )
         },
         {
+            title: 'Ngày tạo',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+            width: 120,
+            render: (date) => new Date(date).toLocaleDateString('vi-VN')
+        },
+        {
             title: t('common.actions'),
             key: 'action',
-            align: 'right',
+            width: 100,
+            align: 'center',
             render: (_, record) => (
-                <Dropdown menu={getActionMenu(record)} trigger={['click']}>
-                    <Button type='text' icon={<MoreOutlined />} />
+                <Dropdown
+                    menu={{
+                        items: [
+                            {
+                                key: 'edit',
+                                label: 'Chỉnh sửa',
+                                icon: <EditOutlined />,
+                                disabled: record.status !== 'Pending'
+                            },
+                            {
+                                key: 'delete',
+                                label: 'Xóa',
+                                icon: <DeleteOutlined />,
+                                danger: true,
+                                disabled: record.status === 'Approved'
+                            }
+                        ],
+                        onClick: ({ key }) => {
+                            if (key === 'delete') {
+                                handleDelete(record.id);
+                            }
+                        }
+                    }}
+                    trigger={['click']}
+                >
+                    <Button type="text">...</Button>
                 </Dropdown>
             )
         }
     ];
 
+    const filteredData = requests.filter((req) => {
+        const matchSearch =
+            req.title.toLowerCase().includes(searchText.toLowerCase()) ||
+            req.name.toLowerCase().includes(searchText.toLowerCase()) ||
+            req.department.toLowerCase().includes(searchText.toLowerCase());
+        const matchStatus = statusFilter === 'all' || req.status === statusFilter;
+        return matchSearch && matchStatus;
+    });
+
+    const stats = {
+        total: requests.length,
+        pending: requests.filter((r) => r.status === 'Pending').length,
+        approved: requests.filter((r) => r.status === 'Approved').length,
+        rejected: requests.filter((r) => r.status === 'Rejected').length
+    };
+
     return (
         <div style={{ padding: '24px' }}>
+            <div style={{ marginBottom: '24px' }}>
+                <Breadcrumb
+                    items={[{ title: t('menu.recruitment_management') }, { title: 'Đề xuất tuyển dụng' }]}
+                />
+            </div>
+
             <div
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}
             >
                 <div>
-                    <Title level={2} style={{ margin: 0 }}>
-                        {t('task_mgmt.dashboard_overview')}
+                    <Title level={3} style={{ margin: 0 }}>
+                        Đề xuất tuyển dụng
                     </Title>
-                    <Text type='secondary'>{t('task_mgmt.dashboard_desc')}</Text>
+                    <Text type="secondary">Quản lý các đề xuất nhu cầu tuyển dụng từ các phòng ban</Text>
                 </div>
-                <Button type='primary' icon={<FileAddOutlined />} size='large' onClick={() => setIsModalOpen(true)}>
-                    {t('task_mgmt.assign_new_task')}
+                <Button type="primary" icon={<PlusOutlined />} size="large" onClick={() => setIsModalOpen(true)}>
+                    Tạo đề xuất mới
                 </Button>
             </div>
 
+            {/* Statistics Cards */}
             <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
                 <Col xs={24} sm={12} lg={6}>
                     <Card bordered={false} style={{ borderRadius: '12px' }}>
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                marginBottom: '8px',
-                                color: '#8c8c8c'
-                            }}
-                        >
-                            <GroupOutlined /> {t('task_mgmt.total_interns')}
-                        </div>
+                        <div style={{ color: '#8c8c8c', marginBottom: '8px' }}>Tổng đề xuất</div>
                         <Title level={2} style={{ margin: 0 }}>
-                            12
+                            {stats.total}
                         </Title>
-                        <Tag color='success' style={{ marginTop: '8px' }}>
-                            +2 {t('task_mgmt.this_month')}
-                        </Tag>
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
                     <Card bordered={false} style={{ borderRadius: '12px' }}>
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                marginBottom: '8px',
-                                color: '#8c8c8c'
-                            }}
-                        >
-                            <ClockCircleOutlined /> {t('task_mgmt.pending_reviews')}
-                        </div>
-                        <Title level={2} style={{ margin: 0 }}>
-                            5
+                        <div style={{ color: '#8c8c8c', marginBottom: '8px' }}>Chờ duyệt</div>
+                        <Title level={2} style={{ margin: 0, color: '#faad14' }}>
+                            {stats.pending}
                         </Title>
-                        <Tag color='warning' style={{ marginTop: '8px' }}>
-                            {t('recruitment.require_review')}
-                        </Tag>
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
                     <Card bordered={false} style={{ borderRadius: '12px' }}>
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                marginBottom: '8px',
-                                color: '#8c8c8c'
-                            }}
-                        >
-                            <RiseOutlined /> {t('task_mgmt.avg_completion')}
-                        </div>
-                        <Title level={2} style={{ margin: 0 }}>
-                            78%
+                        <div style={{ color: '#8c8c8c', marginBottom: '8px' }}>Đã duyệt</div>
+                        <Title level={2} style={{ margin: 0, color: '#52c41a' }}>
+                            {stats.approved}
                         </Title>
-                        <Tag color='success' style={{ marginTop: '8px' }}>
-                            +5% {t('onboarding.last_week')}
-                        </Tag>
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
                     <Card bordered={false} style={{ borderRadius: '12px' }}>
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                marginBottom: '8px',
-                                color: '#8c8c8c'
-                            }}
-                        >
-                            <TrophyOutlined /> {t('task_mgmt.project_phase')}
-                        </div>
-                        <Title level={2} style={{ margin: 0 }}>
-                            4
+                        <div style={{ color: '#8c8c8c', marginBottom: '8px' }}>Từ chối</div>
+                        <Title level={2} style={{ margin: 0, color: '#ff4d4f' }}>
+                            {stats.rejected}
                         </Title>
-                        <Tag color='blue' style={{ marginTop: '8px' }}>
-                            {t('task_mgmt.interns_promoted')}
-                        </Tag>
                     </Card>
                 </Col>
             </Row>
 
-            <Row gutter={[24, 24]}>
-                <Col xs={24} lg={8}>
-                    <div
-                        style={{
-                            marginBottom: '16px',
-                            fontWeight: 700,
-                            fontSize: '16px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                        }}
-                    >
-                        <WarningOutlined style={{ color: '#faad14' }} /> {t('task_mgmt.pending_reviews')}
-                    </div>
-                    <Card bordered={false} style={{ borderRadius: '12px' }} bodyStyle={{ padding: 0 }}>
-                        <List
-                            dataSource={pendingReviews}
-                            renderItem={(item) => (
-                                <List.Item style={{ padding: '16px', borderBottom: '1px solid #f0f0f0' }}>
-                                    <div style={{ width: '100%' }}>
-                                        <div
-                                            style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                marginBottom: '8px'
-                                            }}
-                                        >
-                                            <Tag color={item.phaseColor}>{item.phase.includes('Training') ? t('task_mgmt.training') : t('task_mgmt.project')}</Tag>
-                                            <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                {item.timeAgo}
-                                            </Text>
-                                        </div>
-                                        <div style={{ fontWeight: 600, marginBottom: '4px' }}>{item.taskName}</div>
-                                        <div
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                marginBottom: '12px'
-                                            }}
-                                        >
-                                            <Avatar size='small' src={item.avatar} />
-                                            <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                {item.internName}
-                                            </Text>
-                                        </div>
-                                        <Space>
-                                            <Button
-                                                type='primary'
-                                                size='small'
-                                                onClick={() => handleAction('Reviewed', item.taskName)}
-                                            >
-                                                {t('task_mgmt.review')}
-                                            </Button>
-                                            <Button
-                                                size='small'
-                                                onClick={() => handleAction('Dismissed', item.taskName)}
-                                            >
-                                                {t('task_mgmt.dismiss')}
-                                            </Button>
-                                        </Space>
-                                    </div>
-                                </List.Item>
-                            )}
+            {/* Filters */}
+            <Card bordered={false} style={{ borderRadius: '12px', marginBottom: '16px' }}>
+                <Row gutter={16}>
+                    <Col xs={24} md={12}>
+                        <Input
+                            placeholder="Tìm kiếm theo tiêu đề, tên kế hoạch, phòng ban..."
+                            prefix={<SearchOutlined />}
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                            allowClear
                         />
-                        <div style={{ padding: '12px', textAlign: 'center', borderTop: '1px solid #f0f0f0' }}>
-                            <Button type='link' onClick={() => message.info('View all pending tasks page')}>
-                                {t('task_mgmt.view_all_pending')}
-                            </Button>
-                        </div>
-                    </Card>
-                </Col>
+                    </Col>
+                    <Col xs={24} md={6}>
+                        <Select
+                            style={{ width: '100%' }}
+                            placeholder="Lọc theo trạng thái"
+                            value={statusFilter}
+                            onChange={setStatusFilter}
+                            options={[
+                                { label: 'Tất cả trạng thái', value: 'all' },
+                                { label: 'Chờ duyệt', value: 'Pending' },
+                                { label: 'Đã duyệt', value: 'Approved' },
+                                { label: 'Từ chối', value: 'Rejected' },
+                                { label: 'Đang xử lý', value: 'In Progress' }
+                            ]}
+                        />
+                    </Col>
+                    <Col xs={24} md={6}>
+                        <Button icon={<FilterOutlined />} block>
+                            Bộ lọc nâng cao
+                        </Button>
+                    </Col>
+                </Row>
+            </Card>
 
-                <Col xs={24} lg={16}>
-                    <div
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginBottom: '16px'
-                        }}
-                    >
-                        <div style={{ fontWeight: 700, fontSize: '16px' }}>{t('task_mgmt.intern_progress')}</div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <Select
-                                defaultValue={t('task_mgmt.all_phases')}
-                                style={{ width: 140 }}
-                                options={[
-                                    { value: 'All Phases', label: t('task_mgmt.all_phases') },
-                                    { value: 'Phase 1', label: t('task_mgmt.training') },
-                                    { value: 'Phase 2', label: t('task_mgmt.project') }
-                                ]}
-                                onChange={(val) => message.info(`Filter: ${val}`)}
-                            />
-                            <Button icon={<FilterOutlined />} />
-                        </div>
-                    </div>
-                    <Card bordered={false} style={{ borderRadius: '12px' }} bodyStyle={{ padding: 0 }}>
-                        <div style={{ padding: '16px' }}>
-                            <Input
-                                prefix={<SearchOutlined />}
-                                placeholder={t('task_mgmt.search_intern_task')}
-                                onChange={(e) => console.log(e.target.value)}
-                            />
-                        </div>
-                        <Table columns={columns} dataSource={internData} pagination={false} />
-                        <div style={{ padding: '12px', textAlign: 'center', borderTop: '1px solid #f0f0f0' }}>
-                            <Button type='link' onClick={() => message.info('View full intern list')}>
-                                {t('task_mgmt.view_all_interns')}
-                            </Button>
-                        </div>
-                    </Card>
-                </Col>
-            </Row>
+            {/* Table */}
+            <Card bordered={false} style={{ borderRadius: '12px' }}>
+                <Table
+                    columns={columns}
+                    dataSource={filteredData}
+                    rowKey="id"
+                    pagination={{
+                        pageSize: 10,
+                        showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} đề xuất`
+                    }}
+                />
+            </Card>
 
+            {/* Create Request Modal */}
             <Modal
-                title={t('task_mgmt.assign_new_task')}
+                title="Tạo đề xuất tuyển dụng mới"
                 open={isModalOpen}
-                onOk={() => {
+                onCancel={() => {
                     setIsModalOpen(false);
-                    message.success('Task Assigned');
+                    form.resetFields();
                 }}
-                onCancel={() => setIsModalOpen(false)}
+                footer={null}
+                width={700}
             >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 0' }}>
-                    <Input placeholder={t('task_mgmt.task_title')} />
-                    <Select
-                        placeholder={t('task_mgmt.intern')}
-                        options={internData.map((i) => ({ label: i.name, value: i.key }))}
-                    />
-                    <Input.TextArea placeholder={t('task_mgmt.desc')} rows={4} />
-                </div>
-            </Modal>
+                <Form form={form} layout="vertical" onFinish={handleCreateRequest} style={{ marginTop: '24px' }}>
+                    <Form.Item
+                        label="Loại đề xuất"
+                        name="type"
+                        initialValue="Recruitment"
+                        rules={[{ required: true, message: 'Vui lòng chọn loại đề xuất' }]}
+                    >
+                        <Select
+                            options={[
+                                { label: 'Tuyển dụng (Recruitment)', value: 'Recruitment' },
+                                { label: 'Đào tạo (Training)', value: 'Training' },
+                                { label: 'Thiết bị (Equipment)', value: 'Equipment' }
+                            ]}
+                        />
+                    </Form.Item>
 
-            <MentorProfileModal
-                open={isProfileModalOpen}
-                onCancel={() => setIsProfileModalOpen(false)}
-                intern={selectedIntern}
-            />
+                    <Form.Item
+                        label="Tên kế hoạch"
+                        name="name"
+                        rules={[{ required: true, message: 'Vui lòng nhập tên kế hoạch' }]}
+                    >
+                        <Input placeholder="VD: Kế hoạch Hè 2025" />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Tiêu đề đề xuất"
+                        name="title"
+                        rules={[{ required: true, message: 'Vui lòng nhập tiêu đề' }]}
+                    >
+                        <Input placeholder="VD: Đề xuất mở rộng slot thực tập sinh cho team AI" />
+                    </Form.Item>
+
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item
+                                label="Phòng ban"
+                                name="department"
+                                rules={[{ required: true, message: 'Vui lòng chọn phòng ban' }]}
+                            >
+                                <Select
+                                    placeholder="Chọn phòng ban"
+                                    options={[
+                                        { label: 'Engineering', value: 'Engineering' },
+                                        { label: 'Product', value: 'Product' },
+                                        { label: 'Design', value: 'Design' },
+                                        { label: 'Marketing', value: 'Marketing' },
+                                        { label: 'HR', value: 'HR' }
+                                    ]}
+                                />
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                label="Độ ưu tiên"
+                                name="priority"
+                                initialValue="Medium"
+                                rules={[{ required: true, message: 'Vui lòng chọn độ ưu tiên' }]}
+                            >
+                                <Select
+                                    options={[
+                                        { label: 'Cao (High)', value: 'High' },
+                                        { label: 'Trung bình (Medium)', value: 'Medium' },
+                                        { label: 'Thấp (Low)', value: 'Low' }
+                                    ]}
+                                />
+                            </Form.Item>
+                        </Col>
+                    </Row>
+
+                    <Form.Item label="Vị trí cần tuyển" name="positions">
+                        <Input placeholder="VD: Frontend Developer Intern, Backend Developer Intern (phân cách bằng dấu phẩy)" />
+                    </Form.Item>
+
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item label="Số lượng" name="quantity">
+                                <InputNumber min={1} max={100} style={{ width: '100%' }} placeholder="VD: 5" />
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item label="Thời gian dự kiến" name="expectedStartDate">
+                                <Input type="date" />
+                            </Form.Item>
+                        </Col>
+                    </Row>
+
+                    <Form.Item label="Yêu cầu kỹ năng" name="requiredSkills">
+                        <TextArea
+                            rows={3}
+                            placeholder="VD: ReactJS, TypeScript, NodeJS (phân cách bằng dấu phẩy)"
+                        />
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+                            <Button
+                                onClick={() => {
+                                    setIsModalOpen(false);
+                                    form.resetFields();
+                                }}
+                            >
+                                Hủy
+                            </Button>
+                            <Button type="primary" htmlType="submit">
+                                Gửi đề xuất
+                            </Button>
+                        </Space>
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };

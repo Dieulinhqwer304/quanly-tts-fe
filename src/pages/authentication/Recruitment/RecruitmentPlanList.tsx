@@ -274,6 +274,100 @@ export const RecruitmentPlanList = () => {
                 </Col>
             </Row>
 
+            {/* Pending Mentor Requests Section */}
+            <Card
+                title={
+                    <Space>
+                        <TeamOutlined />
+                        <span>Đề xuất từ Mentor/Trưởng nhóm</span>
+                        <Tag color="warning">3 đề xuất mới</Tag>
+                    </Space>
+                }
+                bordered={false}
+                style={{ borderRadius: '12px', marginBottom: '24px' }}
+                extra={
+                    <Button
+                        type="link"
+                        onClick={() => navigate(RouteConfig.MentorRequestList.path)}
+                    >
+                        Xem tất cả đề xuất →
+                    </Button>
+                }
+            >
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} md={8}>
+                        <Card
+                            size="small"
+                            style={{ borderLeft: '3px solid #ff4d4f', cursor: 'pointer' }}
+                            hoverable
+                            onClick={() => message.info('Tạo kế hoạch từ đề xuất này')}
+                        >
+                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <Tag color="red">High Priority</Tag>
+                                    <Text type="secondary" style={{ fontSize: '12px' }}>2h ago</Text>
+                                </div>
+                                <Text strong>Đề xuất mở rộng slot thực tập sinh cho team AI</Text>
+                                <Text type="secondary" style={{ fontSize: '12px' }}>
+                                    Engineering • 5 vị trí • AI/ML Intern
+                                </Text>
+                                <div style={{ marginTop: '8px' }}>
+                                    <Button type="primary" size="small" block>
+                                        Tạo kế hoạch từ đề xuất này
+                                    </Button>
+                                </div>
+                            </Space>
+                        </Card>
+                    </Col>
+                    <Col xs={24} md={8}>
+                        <Card
+                            size="small"
+                            style={{ borderLeft: '3px solid #faad14', cursor: 'pointer' }}
+                            hoverable
+                        >
+                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <Tag color="orange">Medium Priority</Tag>
+                                    <Text type="secondary" style={{ fontSize: '12px' }}>1d ago</Text>
+                                </div>
+                                <Text strong>Cần thực tập sinh Frontend cho dự án mới</Text>
+                                <Text type="secondary" style={{ fontSize: '12px' }}>
+                                    Product • 3 vị trí • Frontend Intern
+                                </Text>
+                                <div style={{ marginTop: '8px' }}>
+                                    <Button type="primary" size="small" block>
+                                        Tạo kế hoạch từ đề xuất này
+                                    </Button>
+                                </div>
+                            </Space>
+                        </Card>
+                    </Col>
+                    <Col xs={24} md={8}>
+                        <Card
+                            size="small"
+                            style={{ borderLeft: '3px solid #1890ff', cursor: 'pointer' }}
+                            hoverable
+                        >
+                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <Tag color="blue">Low Priority</Tag>
+                                    <Text type="secondary" style={{ fontSize: '12px' }}>3d ago</Text>
+                                </div>
+                                <Text strong>Mở rộng đội Backend cho microservices</Text>
+                                <Text type="secondary" style={{ fontSize: '12px' }}>
+                                    Engineering • 4 vị trí • Backend Intern
+                                </Text>
+                                <div style={{ marginTop: '8px' }}>
+                                    <Button type="primary" size="small" block>
+                                        Tạo kế hoạch từ đề xuất này
+                                    </Button>
+                                </div>
+                            </Space>
+                        </Card>
+                    </Col>
+                </Row>
+            </Card>
+
             <Row gutter={24}>
                 <Col xs={24} lg={16}>
                     <Card
