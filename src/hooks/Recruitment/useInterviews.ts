@@ -5,11 +5,22 @@ import {
     CreateInterviewParams,
     UpdateInterviewParams
 } from '../../services/Recruitment/interviews';
+import { MOCK_DATA } from '../../constants/MockData';
 
 export const useInterviews = (params?: GetInterviewsParams) => {
     return useQuery({
         queryKey: ['interviews', params],
-        queryFn: () => interviewsService.getInterviews(params)
+        queryFn: () => interviewsService.getInterviews(params),
+        initialData: {
+            code: 200,
+            data: {
+                hits: MOCK_DATA.interviews,
+                pagination: {
+                    totalPages: 1,
+                    totalRows: MOCK_DATA.interviews.length
+                }
+            }
+        }
     });
 };
 

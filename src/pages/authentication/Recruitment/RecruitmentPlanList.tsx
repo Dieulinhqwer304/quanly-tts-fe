@@ -24,7 +24,8 @@ import {
     Tag,
     Typography,
     message,
-    Skeleton
+    Skeleton,
+    Modal
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
@@ -34,26 +35,46 @@ import { useRecruitmentPlans } from '../../../hooks/Recruitment/useRecruitmentPl
 import { useDashboardStats } from '../../../hooks/useDashboardStats';
 import { useInterviews } from '../../../hooks/Recruitment/useInterviews';
 import { RecruitmentPlan } from '../../../services/Recruitment/recruitmentPlans';
+import { RecruitmentPlanModal } from './components/RecruitmentPlanModal';
+import { useState } from 'react';
 
 const { Title, Text } = Typography;
 
 export const RecruitmentPlanList = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingPlan, setEditingPlan] = useState<RecruitmentPlan | null>(null);
 
-    const { data: plansData, isLoading: plansLoading } = useRecruitmentPlans();
+    const { data: plansData, isLoading: plansLoading, refetch } = useRecruitmentPlans();
     const { data: statsData, isLoading: statsLoading } = useDashboardStats();
     const { data: interviewsData, isLoading: interviewsLoading } = useInterviews({
         pagination: { page: 1, pageSize: 3 }
     });
 
-    const handleMenuClick = (e: any, campaignName: string) => {
+    const handleCreate = () => {
+        setEditingPlan(null);
+        setIsModalOpen(true);
+    };
+
+    const handleEdit = (record: RecruitmentPlan) => {
+        setEditingPlan(record);
+        setIsModalOpen(true);
+    };
+
+    const handleMenuClick = (e: any, record: RecruitmentPlan) => {
         if (e.key === 'edit') {
-            message.info(`Edit campaign: ${campaignName}`);
+            handleEdit(record);
         } else if (e.key === 'delete') {
-            message.warning(`Delete campaign: ${campaignName}`);
+            Modal.confirm({
+                title: t('common.delete_confirm'),
+                content: `${t('common.delete_confirm_desc')} ${record.name}?`,
+                onOk: () => {
+                    message.success(t('common.success'));
+                }
+            });
         } else {
-            message.info(`View details for: ${campaignName}`);
+            message.info(`View details for: ${record.name}`);
         }
     };
 
@@ -64,7 +85,7 @@ export const RecruitmentPlanList = () => {
             { type: 'divider' },
             { key: 'delete', label: t('common.delete'), danger: true }
         ],
-        onClick: (e) => handleMenuClick(e, record.name)
+        onClick: (e) => handleMenuClick(e, record)
     });
 
     const columns: ColumnsType<RecruitmentPlan> = [
@@ -127,8 +148,8 @@ export const RecruitmentPlanList = () => {
                         {status === 'Active'
                             ? t('internship.active')
                             : status === 'Pending'
-                              ? t('recruitment.pending_approval')
-                              : t('recruitment.closed')}
+                                ? t('recruitment.pending_approval')
+                                : t('recruitment.closed')}
                     </Tag>
                 );
             }
@@ -254,7 +275,7 @@ export const RecruitmentPlanList = () => {
                             <Button
                                 type='primary'
                                 icon={<PlusOutlined />}
-                                onClick={() => navigate(RouteConfig.RecruitmentPlanCreate.path)}
+                                onClick={handleCreate}
                             >
                                 {t('recruitment.create_new_plan')}
                             </Button>
@@ -288,10 +309,10 @@ export const RecruitmentPlanList = () => {
                         </div>
 
                         <Table
-                            columns={columns}
+                            columns={columns as any}
                             dataSource={plansData?.data?.hits || []}
                             pagination={{
-                                current: plansData?.data?.pagination?.totalPages ? 1 : 1,
+                                current: plansData?.data?.pagination ? 1 : 1,
                                 total: plansData?.data?.pagination?.totalRows || 0,
                                 pageSize: 5
                             }}
@@ -300,6 +321,16 @@ export const RecruitmentPlanList = () => {
                         />
                     </Card>
                 </Col>
+
+                <RecruitmentPlanModal
+                    open={isModalOpen}
+                    onCancel={() => setIsModalOpen(false)}
+                    onSuccess={() => {
+                        setIsModalOpen(false);
+                        refetch();
+                    }}
+                    initialValues={editingPlan}
+                />
 
                 <Col xs={24} lg={8}>
                     <Space direction='vertical' size='large' style={{ width: '100%' }}>

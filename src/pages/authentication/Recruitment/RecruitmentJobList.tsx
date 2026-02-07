@@ -21,33 +21,50 @@ import {
     Breadcrumb
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { useNavigate } from 'react-router-dom';
-import { RouteConfig } from '../../../constants';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useJobPositions } from '../../../hooks/Recruitment/useJobPositions';
 import { JobPosition } from '../../../services/Recruitment/jobPositions';
+import { RecruitmentJobModal } from './components/RecruitmentJobModal';
+import { Modal } from 'antd';
 
 const { Title, Text } = Typography;
 
 export const RecruitmentJobList = () => {
-    const navigate = useNavigate();
     const { t } = useTranslation();
     const [searchText, setSearchText] = useState('');
     const [departmentFilter, setDepartmentFilter] = useState('All');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingJob, setEditingJob] = useState<JobPosition | null>(null);
 
-    const { data: jobPositionsData, isLoading } = useJobPositions({
+    const { data: jobPositionsData, isLoading, refetch } = useJobPositions({
         searcher: searchText ? { keyword: searchText, field: 'title' } : undefined,
         department: departmentFilter !== 'All' ? departmentFilter : undefined
     });
+
+    const handleCreate = () => {
+        setEditingJob(null);
+        setIsModalOpen(true);
+    };
+
+    const handleEdit = (record: JobPosition) => {
+        setEditingJob(record);
+        setIsModalOpen(true);
+    };
 
     const handleMenuClick = (key: string, record: JobPosition) => {
         if (key === 'view') {
             message.info(`Viewing ${record.title}`);
         } else if (key === 'edit') {
-            message.info(`Editing ${record.title}`);
+            handleEdit(record);
         } else if (key === 'delete') {
-            message.warning(`Deleted ${record.title}`);
+            Modal.confirm({
+                title: t('common.delete_confirm'),
+                content: `${t('common.delete_confirm_desc')} ${record.title}?`,
+                onOk: () => {
+                    message.success(t('common.success'));
+                }
+            });
         }
     };
 
@@ -187,7 +204,7 @@ export const RecruitmentJobList = () => {
                 <Button
                     type='primary'
                     icon={<PlusOutlined />}
-                    onClick={() => navigate(RouteConfig.RecruitmentPlanCreate.path)}
+                    onClick={handleCreate}
                 >
                     {t('recruitment.create_job_post')}
                 </Button>
@@ -232,7 +249,7 @@ export const RecruitmentJobList = () => {
                 </div>
 
                 <Table
-                    columns={columns}
+                    columns={columns as any}
                     dataSource={dataSource}
                     loading={isLoading}
                     pagination={{
@@ -242,6 +259,16 @@ export const RecruitmentJobList = () => {
                     rowKey='id'
                 />
             </Card>
+
+            <RecruitmentJobModal
+                open={isModalOpen}
+                onCancel={() => setIsModalOpen(false)}
+                onSuccess={() => {
+                    setIsModalOpen(false);
+                    refetch();
+                }}
+                initialValues={editingJob}
+            />
         </div>
     );
 };
