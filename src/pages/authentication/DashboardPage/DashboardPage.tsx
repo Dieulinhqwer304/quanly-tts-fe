@@ -1,11 +1,13 @@
 import { TeamOutlined, UserOutlined, ArrowUpOutlined, EyeOutlined, MoreOutlined } from '@ant-design/icons';
 import { Card, Col, Row, Typography, Button, Dropdown } from 'antd';
+import { useDashboardStats } from '../../../hooks/useDashboardStats';
 
 const { Title, Text } = Typography;
 
-const StatCard = ({ title, value, prefix, color, trend }: any) => (
+const StatCard = ({ title, value, prefix, color, trend, loading }: any) => (
     <Card
         bordered={false}
+        loading={loading}
         style={{ height: '100%', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02)' }}
         bodyStyle={{ padding: '24px' }}
     >
@@ -59,6 +61,9 @@ const StatCard = ({ title, value, prefix, color, trend }: any) => (
 );
 
 export const DashboardPage = () => {
+    const { data: statsRes, isLoading: statsLoading } = useDashboardStats();
+    const stats = statsRes?.data;
+
     return (
         <div style={{ padding: '24px', maxWidth: '1600px', margin: '0 auto' }}>
             <div
@@ -68,37 +73,40 @@ export const DashboardPage = () => {
                     <Title level={2} style={{ marginBottom: '4px', marginTop: 0 }}>
                         Tổng quan hệ thống
                     </Title>
-                    <Text type='secondary'>Welcome back, Admin! Here's what's happening today.</Text>
+                    <Text type='secondary'>Chào mừng bạn quay trở lại, Admin! Dưới đây là thông tin vận hành hôm nay.</Text>
                 </div>
-                <Button type='primary'>Download Report</Button>
+                <Button type='primary'>Tải báo cáo</Button>
             </div>
 
             <Row gutter={[24, 24]} style={{ marginBottom: '32px' }}>
                 <Col xs={24} sm={12} lg={8}>
                     <StatCard
                         title='Tổng người dùng'
-                        value='1,234'
+                        value={stats?.totalUsers?.toLocaleString() || '0'}
                         prefix={<UserOutlined />}
                         color='#6366f1'
                         trend={12.5}
+                        loading={statsLoading}
                     />
                 </Col>
                 <Col xs={24} sm={12} lg={8}>
                     <StatCard
                         title='Người dùng hoạt động'
-                        value='845'
+                        value={stats?.activeUsers?.toLocaleString() || '0'}
                         prefix={<TeamOutlined />}
                         color='#10b981'
                         trend={8.2}
+                        loading={statsLoading}
                     />
                 </Col>
                 <Col xs={24} sm={12} lg={8}>
                     <StatCard
                         title='Lượt truy cập hôm nay'
-                        value='5,678'
+                        value={stats?.todayVisits?.toLocaleString() || '0'}
                         prefix={<EyeOutlined />}
                         color='#f59e0b'
                         trend={-2.4}
+                        loading={statsLoading}
                     />
                 </Col>
             </Row>

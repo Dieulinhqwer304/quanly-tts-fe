@@ -32,6 +32,7 @@ import { RouteConfig } from '../../../constants';
 import { useTranslation } from 'react-i18next';
 import { useCandidates, useShortlistCandidate, useRejectCandidate } from '../../../hooks/Recruitment/useCandidates';
 import { Candidate } from '../../../services/Recruitment/candidates';
+import { RecruitmentJobModal } from '../Recruitment/components/RecruitmentJobModal';
 
 const { Title, Text } = Typography;
 
@@ -40,6 +41,7 @@ export const CVList = () => {
     const navigate = useNavigate();
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [isJobModalOpen, setIsJobModalOpen] = useState(false);
 
     const { data: candidatesData, isLoading } = useCandidates({
         searcher: searchText ? { keyword: searchText, field: 'name' } : undefined,
@@ -208,8 +210,8 @@ export const CVList = () => {
                     <Text type='secondary'>{t('candidate.screening_desc')}</Text>
                 </div>
                 <Space>
-                    <Button>{t('candidate.edit_job')}</Button>
-                    <Button type='primary' icon={<TeamOutlined />}>
+                    <Button onClick={() => message.info(t('candidate.edit_job'))}>{t('candidate.edit_job')}</Button>
+                    <Button type='primary' icon={<TeamOutlined />} onClick={() => setIsJobModalOpen(true)}>
                         {t('candidate.post_new_job')}
                     </Button>
                 </Space>
@@ -310,9 +312,8 @@ export const CVList = () => {
                         <Button icon={<DownloadOutlined />}>{t('recruitment.export_csv')}</Button>
                     </Space>
                 </div>
-
                 <Table
-                    columns={columns}
+                    columns={columns as any}
                     dataSource={dataSource}
                     loading={isLoading}
                     pagination={{
@@ -324,6 +325,12 @@ export const CVList = () => {
                     rowKey='id'
                 />
             </Card>
+
+            <RecruitmentJobModal
+                open={isJobModalOpen}
+                onCancel={() => setIsJobModalOpen(false)}
+                onSuccess={() => setIsJobModalOpen(false)}
+            />
         </div>
     );
 };

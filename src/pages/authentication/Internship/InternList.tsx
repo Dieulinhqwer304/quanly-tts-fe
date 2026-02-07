@@ -29,18 +29,34 @@ import { useTranslation } from 'react-i18next';
 import { useInterns } from '../../../hooks/Internship/useInterns';
 import { RouteConfig } from '../../../constants';
 
+import { InternModal } from './components/InternModal';
+import { PlusOutlined } from '@ant-design/icons';
+
 const { Title, Text } = Typography;
 
 export const InternList = () => {
+    // ... (rest of the component)
     const { t } = useTranslation();
     const navigate = useNavigate();
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingIntern, setEditingIntern] = useState<any>(null);
 
-    const { data: internsData, isLoading } = useInterns({
+    const { data: internsData, isLoading, refetch } = useInterns({
         searcher: searchText ? { keyword: searchText, field: 'name' } : undefined,
         status: statusFilter
     });
+
+    const handleCreate = () => {
+        setEditingIntern(null);
+        setIsModalOpen(true);
+    };
+
+    const handleEdit = (record: any) => {
+        setEditingIntern(record);
+        setIsModalOpen(true);
+    };
 
     const dataSource = internsData?.data?.hits || [];
 
@@ -66,7 +82,12 @@ export const InternList = () => {
                     </Title>
                     <Text type='secondary'>{t('internship.management_desc')}</Text>
                 </div>
-                <Button type='primary'>{t('internship.export_list')}</Button>
+                <Space>
+                    <Button icon={<PlusOutlined />} type='primary' onClick={handleCreate}>
+                        {t('internship.add_intern')}
+                    </Button>
+                    <Button>{t('internship.export_list')}</Button>
+                </Space>
             </div>
 
             <Card bordered={false} style={{ borderRadius: '12px' }}>
@@ -171,7 +192,7 @@ export const InternList = () => {
                             dataIndex: 'status',
                             key: 'status',
                             render: (status) => {
-                                let color = 'processing';
+                                let color = 'processing' as any;
                                 if (status === 'Completed') color = 'success';
                                 if (status === 'Dropped') color = 'error';
                                 return (
@@ -204,7 +225,7 @@ export const InternList = () => {
                                         <Button
                                             type='text'
                                             icon={<EditOutlined />}
-                                            onClick={() => message.info(`${t('common.edit')} ${record.name}`)}
+                                            onClick={() => handleEdit(record)}
                                         />
                                     </Tooltip>
                                 </Space>
@@ -222,6 +243,16 @@ export const InternList = () => {
                     rowKey='id'
                 />
             </Card>
+
+            <InternModal
+                open={isModalOpen}
+                onCancel={() => setIsModalOpen(false)}
+                onSuccess={() => {
+                    setIsModalOpen(false);
+                    refetch();
+                }}
+                initialValues={editingIntern}
+            />
         </div>
     );
 };
