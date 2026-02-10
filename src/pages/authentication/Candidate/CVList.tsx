@@ -252,9 +252,6 @@ export const CVList = () => {
                     </Title>
                     <Text type='secondary'>{t('candidate.screening_desc')}</Text>
                 </div>
-                <Space>
-                    <Button icon={<DownloadOutlined />}>{t('recruitment.export_csv')}</Button>
-                </Space>
             </div>
 
             <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
@@ -346,11 +343,6 @@ export const CVList = () => {
                             ]}
                         />
                     </div>
-                    <Space>
-                        <Button icon={<SortAscendingOutlined />} title='Sort' />
-                        <Button icon={<FilterOutlined />} title={t('common.filter')} />
-                        <Button icon={<DownloadOutlined />}>{t('recruitment.export_csv')}</Button>
-                    </Space>
                 </div>
                 {hasSelected && (
                     <div
