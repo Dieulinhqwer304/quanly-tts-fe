@@ -157,8 +157,8 @@ export const RecruitmentPlanList = () => {
                         {status === 'Active'
                             ? t('internship.active')
                             : status === 'Pending'
-                                ? t('recruitment.pending_approval')
-                                : t('recruitment.closed')}
+                              ? t('recruitment.pending_approval')
+                              : t('recruitment.closed')}
                     </Tag>
                 );
             }
@@ -274,112 +274,14 @@ export const RecruitmentPlanList = () => {
                 </Col>
             </Row>
 
-            {/* Pending Mentor Requests Section */}
-            <Card
-                title={
-                    <Space>
-                        <TeamOutlined />
-                        <span>Đề xuất từ Mentor/Trưởng nhóm</span>
-                        <Tag color="warning">3 đề xuất mới</Tag>
-                    </Space>
-                }
-                bordered={false}
-                style={{ borderRadius: '12px', marginBottom: '24px' }}
-                extra={
-                    <Button
-                        type="link"
-                        onClick={() => navigate(RouteConfig.MentorRequestList.path)}
-                    >
-                        Xem tất cả đề xuất →
-                    </Button>
-                }
-            >
-                <Row gutter={[16, 16]}>
-                    <Col xs={24} md={8}>
-                        <Card
-                            size="small"
-                            style={{ borderLeft: '3px solid #ff4d4f', cursor: 'pointer' }}
-                            hoverable
-                            onClick={() => message.info('Tạo kế hoạch từ đề xuất này')}
-                        >
-                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <Tag color="red">High Priority</Tag>
-                                    <Text type="secondary" style={{ fontSize: '12px' }}>2h ago</Text>
-                                </div>
-                                <Text strong>Đề xuất mở rộng slot thực tập sinh cho team AI</Text>
-                                <Text type="secondary" style={{ fontSize: '12px' }}>
-                                    Engineering • 5 vị trí • AI/ML Intern
-                                </Text>
-                                <div style={{ marginTop: '8px' }}>
-                                    <Button type="primary" size="small" block>
-                                        Tạo kế hoạch từ đề xuất này
-                                    </Button>
-                                </div>
-                            </Space>
-                        </Card>
-                    </Col>
-                    <Col xs={24} md={8}>
-                        <Card
-                            size="small"
-                            style={{ borderLeft: '3px solid #faad14', cursor: 'pointer' }}
-                            hoverable
-                        >
-                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <Tag color="orange">Medium Priority</Tag>
-                                    <Text type="secondary" style={{ fontSize: '12px' }}>1d ago</Text>
-                                </div>
-                                <Text strong>Cần thực tập sinh Frontend cho dự án mới</Text>
-                                <Text type="secondary" style={{ fontSize: '12px' }}>
-                                    Product • 3 vị trí • Frontend Intern
-                                </Text>
-                                <div style={{ marginTop: '8px' }}>
-                                    <Button type="primary" size="small" block>
-                                        Tạo kế hoạch từ đề xuất này
-                                    </Button>
-                                </div>
-                            </Space>
-                        </Card>
-                    </Col>
-                    <Col xs={24} md={8}>
-                        <Card
-                            size="small"
-                            style={{ borderLeft: '3px solid #1890ff', cursor: 'pointer' }}
-                            hoverable
-                        >
-                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <Tag color="blue">Low Priority</Tag>
-                                    <Text type="secondary" style={{ fontSize: '12px' }}>3d ago</Text>
-                                </div>
-                                <Text strong>Mở rộng đội Backend cho microservices</Text>
-                                <Text type="secondary" style={{ fontSize: '12px' }}>
-                                    Engineering • 4 vị trí • Backend Intern
-                                </Text>
-                                <div style={{ marginTop: '8px' }}>
-                                    <Button type="primary" size="small" block>
-                                        Tạo kế hoạch từ đề xuất này
-                                    </Button>
-                                </div>
-                            </Space>
-                        </Card>
-                    </Col>
-                </Row>
-            </Card>
-
             <Row gutter={24}>
-                <Col xs={24} lg={16}>
+                <Col xs={24} lg={24}>
                     <Card
                         title={t('recruitment.campaigns')}
                         bordered={false}
                         style={{ borderRadius: '12px' }}
                         extra={
-                            <Button
-                                type='primary'
-                                icon={<PlusOutlined />}
-                                onClick={handleCreate}
-                            >
+                            <Button type='primary' icon={<PlusOutlined />} onClick={handleCreate}>
                                 {t('recruitment.create_new_plan')}
                             </Button>
                         }
@@ -435,108 +337,6 @@ export const RecruitmentPlanList = () => {
                     initialValues={editingPlan}
                     viewOnly={isViewOnly}
                 />
-
-                <Col xs={24} lg={8}>
-                    <Space direction='vertical' size='large' style={{ width: '100%' }}>
-                        <Card title={t('recruitment.today_schedule')} bordered={false} style={{ borderRadius: '12px' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                {interviewsLoading ? (
-                                    <Skeleton active />
-                                ) : (
-                                    schedule.map((item, index) => (
-                                        <div
-                                            key={index}
-                                            style={{
-                                                display: 'flex',
-                                                gap: '12px',
-                                                padding: '8px',
-                                                borderRadius: '8px',
-                                                background: '#fafafa',
-                                                cursor: 'pointer'
-                                            }}
-                                            onClick={() => message.info(`View details for: ${item.jobTitle}`)}
-                                        >
-                                            <div
-                                                style={{
-                                                    background: '#f0f0f0',
-                                                    padding: '8px',
-                                                    borderRadius: '8px',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    minWidth: '60px'
-                                                }}
-                                            >
-                                                <Text strong style={{ fontSize: '12px' }}>
-                                                    {item.time.split(' ')[0]}
-                                                </Text>
-                                                <Text type='secondary' style={{ fontSize: '10px' }}>
-                                                    {item.time.split(' ')[1]}
-                                                </Text>
-                                            </div>
-                                            <div style={{ flex: 1 }}>
-                                                <Text strong style={{ display: 'block' }}>
-                                                    {item.jobTitle}
-                                                </Text>
-                                                <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                    {item.format === 'Online'
-                                                        ? t('interview.online')
-                                                        : t('interview.offline')}{' '}
-                                                    {item.candidateName}
-                                                </Text>
-                                                <div
-                                                    style={{
-                                                        marginTop: '4px',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: '8px'
-                                                    }}
-                                                >
-                                                    <Avatar
-                                                        size={20}
-                                                        src={`https://i.pravatar.cc/150?u=${item.candidateId}`}
-                                                    />
-                                                    <Tag style={{ margin: 0, fontSize: '10px' }}>{item.format}</Tag>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                                <Button
-                                    type='default'
-                                    block
-                                    onClick={() => navigate(RouteConfig.InterviewSchedule.path)}
-                                >
-                                    {t('recruitment.view_full_calendar')}
-                                </Button>
-                            </div>
-                        </Card>
-
-                        <Card
-                            bordered={false}
-                            style={{
-                                borderRadius: '12px',
-                                background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
-                                color: 'white'
-                            }}
-                            bodyStyle={{ padding: '24px' }}
-                        >
-                            <Title level={4} style={{ color: 'white', marginTop: 0 }}>
-                                {t('recruitment.need_mentors')}
-                            </Title>
-                            <Text style={{ color: 'rgba(255,255,255,0.85)', display: 'block', marginBottom: '16px' }}>
-                                {t('recruitment.assign_mentors_desc')}
-                            </Text>
-                            <Button
-                                style={{ color: '#1890ff', fontWeight: 'bold' }}
-                                onClick={() => navigate(RouteConfig.MentorRequestList.path)}
-                            >
-                                {t('recruitment.assign_now')}
-                            </Button>
-                        </Card>
-                    </Space>
-                </Col>
             </Row>
         </div>
     );
