@@ -12,8 +12,6 @@ import {
     Space,
     Typography,
     message,
-    Divider,
-    List,
     Empty
 } from 'antd';
 import {
@@ -28,12 +26,21 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCreateQuiz, useUpdateQuiz, useQuiz } from '../../../hooks/Internship/useQuizzes';
 import { QuizQuestion } from '../../../services/Internship/quizzes';
+import { useResponsive } from '../../../hooks/useResponsive';
 
 const { Title, Text } = Typography;
 const { Content, Sider } = Layout;
 
+interface QuizFormValues {
+    title: string;
+    moduleId?: number;
+    duration?: number;
+    passScore?: number;
+}
+
 export const QuizBuilder = () => {
     const { t } = useTranslation();
+    const { isMobile, isLaptop } = useResponsive();
     const navigate = useNavigate();
     const { id } = useParams();
     const [form] = Form.useForm();
@@ -73,9 +80,20 @@ export const QuizBuilder = () => {
         setQuestions(newQuestions);
     };
 
-    const handleQuestionChange = (index: number, field: keyof QuizQuestion, value: any) => {
+    const handleQuestionChange = (
+        index: number,
+        field: 'text' | 'correct',
+        value: QuizQuestion['text'] | QuizQuestion['correct']
+    ) => {
         const newQuestions = [...questions];
-        (newQuestions[index] as any)[field] = value;
+        const current = newQuestions[index];
+        if (!current) return;
+        if (field === 'text' && typeof value === 'string') {
+            newQuestions[index] = { ...current, text: value };
+        }
+        if (field === 'correct' && typeof value === 'number') {
+            newQuestions[index] = { ...current, correct: value };
+        }
         setQuestions(newQuestions);
     };
 
@@ -85,7 +103,7 @@ export const QuizBuilder = () => {
         setQuestions(newQuestions);
     };
 
-    const handleSave = async (values: any) => {
+    const handleSave = async (values: QuizFormValues) => {
         if (questions.length === 0) {
             message.error(t('quiz.error_no_questions'));
             return;
@@ -113,8 +131,22 @@ export const QuizBuilder = () => {
     };
 
     return (
-        <Layout style={{ minHeight: '100vh', background: '#f5f5f5' }}>
-            <Sider width={350} theme='light' style={{ padding: '24px', borderRight: '1px solid #e8e8e8' }}>
+        <Layout
+            style={{
+                minHeight: '100vh',
+                background: '#f5f5f5',
+                flexDirection: isMobile ? 'column' : 'row'
+            }}
+        >
+            <Sider
+                width={isMobile ? '100%' : isLaptop ? 300 : 350}
+                theme='light'
+                style={{
+                    padding: isMobile ? '12px' : isLaptop ? '18px' : '24px',
+                    borderRight: isMobile ? 'none' : '1px solid #e8e8e8',
+                    borderBottom: isMobile ? '1px solid #e8e8e8' : 'none'
+                }}
+            >
                 <Space direction='vertical' style={{ width: '100%' }} size='large'>
                     <div>
                         <Button icon={<ArrowLeftOutlined />} type='text' onClick={() => navigate(-1)}>
@@ -135,20 +167,14 @@ export const QuizBuilder = () => {
                         </Form.Item>
 
                         <Row gutter={16}>
-                            <Col span={12}>
+                            <Col xs={24} md={12}>
                                 <Form.Item name='duration' label={t('quiz.duration')} initialValue={15}>
                                     <InputNumber min={5} style={{ width: '100%' }} />
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col xs={24} md={12}>
                                 <Form.Item name='passScore' label={t('quiz.pass_score')} initialValue={80}>
-                                    <InputNumber
-                                        min={0}
-                                        max={100}
-                                        formatter={(value) => `${value}%`}
-                                        parser={(value) => value!.replace('%', '')}
-                                        style={{ width: '100%' }}
-                                    />
+                                    <InputNumber style={{ width: '100%' }} />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -173,11 +199,26 @@ export const QuizBuilder = () => {
                 </Space>
             </Sider>
 
-            <Content style={{ padding: '24px', overflowY: 'auto', height: '100vh' }}>
+            <Content
+                style={{
+                    padding: isMobile ? '12px' : isLaptop ? '18px' : '24px',
+                    overflowY: 'auto',
+                    height: isMobile ? 'auto' : '100vh'
+                }}
+            >
                 <div style={{ maxWidth: 800, margin: '0 auto' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: isMobile ? 'flex-start' : 'center',
+                            flexDirection: isMobile ? 'column' : 'row',
+                            gap: isMobile ? 10 : 0,
+                            marginBottom: 24
+                        }}
+                    >
                         <Title level={4}>{t('quiz.questions_list')}</Title>
-                        <Space>
+                        <Space wrap>
                             <Button icon={<EyeOutlined />}>{t('quiz.preview')}</Button>
                             <Button type='primary' icon={<PlusOutlined />} onClick={handleAddQuestion}>
                                 {t('quiz.add_question')}
@@ -193,7 +234,7 @@ export const QuizBuilder = () => {
                                 <Card
                                     key={q.id || index}
                                     title={
-                                        <Space>
+                                        <Space wrap>
                                             <div
                                                 style={{
                                                     background: '#1890ff',

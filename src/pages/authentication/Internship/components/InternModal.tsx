@@ -12,17 +12,26 @@ import {
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
+import { useResponsive } from '../../../../hooks/useResponsive';
+
+interface InternFormValues {
+    [key: string]: unknown;
+    startDate?: string;
+    endDate?: string;
+    dates?: [dayjs.Dayjs, dayjs.Dayjs];
+}
 
 interface InternModalProps {
     open: boolean;
     onCancel: () => void;
     onSuccess: () => void;
-    initialValues?: any;
+    initialValues?: InternFormValues;
     viewOnly?: boolean;
 }
 
 export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly }: InternModalProps) => {
     const { t } = useTranslation();
+    const { isMobile, isLaptop } = useResponsive();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
 
@@ -41,7 +50,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
         }
     }, [open, initialValues, form]);
 
-    const onFinish = (values: any) => {
+    const onFinish = (values: InternFormValues) => {
         setLoading(true);
         console.log('Form values:', values);
 
@@ -64,7 +73,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
             onCancel={onCancel}
             onOk={() => form.submit()}
             confirmLoading={loading}
-            width={700}
+            width={isMobile ? 'calc(100vw - 24px)' : isLaptop ? 620 : 700}
             destroyOnClose
             footer={viewOnly ? [
                 <Button key="close" onClick={onCancel}>
@@ -83,7 +92,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
                 }}
             >
                 <Row gutter={16}>
-                    <Col span={12}>
+                    <Col xs={24} md={12}>
                         <Form.Item
                             label={t('internship.intern_name')}
                             name="name"
@@ -92,7 +101,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
                             <Input placeholder={t('internship.intern_name')} />
                         </Form.Item>
                     </Col>
-                    <Col span={12}>
+                    <Col xs={24} md={12}>
                         <Form.Item
                             label={t('common.email')}
                             name="email"
@@ -107,7 +116,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
                 </Row>
 
                 <Row gutter={16}>
-                    <Col span={12}>
+                    <Col xs={24} md={12}>
                         <Form.Item
                             label={t('common.phone')}
                             name="phone"
@@ -116,7 +125,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
                             <Input placeholder={t('common.phone')} />
                         </Form.Item>
                     </Col>
-                    <Col span={12}>
+                    <Col xs={24} md={12}>
                         <Form.Item
                             label={t('internship.track')}
                             name="track"
@@ -135,7 +144,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
                 </Row>
 
                 <Row gutter={16}>
-                    <Col span={12}>
+                    <Col xs={24} md={12}>
                         <Form.Item
                             label={t('internship.mentor')}
                             name="mentor"
@@ -144,7 +153,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
                             <Input placeholder={t('internship.mentor')} />
                         </Form.Item>
                     </Col>
-                    <Col span={12}>
+                    <Col xs={24} md={12}>
                         <Form.Item
                             label={t('common.status')}
                             name="status"

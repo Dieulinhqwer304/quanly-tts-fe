@@ -17,19 +17,28 @@ import {
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
+import { useResponsive } from '../../../../hooks/useResponsive';
 
 const { RangePicker } = DatePicker;
+
+interface RecruitmentPlanFormValues {
+    [key: string]: unknown;
+    startDate?: string;
+    endDate?: string;
+    period?: [dayjs.Dayjs, dayjs.Dayjs];
+}
 
 interface RecruitmentPlanModalProps {
     open: boolean;
     onCancel: () => void;
     onSuccess: () => void;
-    initialValues?: any;
+    initialValues?: RecruitmentPlanFormValues;
     viewOnly?: boolean;
 }
 
 export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues, viewOnly }: RecruitmentPlanModalProps) => {
     const { t } = useTranslation();
+    const { isMobile, isLaptop } = useResponsive();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
 
@@ -48,7 +57,7 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
         }
     }, [open, initialValues, form]);
 
-    const onFinish = (values: any) => {
+    const onFinish = (values: RecruitmentPlanFormValues) => {
         setLoading(true);
         console.log('Form values:', values);
 
@@ -72,7 +81,7 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
             onCancel={onCancel}
             onOk={() => form.submit()}
             confirmLoading={loading}
-            width={800}
+            width={isMobile ? 'calc(100vw - 24px)' : isLaptop ? 700 : 800}
             destroyOnClose
             footer={viewOnly ? [
                 <Button key="close" onClick={onCancel}>
@@ -101,7 +110,7 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
                         </Form.Item>
 
                         <Row gutter={16}>
-                            <Col span={12}>
+                            <Col xs={24} md={12}>
                                 <Form.Item
                                     label={t('recruitment.batch_name')}
                                     name="batch"
@@ -110,7 +119,7 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
                                     <Input placeholder={t('recruitment.batch_name')} />
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col xs={24} md={12}>
                                 <Form.Item
                                     label={t('common.department')}
                                     name="department"
@@ -144,7 +153,7 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
                                     {fields.map(({ key, name, ...restField }) => (
                                         <div key={key} style={{ marginBottom: '16px', padding: '16px', background: '#fafafa', borderRadius: '8px', position: 'relative' }}>
                                             <Row gutter={16}>
-                                                <Col span={12}>
+                                                <Col xs={24} md={12}>
                                                     <Form.Item
                                                         {...restField}
                                                         name={[name, 'title']}
@@ -154,7 +163,7 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
                                                         <Input placeholder="VD: Frontend Developer Intern" />
                                                     </Form.Item>
                                                 </Col>
-                                                <Col span={6}>
+                                                <Col xs={24} md={12}>
                                                     <Form.Item
                                                         {...restField}
                                                         name={[name, 'count']}
@@ -164,7 +173,7 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
                                                         <InputNumber min={1} style={{ width: '100%' }} placeholder="5" />
                                                     </Form.Item>
                                                 </Col>
-                                                <Col span={6}>
+                                                <Col xs={24} md={12}>
                                                     <Form.Item
                                                         {...restField}
                                                         name={[name, 'level']}
@@ -219,7 +228,7 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
                         <Divider orientation="left">{t('recruitment.timeline_status')}</Divider>
 
                         <Row gutter={16}>
-                            <Col span={12}>
+                            <Col xs={24} md={12}>
                                 <Form.Item
                                     label={t('recruitment.campaign_period')}
                                     name="period"
@@ -228,7 +237,7 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
                                     <RangePicker style={{ width: '100%' }} />
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col xs={24} md={12}>
                                 <Form.Item
                                     label={t('common.status')}
                                     name="status"
