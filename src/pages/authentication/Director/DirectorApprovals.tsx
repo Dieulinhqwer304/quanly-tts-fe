@@ -31,16 +31,19 @@ import {
     Spin,
     Empty
 } from 'antd';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useApprovals, useUpdateApproval } from '../../../hooks/Recruitment/useApprovals';
+import { Approval } from '../../../services/Recruitment/approvals';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
+import { useResponsive } from '../../../hooks/useResponsive';
 
 const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
 
 export const DirectorApprovals = () => {
     const { t } = useTranslation();
+    const { isMobile, isLaptop } = useResponsive();
     const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
     const [directorNote, setDirectorNote] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
@@ -53,7 +56,7 @@ export const DirectorApprovals = () => {
 
     const updateApproval = useUpdateApproval();
 
-    const queue = approvalsRes?.data?.hits || [];
+    const queue = useMemo<Approval[]>(() => approvalsRes?.data?.hits || [], [approvalsRes?.data?.hits]);
     const selectedRequest =
         queue.find((r) => r.id === selectedRequestId) || (queue.length > 0 && !selectedRequestId ? queue[0] : null);
 
@@ -98,13 +101,27 @@ export const DirectorApprovals = () => {
 
     const renderEmpty = () => (
         <div style={{ padding: '100px 0', textAlign: 'center' }}>
-            <Empty description={statusFilter === 'Pending' ? t('director.no_pending_requests') : t('director.no_approved_requests')} />
+            <Empty
+                description={
+                    statusFilter === 'Pending' ? t('director.no_pending_requests') : t('director.no_approved_requests')
+                }
+            />
         </div>
     );
 
     return (
-        <Layout style={{ height: 'calc(100vh - 64px)', background: '#f6f7f8' }}>
-            <Sider width={400} theme='light' style={{ borderRight: '1px solid #e5e7eb', overflowY: 'auto' }}>
+        <Layout
+            style={{ height: 'calc(100vh - 64px)', background: '#f6f7f8', flexDirection: isMobile ? 'column' : 'row' }}
+        >
+            <Sider
+                width={isMobile ? '100%' : 400}
+                theme='light'
+                style={{
+                    borderRight: isMobile ? 'none' : '1px solid #e5e7eb',
+                    borderBottom: isMobile ? '1px solid #e5e7eb' : 'none',
+                    overflowY: 'auto'
+                }}
+            >
                 <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb' }}>
                     <div
                         style={{
@@ -142,7 +159,10 @@ export const DirectorApprovals = () => {
                 </div>
                 {isLoading ? (
                     <div style={{ textAlign: 'center', padding: '50px' }}>
-                        <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} tip={t('director.loading_queue')} />
+                        <Spin
+                            indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}
+                            tip={t('director.loading_queue')}
+                        />
                     </div>
                 ) : (
                     <List
@@ -155,12 +175,12 @@ export const DirectorApprovals = () => {
                                     borderBottom: '1px solid #f0f0f0',
                                     borderLeft:
                                         selectedRequestId === item.id ||
-                                            (!selectedRequestId && queue[0]?.id === item.id)
+                                        (!selectedRequestId && queue[0]?.id === item.id)
                                             ? '4px solid #136dec'
                                             : '4px solid transparent',
                                     background:
                                         selectedRequestId === item.id ||
-                                            (!selectedRequestId && queue[0]?.id === item.id)
+                                        (!selectedRequestId && queue[0]?.id === item.id)
                                             ? 'rgba(19, 109, 236, 0.05)'
                                             : '#fff',
                                     cursor: 'pointer',
@@ -180,8 +200,8 @@ export const DirectorApprovals = () => {
                                             item.status === 'Pending'
                                                 ? 'orange'
                                                 : item.status === 'Approved'
-                                                    ? 'success'
-                                                    : 'error'
+                                                  ? 'success'
+                                                  : 'error'
                                         }
                                     >
                                         {item.status}
@@ -242,12 +262,14 @@ export const DirectorApprovals = () => {
                     <>
                         <div
                             style={{
-                                padding: '24px 32px',
+                                padding: isMobile ? '12px' : isLaptop ? '18px 24px' : '24px 32px',
                                 background: '#fff',
                                 borderBottom: '1px solid #e5e7eb',
                                 display: 'flex',
                                 justifyContent: 'space-between',
-                                alignItems: 'flex-start'
+                                alignItems: 'flex-start',
+                                flexDirection: isMobile ? 'column' : 'row',
+                                gap: isMobile ? '10px' : 0
                             }}
                         >
                             <div>
@@ -281,7 +303,10 @@ export const DirectorApprovals = () => {
                                         {selectedRequest.department || 'General Dept'}
                                     </Tag>
                                     <span>|</span>
-                                    <span>{t('director.submitted_on')} {dayjs(selectedRequest.createdAt).format('MMM DD, YYYY')}</span>
+                                    <span>
+                                        {t('director.submitted_on')}{' '}
+                                        {dayjs(selectedRequest.createdAt).format('MMM DD, YYYY')}
+                                    </span>
                                 </div>
                             </div>
                             <Tag
@@ -289,22 +314,29 @@ export const DirectorApprovals = () => {
                                     selectedRequest.status === 'Pending'
                                         ? 'warning'
                                         : selectedRequest.status === 'Approved'
-                                            ? 'success'
-                                            : 'error'
+                                          ? 'success'
+                                          : 'error'
                                 }
                                 style={{ fontSize: '14px', padding: '4px 12px', borderRadius: '16px' }}
                             >
                                 {selectedRequest.status === 'Pending'
                                     ? t('director.pending_review')
                                     : selectedRequest.status === 'Approved'
-                                        ? t('director.approved_review')
-                                        : t('director.rejected_review')}
+                                      ? t('director.approved_review')
+                                      : t('director.rejected_review')}
                             </Tag>
                         </div>
 
-                        <div style={{ padding: '32px', paddingBottom: '150px', maxWidth: '1000px', margin: '0 auto' }}>
+                        <div
+                            style={{
+                                padding: isMobile ? '12px' : isLaptop ? '18px 24px' : '32px',
+                                paddingBottom: selectedRequest.status === 'Pending' ? '150px' : '24px',
+                                maxWidth: '1000px',
+                                margin: '0 auto'
+                            }}
+                        >
                             <Row gutter={24}>
-                                <Col span={16}>
+                                <Col xs={24} lg={16}>
                                     <Card
                                         bordered={false}
                                         style={{
@@ -322,12 +354,13 @@ export const DirectorApprovals = () => {
                                                 marginBottom: '24px'
                                             }}
                                         >
-                                            <AuditOutlined style={{ color: '#136dec' }} /> {t('director.candidate_summary')}
+                                            <AuditOutlined style={{ color: '#136dec' }} />{' '}
+                                            {t('director.candidate_summary')}
                                         </Title>
                                         <div style={{ display: 'flex', gap: '24px' }}>
                                             <Avatar size={96} shape='square' icon={<UserOutlined />} />
                                             <Row gutter={[32, 16]} style={{ flex: 1 }}>
-                                                <Col span={12}>
+                                                <Col xs={24} md={12}>
                                                     <Text
                                                         type='secondary'
                                                         style={{
@@ -344,7 +377,7 @@ export const DirectorApprovals = () => {
                                                         {selectedRequest.currentRole || selectedRequest.name}
                                                     </div>
                                                 </Col>
-                                                <Col span={12}>
+                                                <Col xs={24} md={12}>
                                                     <Text
                                                         type='secondary'
                                                         style={{
@@ -361,7 +394,7 @@ export const DirectorApprovals = () => {
                                                         {selectedRequest.proposedRole || selectedRequest.department}
                                                     </div>
                                                 </Col>
-                                                <Col span={12}>
+                                                <Col xs={24} md={12}>
                                                     <Text
                                                         type='secondary'
                                                         style={{
@@ -370,13 +403,15 @@ export const DirectorApprovals = () => {
                                                             fontWeight: 600
                                                         }}
                                                     >
-                                                        {selectedRequest.mentor ? t('director.mentor') : t('director.hr_owner')}
+                                                        {selectedRequest.mentor
+                                                            ? t('director.mentor')
+                                                            : t('director.hr_owner')}
                                                     </Text>
                                                     <div style={{ fontWeight: 500 }}>
                                                         {selectedRequest.mentor || selectedRequest.hr || 'N/A'}
                                                     </div>
                                                 </Col>
-                                                <Col span={12}>
+                                                <Col xs={24} md={12}>
                                                     <Text
                                                         type='secondary'
                                                         style={{
@@ -395,7 +430,7 @@ export const DirectorApprovals = () => {
                                         </div>
                                     </Card>
                                 </Col>
-                                <Col span={8}>
+                                <Col xs={24} lg={8}>
                                     <Card
                                         bordered={false}
                                         style={{
@@ -413,7 +448,8 @@ export const DirectorApprovals = () => {
                                                 marginBottom: '24px'
                                             }}
                                         >
-                                            <LineChartOutlined style={{ color: '#136dec' }} /> {t('director.performance')}
+                                            <LineChartOutlined style={{ color: '#136dec' }} />{' '}
+                                            {t('director.performance')}
                                         </Title>
                                         <div
                                             style={{
@@ -514,7 +550,8 @@ export const DirectorApprovals = () => {
                                             marginBottom: '24px'
                                         }}
                                     >
-                                        <FileTextOutlined style={{ color: '#136dec' }} /> Recruitment Positions & Requirements
+                                        <FileTextOutlined style={{ color: '#136dec' }} /> Recruitment Positions &
+                                        Requirements
                                     </Title>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                         {/* Mock positions data - in real app, this would come from selectedRequest.positions */}
@@ -526,16 +563,28 @@ export const DirectorApprovals = () => {
                                                 borderLeft: '3px solid #136dec'
                                             }}
                                         >
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                                                <Text strong style={{ fontSize: '15px' }}>Frontend Developer Intern</Text>
-                                                <Tag color="blue">5 {t('director.positions')}</Tag>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    marginBottom: '12px'
+                                                }}
+                                            >
+                                                <Text strong style={{ fontSize: '15px' }}>
+                                                    Frontend Developer Intern
+                                                </Text>
+                                                <Tag color='blue'>5 {t('director.positions')}</Tag>
                                             </div>
                                             <div style={{ marginBottom: '8px' }}>
-                                                <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>
+                                                <Text
+                                                    type='secondary'
+                                                    style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}
+                                                >
                                                     {t('director.requirements')}:
                                                 </Text>
                                                 <Text style={{ fontSize: '13px' }}>
-                                                    ReactJS, TypeScript, HTML/CSS, 6 months experience, team collaboration skills
+                                                    ReactJS, TypeScript, HTML/CSS, 6 months experience, team
+                                                    collaboration skills
                                                 </Text>
                                             </div>
                                             <Tag>Intern Level</Tag>
@@ -548,23 +597,35 @@ export const DirectorApprovals = () => {
                                                 borderLeft: '3px solid #52c41a'
                                             }}
                                         >
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                                                <Text strong style={{ fontSize: '15px' }}>Backend Developer Intern</Text>
-                                                <Tag color="green">3 {t('director.positions')}</Tag>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    marginBottom: '12px'
+                                                }}
+                                            >
+                                                <Text strong style={{ fontSize: '15px' }}>
+                                                    Backend Developer Intern
+                                                </Text>
+                                                <Tag color='green'>3 {t('director.positions')}</Tag>
                                             </div>
                                             <div style={{ marginBottom: '8px' }}>
-                                                <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>
+                                                <Text
+                                                    type='secondary'
+                                                    style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}
+                                                >
                                                     {t('director.requirements')}:
                                                 </Text>
                                                 <Text style={{ fontSize: '13px' }}>
-                                                    NodeJS, NestJS, MongoDB/PostgreSQL, RESTful API design, basic DevOps knowledge
+                                                    NodeJS, NestJS, MongoDB/PostgreSQL, RESTful API design, basic DevOps
+                                                    knowledge
                                                 </Text>
                                             </div>
                                             <Tag>{t('director.level')}: Intern</Tag>
                                         </div>
                                         <div style={{ padding: '12px', background: '#e6f7ff', borderRadius: '8px' }}>
                                             <Text strong>{t('director.total_positions')}: 8</Text>
-                                            <Text type="secondary" style={{ marginLeft: '16px', fontSize: '12px' }}>
+                                            <Text type='secondary' style={{ marginLeft: '16px', fontSize: '12px' }}>
                                                 {t('director.expected_start')}: June 1, 2025
                                             </Text>
                                         </div>
@@ -573,7 +634,7 @@ export const DirectorApprovals = () => {
                             )}
 
                             <Row gutter={24}>
-                                <Col span={12}>
+                                <Col xs={24} lg={12}>
                                     <Card
                                         bordered={false}
                                         style={{ borderRadius: '12px', border: '1px solid #e5e7eb', height: '100%' }}
@@ -587,7 +648,8 @@ export const DirectorApprovals = () => {
                                                 marginBottom: '24px'
                                             }}
                                         >
-                                            <DollarOutlined style={{ color: '#136dec' }} /> {t('director.financial_impact')}
+                                            <DollarOutlined style={{ color: '#136dec' }} />{' '}
+                                            {t('director.financial_impact')}
                                         </Title>
                                         <div
                                             style={{
@@ -639,7 +701,7 @@ export const DirectorApprovals = () => {
                                                         {Math.round(
                                                             ((selectedRequest.salary - selectedRequest.budget) /
                                                                 selectedRequest.budget) *
-                                                            100
+                                                                100
                                                         )}
                                                         %)
                                                     </div>
@@ -647,7 +709,7 @@ export const DirectorApprovals = () => {
                                         </div>
                                     </Card>
                                 </Col>
-                                <Col span={12}>
+                                <Col xs={24} lg={12}>
                                     <Card
                                         bordered={false}
                                         style={{ borderRadius: '12px', border: '1px solid #e5e7eb', height: '100%' }}
@@ -661,7 +723,8 @@ export const DirectorApprovals = () => {
                                                 marginBottom: '24px'
                                             }}
                                         >
-                                            <MessageOutlined style={{ color: '#136dec' }} /> {t('director.stakeholder_justification')}
+                                            <MessageOutlined style={{ color: '#136dec' }} />{' '}
+                                            {t('director.stakeholder_justification')}
                                         </Title>
                                         <div
                                             style={{ position: 'relative', paddingLeft: '16px', marginBottom: '16px' }}
@@ -707,7 +770,7 @@ export const DirectorApprovals = () => {
                                     width: '100%',
                                     background: '#fff',
                                     borderTop: '1px solid #e5e7eb',
-                                    padding: '24px 32px',
+                                    padding: isMobile ? '12px' : isLaptop ? '18px 24px' : '24px 32px',
                                     boxShadow: '0 -4px 6px -1px rgba(0, 0, 0, 0.05)',
                                     zIndex: 10
                                 }}
@@ -727,7 +790,9 @@ export const DirectorApprovals = () => {
                                         style={{
                                             display: 'flex',
                                             justifyContent: 'space-between',
-                                            alignItems: 'center'
+                                            alignItems: isMobile ? 'flex-start' : 'center',
+                                            flexDirection: isMobile ? 'column' : 'row',
+                                            gap: isMobile ? '10px' : 0
                                         }}
                                     >
                                         <div
@@ -741,7 +806,7 @@ export const DirectorApprovals = () => {
                                         >
                                             <InfoCircleOutlined /> {t('director.only_visible')}
                                         </div>
-                                        <Space>
+                                        <Space wrap>
                                             <Button
                                                 danger
                                                 icon={<CloseCircleOutlined />}

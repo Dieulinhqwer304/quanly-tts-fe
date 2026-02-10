@@ -12,9 +12,10 @@ import {
     LoadingOutlined
 } from '@ant-design/icons';
 import { Button, Card, Col, Input, Layout, Row, Space, Tag, Typography, Spin } from 'antd';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLearningPath, useUpdateLearningPath } from '../../../hooks/Internship/useLearningPath';
+import { useResponsive } from '../../../hooks/useResponsive';
 
 const { Content, Sider } = Layout;
 const { Title, Text } = Typography;
@@ -22,6 +23,7 @@ const { TextArea } = Input;
 
 export const MentorLearningPath = () => {
     const { t } = useTranslation();
+    const { isMobile, isLaptop } = useResponsive();
     const track = 'Frontend Development';
     const { data: learningPathData, isLoading } = useLearningPath(track);
     const updateMutation = useUpdateLearningPath();
@@ -29,7 +31,7 @@ export const MentorLearningPath = () => {
     const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
 
     const learningPath = learningPathData?.data;
-    const modules = learningPath?.modules || [];
+    const modules = useMemo(() => learningPath?.modules || [], [learningPath?.modules]);
     const selectedModule = modules.find((m) => m.id === (selectedModuleId || modules[0]?.id));
 
     useEffect(() => {
@@ -59,9 +61,19 @@ export const MentorLearningPath = () => {
     }
 
     return (
-        <Layout style={{ height: 'calc(100vh - 64px)', background: '#f6f7f8' }}>
-            <Sider width={320} theme='light' style={{ borderRight: '1px solid #e5e7eb', overflowY: 'auto' }}>
-                <div style={{ padding: '24px', borderBottom: '1px solid #e5e7eb' }}>
+        <Layout
+            style={{ height: 'calc(100vh - 64px)', background: '#f6f7f8', flexDirection: isMobile ? 'column' : 'row' }}
+        >
+            <Sider
+                width={isMobile ? '100%' : 320}
+                theme='light'
+                style={{
+                    borderRight: isMobile ? 'none' : '1px solid #e5e7eb',
+                    borderBottom: isMobile ? '1px solid #e5e7eb' : 'none',
+                    overflowY: 'auto'
+                }}
+            >
+                <div style={{ padding: isMobile ? '12px' : '24px', borderBottom: '1px solid #e5e7eb' }}>
                     <div style={{ marginBottom: '16px' }}>
                         <Text strong style={{ fontSize: '12px', textTransform: 'uppercase', color: '#6b7280' }}>
                             {t('learning_path.path_title')}
@@ -88,7 +100,7 @@ export const MentorLearningPath = () => {
                     </div>
                 </div>
 
-                <div style={{ padding: '16px', background: '#f9fafb', minHeight: '100%' }}>
+                <div style={{ padding: isMobile ? '12px' : '16px', background: '#f9fafb', minHeight: '100%' }}>
                     <Space direction='vertical' style={{ width: '100%' }}>
                         {modules.map((module) => (
                             <Card
@@ -198,12 +210,14 @@ export const MentorLearningPath = () => {
             <Content style={{ display: 'flex', flexDirection: 'column', background: '#fff' }}>
                 <div
                     style={{
-                        padding: '0 32px',
-                        height: '64px',
+                        padding: isMobile ? '12px' : '0 32px',
+                        minHeight: '64px',
                         borderBottom: '1px solid #e5e7eb',
                         display: 'flex',
                         justifyContent: 'space-between',
-                        alignItems: 'center'
+                        alignItems: isMobile ? 'flex-start' : 'center',
+                        flexDirection: isMobile ? 'column' : 'row',
+                        gap: isMobile ? '10px' : 0
                     }}
                 >
                     <div>
@@ -220,7 +234,7 @@ export const MentorLearningPath = () => {
                             {t('learning_path.desc')}
                         </Text>
                     </div>
-                    <Space>
+                    <Space wrap>
                         <Button icon={<SettingOutlined />}>{t('menu.settings')}</Button>
                         <Button danger icon={<DeleteOutlined />}>
                             {t('learning_path.delete_module')}
@@ -228,7 +242,15 @@ export const MentorLearningPath = () => {
                     </Space>
                 </div>
 
-                <div style={{ padding: '32px', maxWidth: '800px', margin: '0 auto', width: '100%', overflowY: 'auto' }}>
+                <div
+                    style={{
+                        padding: isMobile ? '12px' : isLaptop ? '18px' : '32px',
+                        maxWidth: '800px',
+                        margin: '0 auto',
+                        width: '100%',
+                        overflowY: 'auto'
+                    }}
+                >
                     <div style={{ marginBottom: '32px' }}>
                         <Text
                             type='secondary'
@@ -288,7 +310,8 @@ export const MentorLearningPath = () => {
                                                         background: '#000',
                                                         borderRadius: '8px',
                                                         height: '160px',
-                                                        width: '280px',
+                                                        width: '100%',
+                                                        maxWidth: '280px',
                                                         position: 'relative',
                                                         display: 'flex',
                                                         alignItems: 'center',
@@ -330,7 +353,7 @@ export const MentorLearningPath = () => {
                         <Title level={5} style={{ marginTop: 0 }}>
                             {t('learning_path.add_resource')}
                         </Title>
-                        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+                        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
                             <Button
                                 style={{
                                     flex: 1,
@@ -378,11 +401,11 @@ export const MentorLearningPath = () => {
                             }}
                         >
                             <Row gutter={16} style={{ marginBottom: '16px' }}>
-                                <Col span={12}>
+                                <Col xs={24} md={12}>
                                     <Text strong>{t('learning_path.resource_title')}</Text>
                                     <Input placeholder='e.g. Introduction Video' style={{ marginTop: '8px' }} />
                                 </Col>
-                                <Col span={12}>
+                                <Col xs={24} md={12}>
                                     <Text strong>{t('learning_path.video_url')}</Text>
                                     <Input placeholder='https://youtube.com/...' style={{ marginTop: '8px' }} />
                                 </Col>

@@ -1,4 +1,4 @@
-import { Layout, Menu, Avatar, Typography, theme, Button } from 'antd';
+import { Layout, Menu, Avatar, Typography, theme, Button, Drawer } from 'antd';
 import {
     DashboardOutlined,
     UserOutlined,
@@ -22,6 +22,10 @@ const { Text } = Typography;
 
 interface NavbarDashboardProps {
     collapsed: boolean;
+    isMobile: boolean;
+    isLaptop: boolean;
+    mobileOpen: boolean;
+    onMobileClose: () => void;
 }
 
 interface MenuItem {
@@ -39,7 +43,7 @@ interface SubMenuItem {
     onClick: () => void;
 }
 
-export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
+export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onMobileClose }: NavbarDashboardProps) => {
     const navigate = useNavigate();
     const location = useLocation();
     const { logout } = useAuth();
@@ -79,7 +83,11 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
                     label: t('menu.onboarding'),
                     onClick: () => navigate(RouteConfig.OnboardingList.path)
                 },
-                { key: 'rec-interns', label: t('menu.intern_list'), onClick: () => navigate(RouteConfig.InternList.path) }
+                {
+                    key: 'rec-interns',
+                    label: t('menu.intern_list'),
+                    onClick: () => navigate(RouteConfig.InternList.path)
+                }
             ]
         },
         {
@@ -124,9 +132,21 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
             icon: <BookOutlined />,
             label: t('menu.intern_portal'),
             children: [
-                { key: 'intern-dash', label: t('menu.intern_dashboard'), onClick: () => navigate(RouteConfig.InternDashboard.path) },
-                { key: 'intern-test', label: t('menu.knowledge_test'), onClick: () => navigate(RouteConfig.InternTest.path) },
-                { key: 'intern-tasks', label: t('menu.task_board'), onClick: () => navigate(RouteConfig.InternTaskBoard.path) }
+                {
+                    key: 'intern-dash',
+                    label: t('menu.intern_dashboard'),
+                    onClick: () => navigate(RouteConfig.InternDashboard.path)
+                },
+                {
+                    key: 'intern-test',
+                    label: t('menu.knowledge_test'),
+                    onClick: () => navigate(RouteConfig.InternTest.path)
+                },
+                {
+                    key: 'intern-tasks',
+                    label: t('menu.task_board'),
+                    onClick: () => navigate(RouteConfig.InternTaskBoard.path)
+                }
             ]
         },
         {
@@ -146,7 +166,11 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
             icon: <RocketOutlined />,
             label: t('menu.public_pages'),
             children: [
-                { key: 'pub-jobs', label: t('menu.job_board'), onClick: () => navigate(RouteConfig.PublicJobBoard.path) }
+                {
+                    key: 'pub-jobs',
+                    label: t('menu.job_board'),
+                    onClick: () => navigate(RouteConfig.PublicJobBoard.path)
+                }
             ]
         },
         {
@@ -191,24 +215,10 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
         return ['dashboard'];
     };
 
-    return (
-        <Sider
-            trigger={null}
-            collapsible
-            collapsed={collapsed}
-            style={{
-                background: '#fff',
-                borderRight: '1px solid rgba(5, 5, 5, 0.06)',
-                height: '100vh',
-                position: 'fixed',
-                left: 0,
-                top: 0,
-                bottom: 0,
-                zIndex: 1001
-            }}
-            width={260}
-            theme='light'
-        >
+    const siderWidth = isLaptop ? 240 : 260;
+
+    const sideContent = (
+        <>
             <div
                 style={{
                     height: '64px',
@@ -251,7 +261,7 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
                     items={menuItems}
                     style={{
                         borderRight: 0,
-                        fontSize: '15px',
+                        fontSize: isLaptop ? '14px' : '15px',
                         fontWeight: 500
                     }}
                 />
@@ -293,6 +303,44 @@ export const NavbarDashboard = ({ collapsed }: NavbarDashboardProps) => {
                     <Button type='text' icon={<LogoutOutlined />} onClick={logout} style={{ color: '#6b7280' }} />
                 )}
             </div>
+        </>
+    );
+
+    if (isMobile) {
+        return (
+            <Drawer
+                open={mobileOpen}
+                onClose={onMobileClose}
+                width={280}
+                placement='left'
+                title={null}
+                styles={{ body: { padding: 0 } }}
+                closable={false}
+            >
+                {sideContent}
+            </Drawer>
+        );
+    }
+
+    return (
+        <Sider
+            trigger={null}
+            collapsible
+            collapsed={collapsed}
+            style={{
+                background: '#fff',
+                borderRight: '1px solid rgba(5, 5, 5, 0.06)',
+                height: '100vh',
+                position: 'fixed',
+                left: 0,
+                top: 0,
+                bottom: 0,
+                zIndex: 1001
+            }}
+            width={siderWidth}
+            theme='light'
+        >
+            {sideContent}
         </Sider>
     );
 };
