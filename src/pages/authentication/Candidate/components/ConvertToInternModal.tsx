@@ -1,6 +1,7 @@
 import { Modal, Form, Select, DatePicker, message } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useCreateOnboarding } from '../../../../hooks/Recruitment/useOnboarding';
+import { useResponsive } from '../../../../hooks/useResponsive';
 
 const { RangePicker } = DatePicker;
 
@@ -20,6 +21,7 @@ export const ConvertToInternModal = ({
     candidateAvatar
 }: ConvertToInternModalProps) => {
     const { t } = useTranslation();
+    const { isMobile, isLaptop } = useResponsive();
     const [form] = Form.useForm();
     const createOnboarding = useCreateOnboarding();
 
@@ -63,7 +65,7 @@ export const ConvertToInternModal = ({
             okText={t('onboarding.create_intern_profile')}
             cancelText={t('common.cancel')}
             confirmLoading={createOnboarding.isPending}
-            width={600}
+            width={isMobile ? 'calc(100vw - 24px)' : isLaptop ? 540 : 600}
         >
             <div style={{ marginBottom: '16px' }}>
                 <strong>{t('candidate.name')}:</strong> {candidateName}

@@ -14,17 +14,30 @@ import {
 } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { UserOutlined, MailOutlined, PhoneOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import { useResponsive } from '../../../../hooks/useResponsive';
 
 const { Title, Text } = Typography;
+
+interface MentorProfile {
+    avatar?: string;
+    name: string;
+    track: string;
+    status: string;
+    moduleProgress: string;
+    progressPercent: number;
+    phaseColor: string;
+    currentPhase: string;
+}
 
 interface MentorProfileModalProps {
     open: boolean;
     onCancel: () => void;
-    intern: any;
+    intern: MentorProfile | null;
 }
 
 export const MentorProfileModal = ({ open, onCancel, intern }: MentorProfileModalProps) => {
     const { t } = useTranslation();
+    const { isMobile, isLaptop } = useResponsive();
 
     if (!intern) return null;
 
@@ -38,7 +51,7 @@ export const MentorProfileModal = ({ open, onCancel, intern }: MentorProfileModa
                     {t('common.close')}
                 </Button>
             ]}
-            width={700}
+            width={isMobile ? 'calc(100vw - 24px)' : isLaptop ? 620 : 700}
             destroyOnClose
         >
             <div style={{ textAlign: 'center', marginBottom: '24px' }}>

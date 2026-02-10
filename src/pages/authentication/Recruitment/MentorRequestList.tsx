@@ -31,19 +31,33 @@ import type { ColumnsType } from 'antd/es/table';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import TextArea from 'antd/es/input/TextArea';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import {
     useMentorRequests,
     useCreateMentorRequest,
     useUpdateMentorRequest,
     useDeleteMentorRequest
 } from '../../../hooks/Recruitment/useMentorRequests';
-import { MentorRequest } from '../../../services/Recruitment/mentorRequests';
+import { CreateMentorRequestParams, MentorRequest } from '../../../services/Recruitment/mentorRequests';
+import { useResponsive } from '../../../hooks/useResponsive';
 
 const { Title, Text } = Typography;
 
+interface MentorRequestFormValues {
+    type: 'Recruitment' | 'Training' | 'Equipment';
+    priority: 'High' | 'Medium' | 'Low';
+    name: string;
+    title: string;
+    department: string;
+    quantity?: number;
+    positions?: string | string[];
+    requiredSkills?: string | string[];
+    expectedStartDate?: Dayjs;
+}
+
 export const MentorRequestList = () => {
     const { t } = useTranslation();
+    const { isMobile, isLaptop } = useResponsive();
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -62,7 +76,7 @@ export const MentorRequestList = () => {
     const updateMutation = useUpdateMentorRequest();
     const deleteMutation = useDeleteMentorRequest();
 
-    const requests = requestsData?.data?.hits || [];
+    const requests: MentorRequest[] = requestsData?.data?.hits || [];
 
     const handleOpenCreate = () => {
         setEditingId(null);
@@ -81,9 +95,9 @@ export const MentorRequestList = () => {
         setIsModalOpen(true);
     };
 
-    const handleSubmit = async (values: any) => {
+    const handleSubmit = async (values: MentorRequestFormValues) => {
         try {
-            const formData = {
+            const formData: CreateMentorRequestParams = {
                 ...values,
                 positions:
                     typeof values.positions === 'string'
@@ -319,7 +333,7 @@ export const MentorRequestList = () => {
     const processingCount = requests.filter((r) => r.status === 'In Progress').length;
 
     return (
-        <div style={{ padding: '24px' }}>
+        <div style={{ padding: isMobile ? '12px' : isLaptop ? '18px' : '24px' }}>
             <div style={{ marginBottom: '16px' }}>
                 <Breadcrumb
                     items={[
@@ -333,7 +347,9 @@ export const MentorRequestList = () => {
                 style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'flex-start',
+                    alignItems: isMobile ? 'flex-start' : 'flex-start',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    gap: isMobile ? '10px' : 0,
                     marginBottom: '24px'
                 }}
             >
@@ -349,7 +365,7 @@ export const MentorRequestList = () => {
             </div>
 
             <Row gutter={16} style={{ marginBottom: '24px' }}>
-                <Col span={6}>
+                <Col xs={24} sm={12} lg={6}>
                     <Card bordered={false}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <div
@@ -376,7 +392,7 @@ export const MentorRequestList = () => {
                         </div>
                     </Card>
                 </Col>
-                <Col span={6}>
+                <Col xs={24} sm={12} lg={6}>
                     <Card bordered={false}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <div
@@ -403,7 +419,7 @@ export const MentorRequestList = () => {
                         </div>
                     </Card>
                 </Col>
-                <Col span={6}>
+                <Col xs={24} sm={12} lg={6}>
                     <Card bordered={false}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <div
@@ -430,7 +446,7 @@ export const MentorRequestList = () => {
                         </div>
                     </Card>
                 </Col>
-                <Col span={6}>
+                <Col xs={24} sm={12} lg={6}>
                     <Card bordered={false}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <div
@@ -460,17 +476,25 @@ export const MentorRequestList = () => {
             </Row>
 
             <Card bordered={false}>
-                <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
-                    <Space>
+                <div
+                    style={{
+                        marginBottom: '16px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        flexDirection: isMobile ? 'column' : 'row',
+                        gap: isMobile ? '10px' : 0
+                    }}
+                >
+                    <Space wrap>
                         <Input
                             placeholder={t('mentor_request.search_placeholder')}
                             prefix={<SearchOutlined />}
-                            style={{ width: 250 }}
+                            style={{ width: isMobile ? '100%' : 250 }}
                             onChange={(e) => setSearchText(e.target.value)}
                         />
                         <Select
                             defaultValue='all'
-                            style={{ width: 150 }}
+                            style={{ width: isMobile ? '100%' : 150 }}
                             onChange={setStatusFilter}
                             options={[
                                 { value: 'all', label: 'All Status' },
@@ -490,6 +514,7 @@ export const MentorRequestList = () => {
                     rowKey='id'
                     loading={isLoading}
                     pagination={{ pageSize: 10 }}
+                    scroll={{ x: 1200 }}
                 />
             </Card>
 
@@ -499,7 +524,7 @@ export const MentorRequestList = () => {
                 onCancel={() => setIsModalOpen(false)}
                 onOk={() => form.submit()}
                 confirmLoading={createMutation.isPending || updateMutation.isPending}
-                width={700}
+                width={isMobile ? 'calc(100vw - 24px)' : isLaptop ? 620 : 700}
                 destroyOnClose
             >
                 <Form
@@ -509,7 +534,7 @@ export const MentorRequestList = () => {
                     initialValues={{ type: 'Recruitment', priority: 'Medium' }}
                 >
                     <Row gutter={16}>
-                        <Col span={12}>
+                        <Col xs={24} md={12}>
                             <Form.Item label={t('mentor_request.form.type')} name='type'>
                                 <Select>
                                     <Select.Option value='Recruitment'>Recruitment</Select.Option>
@@ -518,7 +543,7 @@ export const MentorRequestList = () => {
                                 </Select>
                             </Form.Item>
                         </Col>
-                        <Col span={12}>
+                        <Col xs={24} md={12}>
                             <Form.Item
                                 label={t('mentor_request.form.priority')}
                                 name='priority'
@@ -547,7 +572,7 @@ export const MentorRequestList = () => {
                         <Input placeholder='VD: Đề xuất tuyển thêm 5 thực tập sinh Backend' />
                     </Form.Item>
                     <Row gutter={16}>
-                        <Col span={12}>
+                        <Col xs={24} md={12}>
                             <Form.Item
                                 label={t('mentor_request.form.department')}
                                 name='department'
@@ -562,7 +587,7 @@ export const MentorRequestList = () => {
                                 </Select>
                             </Form.Item>
                         </Col>
-                        <Col span={12}>
+                        <Col xs={24} md={12}>
                             <Form.Item label={t('mentor_request.form.quantity')} name='quantity'>
                                 <InputNumber style={{ width: '100%' }} min={1} />
                             </Form.Item>

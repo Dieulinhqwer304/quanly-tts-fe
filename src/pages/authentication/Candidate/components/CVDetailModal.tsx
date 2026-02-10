@@ -22,6 +22,7 @@ import {
 } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useResponsive } from '../../../../hooks/useResponsive';
 import { useCandidate, useShortlistCandidate, useRejectCandidate } from '../../../../hooks/Recruitment/useCandidates';
 
 import { Candidate } from '../../../../services/Recruitment/candidates';
@@ -36,6 +37,7 @@ interface CVDetailModalProps {
 
 export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: CVDetailModalProps) => {
     const { t } = useTranslation();
+    const { isMobile, isLaptop } = useResponsive();
     const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
     const [rejectReason, setRejectReason] = useState('');
 
@@ -73,7 +75,7 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: C
             title={t('candidate.candidate_info')}
             open={open}
             onCancel={onCancel}
-            width={1000}
+            width={isMobile ? 'calc(100vw - 24px)' : isLaptop ? 860 : 1000}
             footer={[
                 <Button key="close" onClick={onCancel}>
                     {t('common.close')}
@@ -95,7 +97,7 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: C
                 <div style={{ padding: '10px' }}>
                     <Card size="small" style={{ marginBottom: '20px', borderRadius: '8px' }}>
                         <Row gutter={24} align="middle">
-                            <Col span={16}>
+                            <Col xs={24} lg={16}>
                                 <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                                     <Avatar size={64} src={candidate.avatar} icon={<UserOutlined />} />
                                     <div>
@@ -104,7 +106,7 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: C
                                     </div>
                                 </div>
                             </Col>
-                            <Col span={8} style={{ textAlign: 'right' }}>
+                            <Col xs={24} lg={8} style={{ textAlign: isMobile ? 'left' : 'right' }}>
                                 <Tag
                                     color={
                                         candidate.status === 'Shortlisted'
@@ -159,7 +161,7 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: C
                                 <Text strong style={{ display: 'block' }}>
                                     {candidate.name.replace(' ', '_')}_Resume.pdf
                                 </Text>
-                                <Space style={{ marginTop: '12px' }}>
+                                <Space wrap style={{ marginTop: '12px' }}>
                                     <Button icon={<DownloadOutlined />}>{t('candidate.download_cv')}</Button>
                                     <Button type="primary">{t('candidate.click_to_preview')}</Button>
                                 </Space>
@@ -170,7 +172,7 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: C
                     <Divider />
 
                     <div style={{ textAlign: 'right' }}>
-                        <Space>
+                        <Space wrap>
                             {candidate.status !== 'Rejected' && (
                                 <>
                                     <Button
@@ -205,6 +207,7 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: C
                 okText={t('candidate.reject_candidate_btn')}
                 okButtonProps={{ danger: true, loading: rejectMutation.isPending }}
                 zIndex={1100}
+                width={isMobile ? 'calc(100vw - 24px)' : 520}
             >
                 <p>{t('candidate.reject_confirm_msg')}</p>
                 <Input.TextArea

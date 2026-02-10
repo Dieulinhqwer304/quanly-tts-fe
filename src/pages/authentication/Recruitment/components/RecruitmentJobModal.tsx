@@ -12,6 +12,7 @@ import {
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { JobPosition } from '../../../../services/Recruitment/jobPositions';
+import { useResponsive } from '../../../../hooks/useResponsive';
 
 interface RecruitmentJobModalProps {
     open: boolean;
@@ -23,6 +24,7 @@ interface RecruitmentJobModalProps {
 
 export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, viewOnly }: RecruitmentJobModalProps) => {
     const { t } = useTranslation();
+    const { isMobile, isLaptop } = useResponsive();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
 
@@ -36,7 +38,7 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, 
         }
     }, [open, initialValues, form]);
 
-    const onFinish = (values: any) => {
+    const onFinish = (values: Partial<JobPosition>) => {
         setLoading(true);
         console.log('Form values:', values);
 
@@ -59,7 +61,7 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, 
             onCancel={onCancel}
             onOk={() => form.submit()}
             confirmLoading={loading}
-            width={700}
+            width={isMobile ? 'calc(100vw - 24px)' : isLaptop ? 620 : 700}
             destroyOnClose
             footer={viewOnly ? [
                 <Button key="close" onClick={onCancel}>
@@ -87,7 +89,7 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, 
                 </Form.Item>
 
                 <Row gutter={16}>
-                    <Col span={12}>
+                    <Col xs={24} md={12}>
                         <Form.Item
                             label={t('recruitment.campaigns')}
                             name="campaign"
@@ -101,7 +103,7 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, 
                             />
                         </Form.Item>
                     </Col>
-                    <Col span={12}>
+                    <Col xs={24} md={12}>
                         <Form.Item
                             label={t('common.department')}
                             name="department"
@@ -120,7 +122,7 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, 
                 </Row>
 
                 <Row gutter={16}>
-                    <Col span={12}>
+                    <Col xs={24} md={12}>
                         <Form.Item
                             label={t('recruitment.level')}
                             name="level"
@@ -136,7 +138,7 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, 
                             />
                         </Form.Item>
                     </Col>
-                    <Col span={12}>
+                    <Col xs={24} md={12}>
                         <Form.Item
                             label={t('recruitment.quantity')}
                             name="required"
