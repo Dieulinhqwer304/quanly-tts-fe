@@ -13,11 +13,18 @@ export interface OnboardingStep {
 
 export interface Onboarding {
     id: string;
+    candidateId: string;
+    internId?: string;
     name: string;
     avatar: string;
+    email?: string;
+    phone?: string;
     track: string;
+    mentor?: string;
+    department?: string;
     currentStep: number;
     startDate: string;
+    endDate?: string;
     status: 'In Progress' | 'Completed' | 'Delayed';
     steps: OnboardingStep[];
     createdAt: string;
@@ -31,7 +38,7 @@ export interface GetOnboardingParams {
 }
 
 export const getOnboardingList = async (params?: GetOnboardingParams): Promise<ResponseListSuccess<Onboarding>> => {
-    const queryParams: any = {
+    const queryParams: Record<string, string | number | undefined> = {
         q: params?.searcher?.keyword,
         _page: params?.pagination?.page || 1,
         _limit: params?.pagination?.pageSize || 10
@@ -69,6 +76,8 @@ export interface CreateOnboardingParams {
     candidateId: string;
     name: string;
     avatar?: string;
+    email?: string;
+    phone?: string;
     track: string;
     mentor?: string;
     department?: string;
@@ -77,8 +86,48 @@ export interface CreateOnboardingParams {
 }
 
 export const createOnboarding = async (params: CreateOnboardingParams): Promise<ResponseDetailSuccess<Onboarding>> => {
+    const now = new Date().toISOString();
+
+    const learningPathResponse = await http.get('/learningPaths', {
+        params: { track: params.track }
+    });
+    const learningPath = learningPathResponse.data?.[0] as { id?: string; modules?: Array<{ id: number }> } | undefined;
+
+    const internResponse = await http.post('/interns', {
+        name: params.name,
+        avatar: params.avatar || '',
+        email: params.email || `${params.candidateId}@intern.local`,
+        phone: params.phone || '',
+        track: params.track,
+        mentor: params.mentor || 'TBD',
+        startDate: params.startDate,
+        endDate: params.endDate || params.startDate,
+        progress: 0,
+        status: 'Active',
+        createdAt: now,
+        updatedAt: now
+    });
+
+    const intern = internResponse.data as { id: string };
+
+    const moduleIds = (learningPath?.modules || []).map((module) => module.id);
+    const currentModuleId = moduleIds[0] ?? null;
+
+    if (learningPath?.id) {
+        await http.post('/studentProgress', {
+            internId: intern.id,
+            learningPathId: learningPath.id,
+            modulesCompleted: [],
+            currentModuleId,
+            quizScores: {},
+            createdAt: now,
+            updatedAt: now
+        });
+    }
+
     const response = await http.post('/onboarding', {
         ...params,
+        internId: intern.id,
         currentStep: 0,
         status: 'In Progress',
         steps: [
@@ -87,8 +136,8 @@ export const createOnboarding = async (params: CreateOnboardingParams): Promise<
             { title: 'Orientation', status: 'wait' },
             { title: 'First Assignment', status: 'wait' }
         ],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdAt: now,
+        updatedAt: now
     });
     return {
         code: 201,

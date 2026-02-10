@@ -531,6 +531,18 @@
             "modules": []
         }
     ],
+    "studentProgress": [
+        {
+            "id": "SP-001",
+            "internId": "ITS-001",
+            "learningPathId": "LP-001",
+            "modulesCompleted": [],
+            "currentModuleId": 1,
+            "quizScores": {},
+            "createdAt": "2025-01-15T08:00:00",
+            "updatedAt": "2025-01-15T08:00:00"
+        }
+    ],
     "dashboardStats": {
         "totalUsers": 50,
         "activeUsers": 35,

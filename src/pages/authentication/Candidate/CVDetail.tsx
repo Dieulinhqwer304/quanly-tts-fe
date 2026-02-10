@@ -419,6 +419,8 @@ export const CVDetail = () => {
                     candidateId={candidate.id}
                     candidateName={candidate.name}
                     candidateAvatar={candidate.avatar}
+                    candidateEmail={candidate.email}
+                    candidatePhone={candidate.phone}
                 />
             </Content>
         </Layout>

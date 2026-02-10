@@ -10,7 +10,7 @@ export const useOnboardingList = (params?: GetOnboardingParams) => {
         initialData: {
             code: 200,
             data: {
-                hits: MOCK_DATA.onboarding as any,
+                hits: MOCK_DATA.onboarding as onboardingService.Onboarding[],
                 pagination: {
                     totalPages: 1,
                     totalRows: MOCK_DATA.onboarding.length
@@ -35,6 +35,8 @@ export const useCreateOnboarding = () => {
             onboardingService.createOnboarding(params),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['onboardingList'] });
+            queryClient.invalidateQueries({ queryKey: ['interns'] });
+            queryClient.invalidateQueries({ queryKey: ['studentProgress'] });
         }
     });
 };
