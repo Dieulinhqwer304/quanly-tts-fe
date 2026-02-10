@@ -11,6 +11,8 @@ interface ConvertToInternModalProps {
     candidateId: string;
     candidateName: string;
     candidateAvatar?: string;
+    candidateEmail?: string;
+    candidatePhone?: string;
 }
 
 export const ConvertToInternModal = ({
@@ -18,7 +20,9 @@ export const ConvertToInternModal = ({
     onCancel,
     candidateId,
     candidateName,
-    candidateAvatar
+    candidateAvatar,
+    candidateEmail,
+    candidatePhone
 }: ConvertToInternModalProps) => {
     const { t } = useTranslation();
     const { isMobile, isLaptop } = useResponsive();
@@ -34,6 +38,8 @@ export const ConvertToInternModal = ({
                 candidateId,
                 name: candidateName,
                 avatar: candidateAvatar || '',
+                email: candidateEmail || '',
+                phone: candidatePhone || '',
                 track: values.track,
                 mentor: values.mentor,
                 department: values.department,
