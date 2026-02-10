@@ -4,47 +4,38 @@ import {
     ClockCircleOutlined,
     FilePdfOutlined,
     LockOutlined,
-    MenuUnfoldOutlined,
     PlayCircleOutlined,
-    QuestionCircleOutlined,
-    StarFilled
+    QuestionCircleOutlined
 } from '@ant-design/icons';
-import {
-    Button,
-    Card,
-    Col,
-    Collapse,
-    Layout,
-    List,
-    Modal,
-    Progress,
-    Radio,
-    Result,
-    Row,
-    Space,
-    Tag,
-    Typography,
-    message
-} from 'antd';
+import { Button, Card, Collapse, Layout, List, Modal, Progress, Radio, Result, Space, Tag, Typography } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLearningPath } from '../../../hooks/Internship/useLearningPath';
 import { useQuiz } from '../../../hooks/Internship/useQuizzes';
+import { useResponsive } from '../../../hooks/useResponsive';
 
 const { Title, Text, Paragraph } = Typography;
 const { Sider, Content } = Layout;
 const { Panel } = Collapse;
 
+interface LearningItemView {
+    id: string | number;
+    type: string;
+    title: string;
+    meta: string;
+}
+
 export const StudentLearningPath = () => {
     const { t } = useTranslation();
-    const [selectedItem, setSelectedItem] = useState<any>(null);
+    const { isMobile, isLaptop } = useResponsive();
+    const [selectedItem, setSelectedItem] = useState<LearningItemView | null>(null);
     const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
     const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
     const [quizResult, setQuizResult] = useState<number | null>(null);
 
     // Mock data fetching
     const { data: lpData } = useLearningPath('Frontend Development');
-    const { data: quizData } = useQuiz(selectedItem?.type === 'quiz' ? selectedItem.id : '');
+    const { data: quizData } = useQuiz(selectedItem?.type === 'quiz' ? String(selectedItem.id) : '');
 
     const learningPath = lpData?.data;
     const modules = learningPath?.modules || [];
@@ -54,7 +45,7 @@ export const StudentLearningPath = () => {
     const completedItems = 5; // Mock completed count
     const progressPercent = Math.round((completedItems / totalItems) * 100);
 
-    const handleItemClick = (item: any) => {
+    const handleItemClick = (item: LearningItemView) => {
         if (item.type === 'quiz') {
             setSelectedItem(item);
             setIsQuizModalOpen(true);
@@ -79,9 +70,19 @@ export const StudentLearningPath = () => {
     };
 
     return (
-        <Layout style={{ height: 'calc(100vh - 64px)', background: '#f0f2f5' }}>
-            <Sider width={350} theme='light' style={{ borderRight: '1px solid #e8e8e8', overflowY: 'auto' }}>
-                <div style={{ padding: '24px' }}>
+        <Layout
+            style={{ height: 'calc(100vh - 64px)', background: '#f0f2f5', flexDirection: isMobile ? 'column' : 'row' }}
+        >
+            <Sider
+                width={isMobile ? '100%' : 350}
+                theme='light'
+                style={{
+                    borderRight: isMobile ? 'none' : '1px solid #e8e8e8',
+                    borderBottom: isMobile ? '1px solid #e8e8e8' : 'none',
+                    overflowY: 'auto'
+                }}
+            >
+                <div style={{ padding: isMobile ? '12px' : '24px' }}>
                     <Title level={4}>{t('student_learning_path.title')}</Title>
                     <Card
                         size='small'
@@ -98,7 +99,8 @@ export const StudentLearningPath = () => {
                             </div>
                             <Progress percent={progressPercent} showInfo={false} strokeColor='#1890ff' />
                             <Text type='secondary' style={{ fontSize: 12 }}>
-                                {completedItems}/{totalItems} {t('student_learning_path.modules')} {t('student_learning_path.status_completed')}
+                                {completedItems}/{totalItems} {t('student_learning_path.modules')}{' '}
+                                {t('student_learning_path.status_completed')}
                             </Text>
                         </Space>
                     </Card>
@@ -144,15 +146,24 @@ export const StudentLearningPath = () => {
                                                 background: selectedItem?.id === item.id ? '#e6f7ff' : '#fff',
                                                 borderRadius: 6,
                                                 marginBottom: 8,
-                                                border: selectedItem?.id === item.id ? '1px solid #1890ff' : '1px solid #f0f0f0',
+                                                border:
+                                                    selectedItem?.id === item.id
+                                                        ? '1px solid #1890ff'
+                                                        : '1px solid #f0f0f0',
                                                 transition: 'all 0.3s'
                                             }}
                                             onClick={() => handleItemClick(item)}
                                         >
                                             <Space>
-                                                {item.type === 'video' && <PlayCircleOutlined style={{ color: '#ff4d4f' }} />}
-                                                {item.type === 'document' && <FilePdfOutlined style={{ color: '#fa8c16' }} />}
-                                                {item.type === 'quiz' && <QuestionCircleOutlined style={{ color: '#722ed1' }} />}
+                                                {String(item.type) === 'video' && (
+                                                    <PlayCircleOutlined style={{ color: '#ff4d4f' }} />
+                                                )}
+                                                {String(item.type) === 'document' && (
+                                                    <FilePdfOutlined style={{ color: '#fa8c16' }} />
+                                                )}
+                                                {String(item.type) === 'quiz' && (
+                                                    <QuestionCircleOutlined style={{ color: '#722ed1' }} />
+                                                )}
                                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                                                     <Text strong={selectedItem?.id === item.id}>{item.title}</Text>
                                                     <Text type='secondary' style={{ fontSize: 11 }}>
@@ -170,7 +181,7 @@ export const StudentLearningPath = () => {
                 </div>
             </Sider>
 
-            <Content style={{ padding: '24px', overflowY: 'auto' }}>
+            <Content style={{ padding: isMobile ? '12px' : isLaptop ? '18px' : '24px', overflowY: 'auto' }}>
                 {selectedItem ? (
                     <Card
                         style={{ height: '100%', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
@@ -179,11 +190,11 @@ export const StudentLearningPath = () => {
                         <div style={{ marginBottom: 24, borderBottom: '1px solid #f0f0f0', paddingBottom: 16 }}>
                             <Tag
                                 color={
-                                    selectedItem.type === 'video'
+                                    String(selectedItem.type) === 'video'
                                         ? 'red'
-                                        : selectedItem.type === 'quiz'
-                                            ? 'purple'
-                                            : 'orange'
+                                        : String(selectedItem.type) === 'quiz'
+                                          ? 'purple'
+                                          : 'orange'
                                 }
                             >
                                 {selectedItem.type.toUpperCase()}
@@ -193,26 +204,43 @@ export const StudentLearningPath = () => {
                             </Title>
                         </div>
 
-                        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#fafafa', borderRadius: 8 }}>
-                            {selectedItem.type === 'video' ? (
+                        <div
+                            style={{
+                                flex: 1,
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                background: '#fafafa',
+                                borderRadius: 8
+                            }}
+                        >
+                            {String(selectedItem.type) === 'video' ? (
                                 <div style={{ textAlign: 'center' }}>
                                     <PlayCircleOutlined style={{ fontSize: 64, color: '#d9d9d9', marginBottom: 16 }} />
-                                    <Title level={4} style={{ color: '#8c8c8c' }}>{t('student_learning_path.view_content')}</Title>
-                                    <Text type="secondary">Video Player Placeholder</Text>
+                                    <Title level={4} style={{ color: '#8c8c8c' }}>
+                                        {t('student_learning_path.view_content')}
+                                    </Title>
+                                    <Text type='secondary'>Video Player Placeholder</Text>
                                 </div>
-                            ) : selectedItem.type === 'quiz' ? (
+                            ) : String(selectedItem.type) === 'quiz' ? (
                                 <div style={{ textAlign: 'center' }}>
-                                    <QuestionCircleOutlined style={{ fontSize: 64, color: '#d9d9d9', marginBottom: 16 }} />
-                                    <Title level={4} style={{ color: '#8c8c8c' }}>{t('student_learning_path.start_quiz')}</Title>
-                                    <Button type="primary" size="large" onClick={() => setIsQuizModalOpen(true)}>
+                                    <QuestionCircleOutlined
+                                        style={{ fontSize: 64, color: '#d9d9d9', marginBottom: 16 }}
+                                    />
+                                    <Title level={4} style={{ color: '#8c8c8c' }}>
+                                        {t('student_learning_path.start_quiz')}
+                                    </Title>
+                                    <Button type='primary' size='large' onClick={() => setIsQuizModalOpen(true)}>
                                         {t('student_learning_path.start_quiz')}
                                     </Button>
                                 </div>
                             ) : (
                                 <div style={{ textAlign: 'center' }}>
                                     <FilePdfOutlined style={{ fontSize: 64, color: '#d9d9d9', marginBottom: 16 }} />
-                                    <Title level={4} style={{ color: '#8c8c8c' }}>{t('student_learning_path.view_content')}</Title>
-                                    <Text type="secondary">Document Viewer Placeholder</Text>
+                                    <Title level={4} style={{ color: '#8c8c8c' }}>
+                                        {t('student_learning_path.view_content')}
+                                    </Title>
+                                    <Text type='secondary'>Document Viewer Placeholder</Text>
                                 </div>
                             )}
                         </div>
@@ -238,11 +266,15 @@ export const StudentLearningPath = () => {
             </Content>
 
             <Modal
-                title={<Space><QuestionCircleOutlined /> {quizData?.data?.title}</Space>}
+                title={
+                    <Space>
+                        <QuestionCircleOutlined /> {quizData?.data?.title}
+                    </Space>
+                }
                 open={isQuizModalOpen}
                 onCancel={() => setIsQuizModalOpen(false)}
                 footer={null}
-                width={700}
+                width={isMobile ? 'calc(100vw - 24px)' : 700}
                 centered
                 destroyOnClose
             >
@@ -255,7 +287,13 @@ export const StudentLearningPath = () => {
                             <Button type='primary' key='close' onClick={() => setIsQuizModalOpen(false)}>
                                 {t('common.close')}
                             </Button>,
-                            <Button key='retry' onClick={() => { setQuizResult(null); setQuizAnswers({}); }}>
+                            <Button
+                                key='retry'
+                                onClick={() => {
+                                    setQuizResult(null);
+                                    setQuizAnswers({});
+                                }}
+                            >
                                 {t('common.retry')}
                             </Button>
                         ]}

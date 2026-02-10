@@ -35,9 +35,11 @@ const { Text } = Typography;
 interface HeaderDashboardProps {
     collapsed: boolean;
     toggleCollapsed: () => void;
+    isMobile: boolean;
+    isLaptop: boolean;
 }
 
-export const HeaderDashboard = ({ collapsed, toggleCollapsed }: HeaderDashboardProps) => {
+export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop }: HeaderDashboardProps) => {
     const { token } = theme.useToken();
     const navigate = useNavigate();
     const { logout } = useAuth();
@@ -56,7 +58,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed }: HeaderDashboardP
             logout();
             message.success('Đăng xuất thành công!');
             navigate(RouteConfig.LoginPage.path);
-        } catch (error) {
+        } catch {
             message.error('Có lỗi xảy ra khi đăng xuất!');
         } finally {
             setIsLoading(false);
@@ -68,7 +70,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed }: HeaderDashboardP
             key: 'profile',
             label: 'Thông tin cá nhân',
             icon: <UserOutlined />,
-            onClick: () => navigate(RouteConfig.ProfilePage.path)
+            onClick: () => navigate(RouteConfig.SettingPage.path)
         },
         {
             key: 'settings',
@@ -134,7 +136,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed }: HeaderDashboardP
     return (
         <Header
             style={{
-                padding: '0 24px',
+                padding: isMobile ? '0 12px' : '0 24px',
                 background: 'rgba(255, 255, 255, 0.8)',
                 backdropFilter: 'blur(8px)',
                 position: 'sticky',
@@ -147,7 +149,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed }: HeaderDashboardP
                 height: '64px'
             }}
         >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }}>
                 <Button
                     type='text'
                     icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -166,14 +168,14 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed }: HeaderDashboardP
                     style={{
                         backgroundColor: '#f3f4f6',
                         borderRadius: '6px',
-                        width: '240px',
+                        width: isLaptop ? '200px' : '240px',
                         padding: '6px 12px'
                     }}
                     className='hidden md:flex'
                 />
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '16px' }}>
                 <Button type='text' shape='circle' icon={<QuestionCircleOutlined />} style={{ color: '#6b7280' }} />
 
                 <Popover content={notificationContent} trigger='click' placement='bottomRight' arrow={false}>
@@ -182,7 +184,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed }: HeaderDashboardP
                     </Badge>
                 </Popover>
 
-                <div style={{ width: '1px', height: '24px', background: '#e5e7eb' }}></div>
+                {!isMobile && <div style={{ width: '1px', height: '24px', background: '#e5e7eb' }}></div>}
 
                 <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement='bottomRight' arrow>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -195,7 +197,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed }: HeaderDashboardP
                             size='default'
                             icon={<UserOutlined />}
                         />
-                        <span style={{ fontWeight: 500, color: '#374151' }}>Admin</span>
+                        {!isMobile && <span style={{ fontWeight: 500, color: '#374151' }}>Admin</span>}
                     </div>
                 </Dropdown>
 
@@ -224,7 +226,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed }: HeaderDashboardP
                         </Button>
                     ]}
                     centered
-                    width={400}
+                    width={isMobile ? 'calc(100vw - 24px)' : 400}
                 >
                     <div style={{ paddingTop: '16px', paddingBottom: '16px' }}>
                         <Text>Bạn có chắc chắn muốn đăng xuất khỏi hệ thống không?</Text>
