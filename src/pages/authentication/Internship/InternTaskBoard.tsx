@@ -32,12 +32,14 @@ import {
 } from 'antd';
 import { useState } from 'react';
 import { useTasks, useUpdateTask, useCreateTask } from '../../../hooks/Internship/useTasks';
-import { Task } from '../../../services/Internship/tasks';
+import { CreateTaskParams, Task } from '../../../services/Internship/tasks';
+import { useResponsive } from '../../../hooks/useResponsive';
 
 const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
 
 export const InternTaskBoard = () => {
+    const { isMobile, isLaptop } = useResponsive();
     const internId = 'intern-1'; // Mock for now, should come from auth
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -64,7 +66,9 @@ export const InternTaskBoard = () => {
         }
     };
 
-    const handleCreateTask = async (values: any) => {
+    const handleCreateTask = async (
+        values: Pick<CreateTaskParams, 'title' | 'description' | 'priority' | 'dueDate'>
+    ) => {
         try {
             await createTaskMutation.mutateAsync({
                 ...values,
@@ -155,7 +159,14 @@ export const InternTaskBoard = () => {
 
     return (
         <Layout style={{ height: 'calc(100vh - 64px)', background: '#f6f7f8' }}>
-            <Content style={{ padding: '24px', overflowY: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <Content
+                style={{
+                    padding: isMobile ? '12px' : isLaptop ? '18px' : '24px',
+                    overflowY: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}
+            >
                 <div style={{ marginBottom: '24px' }}>
                     <div
                         style={{
@@ -171,7 +182,15 @@ export const InternTaskBoard = () => {
                         <span style={{ fontSize: '10px' }}>▶</span>{' '}
                         <span style={{ color: '#111827', fontWeight: 500 }}>Task Board</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: isMobile ? 'flex-start' : 'center',
+                            flexDirection: isMobile ? 'column' : 'row',
+                            gap: isMobile ? '10px' : 0
+                        }}
+                    >
                         <div>
                             <Title level={2} style={{ margin: 0 }}>
                                 Phase 2: Project Deliverables
@@ -198,8 +217,16 @@ export const InternTaskBoard = () => {
                         </Button>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px' }}>
-                        <Space>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            marginTop: '24px',
+                            flexDirection: isMobile ? 'column' : 'row',
+                            gap: isMobile ? '10px' : 0
+                        }}
+                    >
+                        <Space wrap>
                             <Button
                                 type='text'
                                 style={{ background: '#fff', fontWeight: 500 }}
@@ -208,7 +235,7 @@ export const InternTaskBoard = () => {
                                 Kanban Board
                             </Button>
                         </Space>
-                        <Space>
+                        <Space wrap>
                             <Select
                                 defaultValue='All Priorities'
                                 style={{ width: 140 }}
@@ -306,7 +333,15 @@ export const InternTaskBoard = () => {
             </Content>
 
             {selectedTask && (
-                <Sider width={400} theme='light' style={{ borderLeft: '1px solid #e5e7eb', overflowY: 'auto' }}>
+                <Sider
+                    width={isMobile ? '100%' : 400}
+                    theme='light'
+                    style={{
+                        borderLeft: isMobile ? 'none' : '1px solid #e5e7eb',
+                        borderTop: isMobile ? '1px solid #e5e7eb' : 'none',
+                        overflowY: 'auto'
+                    }}
+                >
                     <div
                         style={{
                             padding: '24px',
@@ -479,6 +514,7 @@ export const InternTaskBoard = () => {
                 onOk={() => form.submit()}
                 onCancel={() => setIsCreateModalOpen(false)}
                 confirmLoading={createTaskMutation.isPending}
+                width={isMobile ? 'calc(100vw - 24px)' : 520}
             >
                 <Form form={form} layout='vertical' onFinish={handleCreateTask}>
                     <Form.Item name='title' label='Task Title' rules={[{ required: true }]}>
