@@ -2,8 +2,8 @@ import { http } from '../../utils/http';
 import { ResponseListSuccess, ResponseDetailSuccess } from '../../utils/types/ServiceResponse';
 
 export interface LearningModuleItem {
-    id: number;
-    type: 'video' | 'file';
+    id: string | number;
+    type: 'video' | 'file' | 'document' | 'quiz';
     title: string;
     meta: string;
 }

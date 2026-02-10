@@ -7,11 +7,13 @@ import {
     PlayCircleOutlined,
     QuestionCircleOutlined
 } from '@ant-design/icons';
-import { Button, Card, Collapse, Layout, List, Modal, Progress, Radio, Result, Space, Tag, Typography } from 'antd';
+import { Button, Card, Collapse, Layout, List, Modal, Progress, Radio, Result, Space, Tag, Typography, message } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLearningPath } from '../../../hooks/Internship/useLearningPath';
 import { useQuiz } from '../../../hooks/Internship/useQuizzes';
+import { useIntern } from '../../../hooks/Internship/useInterns';
+import { useStudentProgress, useSubmitModuleQuiz } from '../../../hooks/Internship/useStudentProgress';
 import { useResponsive } from '../../../hooks/useResponsive';
 
 const { Title, Text, Paragraph } = Typography;
@@ -20,9 +22,25 @@ const { Panel } = Collapse;
 
 interface LearningItemView {
     id: string | number;
+    moduleId: number;
     type: string;
     title: string;
     meta: string;
+}
+
+interface ModuleView {
+    id: number;
+    title: string;
+    description: string;
+    progress: number;
+    status: 'Ready' | 'In Progress' | 'Locked';
+    items: Array<{
+        id: string | number;
+        moduleId: number;
+        type: string;
+        title: string;
+        meta: string;
+    }>;
 }
 
 export const StudentLearningPath = () => {
@@ -33,17 +51,47 @@ export const StudentLearningPath = () => {
     const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
     const [quizResult, setQuizResult] = useState<number | null>(null);
 
-    // Mock data fetching
-    const { data: lpData } = useLearningPath('Frontend Development');
+    const internId = 'ITS-001';
+
+    const { data: internRes } = useIntern(internId);
+    const intern = internRes?.data;
+
+    const { data: lpData } = useLearningPath(intern?.track || 'Frontend Development');
+    const { data: studentProgressRes } = useStudentProgress(internId);
+    const submitModuleQuiz = useSubmitModuleQuiz();
+
     const { data: quizData } = useQuiz(selectedItem?.type === 'quiz' ? String(selectedItem.id) : '');
 
     const learningPath = lpData?.data;
-    const modules = learningPath?.modules || [];
+    const baseModules = learningPath?.modules || [];
+    const studentProgress = studentProgressRes?.data;
 
-    // Calculate progress
-    const totalItems = modules.reduce((acc, m) => acc + m.items.length, 0);
-    const completedItems = 5; // Mock completed count
-    const progressPercent = Math.round((completedItems / totalItems) * 100);
+    const completedModuleSet = new Set(studentProgress?.modulesCompleted || []);
+    const currentModuleId = studentProgress?.currentModuleId ?? baseModules[0]?.id ?? null;
+
+    const modules: ModuleView[] = baseModules.map((module) => {
+        const status: ModuleView['status'] = completedModuleSet.has(module.id)
+            ? 'Ready'
+            : currentModuleId === module.id
+              ? 'In Progress'
+              : 'Locked';
+
+        return {
+            ...module,
+            status,
+            items: module.items.map((item) => ({
+                id: item.id,
+                moduleId: module.id,
+                type: String(item.type),
+                title: item.title,
+                meta: item.meta
+            }))
+        };
+    });
+
+    const totalModules = modules.length;
+    const completedModules = completedModuleSet.size;
+    const progressPercent = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
 
     const handleItemClick = (item: LearningItemView) => {
         if (item.type === 'quiz') {
@@ -51,22 +99,46 @@ export const StudentLearningPath = () => {
             setIsQuizModalOpen(true);
             setQuizResult(null);
             setQuizAnswers({});
-        } else {
-            setSelectedItem(item);
+            return;
         }
+        setSelectedItem(item);
     };
 
-    const handleQuizSubmit = () => {
-        // Mock scoring logic
-        let score = 0;
+    const handleQuizSubmit = async () => {
         const questions = quizData?.data?.questions || [];
-        questions.forEach((q, index) => {
-            if (quizAnswers[q.id || index] === q.correct) {
+
+        if (questions.length === 0 || !selectedItem) {
+            message.error(t('common.error'));
+            return;
+        }
+
+        let score = 0;
+        questions.forEach((question, index) => {
+            if (quizAnswers[String(question.id || index)] === question.correct) {
                 score++;
             }
         });
+
         const percentage = Math.round((score / questions.length) * 100);
         setQuizResult(percentage);
+
+        try {
+            await submitModuleQuiz.mutateAsync({
+                internId,
+                moduleId: selectedItem.moduleId,
+                quizId: String(quizData?.data?.id || selectedItem.id),
+                score: percentage,
+                passScore: 80
+            });
+
+            message.success(
+                percentage >= 80
+                    ? t('student_learning_path.status_completed')
+                    : t('student_learning_path.start_quiz')
+            );
+        } catch {
+            message.error(t('common.error'));
+        }
     };
 
     return (
@@ -99,7 +171,7 @@ export const StudentLearningPath = () => {
                             </div>
                             <Progress percent={progressPercent} showInfo={false} strokeColor='#1890ff' />
                             <Text type='secondary' style={{ fontSize: 12 }}>
-                                {completedItems}/{totalItems} {t('student_learning_path.modules')}{' '}
+                                {completedModules}/{totalModules} {t('student_learning_path.modules')}{' '}
                                 {t('student_learning_path.status_completed')}
                             </Text>
                         </Space>
@@ -158,7 +230,7 @@ export const StudentLearningPath = () => {
                                                 {String(item.type) === 'video' && (
                                                     <PlayCircleOutlined style={{ color: '#ff4d4f' }} />
                                                 )}
-                                                {String(item.type) === 'document' && (
+                                                {(String(item.type) === 'document' || String(item.type) === 'file') && (
                                                     <FilePdfOutlined style={{ color: '#fa8c16' }} />
                                                 )}
                                                 {String(item.type) === 'quiz' && (
@@ -310,9 +382,9 @@ export const StudentLearningPath = () => {
                                 <Paragraph strong>{q.text}</Paragraph>
                                 <Radio.Group
                                     onChange={(e) =>
-                                        setQuizAnswers({ ...quizAnswers, [q.id || qIndex]: e.target.value })
+                                        setQuizAnswers({ ...quizAnswers, [String(q.id || qIndex)]: e.target.value })
                                     }
-                                    value={quizAnswers[q.id || qIndex]}
+                                    value={quizAnswers[String(q.id || qIndex)]}
                                     style={{ width: '100%' }}
                                 >
                                     <Space direction='vertical' style={{ width: '100%' }}>

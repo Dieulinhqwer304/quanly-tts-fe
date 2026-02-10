@@ -51,11 +51,14 @@ export const MOCK_DATA = {
     ],
     studentProgress: [
         {
-            internId: "OB-001",
+            id: "SP-001",
+            internId: "ITS-001",
             learningPathId: "LP-001",
-            modulesCompleted: [1],
-            currentModuleId: 2,
-            quizScores: { "QZ-001": 85 }
+            modulesCompleted: [],
+            currentModuleId: 1,
+            quizScores: {},
+            createdAt: "2025-01-15T08:00:00",
+            updatedAt: "2025-01-15T08:00:00"
         }
     ],
     recruitmentPlans: [
