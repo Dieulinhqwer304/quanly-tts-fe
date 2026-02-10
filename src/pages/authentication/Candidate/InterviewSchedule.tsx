@@ -147,9 +147,6 @@ export const InterviewSchedule = () => {
                         </Title>
                         <Text type='secondary'>{t('interview.schedule_desc')}</Text>
                     </div>
-                    <Button icon={<FilterOutlined />} onClick={() => message.info(t('common.info'))}>
-                        {t('common.filter')}
-                    </Button>
                 </div>
 
                 <Row gutter={24}>
