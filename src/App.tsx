@@ -12,6 +12,7 @@ import RootLayout from './layouts/RootLayout/RootLayout';
 import { ProtectRoute } from './components/ProtectRoute/ProtectRoute';
 
 import { DashboardPage } from './pages/authentication/DashboardPage/DashboardPage';
+import { ModuleSelectionPage } from './pages/authentication/DashboardPage/ModuleSelectionPage';
 import SettingPage from './pages/authentication/SettingPage/SettingPage';
 import { ForbiddenPage } from './pages/unauthentication/ForbiddenPage/ForbiddenPage';
 import { FormLogout } from './pages/unauthentication/FormLogout/FormLogout';
@@ -41,10 +42,10 @@ import { DirectorApprovals } from './pages/authentication/Director/DirectorAppro
 
 const dashboardRoutes: RouteObject[] = [
     {
-        path: '/',
+        path: RouteConfig.ModuleSelection.path,
         element: (
             <ProtectRoute>
-                <DashboardPage />
+                <ModuleSelectionPage />
             </ProtectRoute>
         )
     },
@@ -214,10 +215,21 @@ export const App: FC = () => {
                                         <Route path={RouteConfig.Logout.path} element={<FormLogout />} />
                                     </Route>
 
+                                    <Route
+                                        path={RouteConfig.ModuleSelection.path}
+                                        element={
+                                            <ProtectRoute>
+                                                <ModuleSelectionPage />
+                                            </ProtectRoute>
+                                        }
+                                    />
+
                                     <Route element={<DashboardLayout />}>
-                                        {dashboardRoutes.map((route) => (
-                                            <Route key={route.path} path={route.path} element={route.element} />
-                                        ))}
+                                        {dashboardRoutes
+                                            .filter((r) => r.path !== RouteConfig.ModuleSelection.path)
+                                            .map((route) => (
+                                                <Route key={route.path} path={route.path} element={route.element} />
+                                            ))}
                                     </Route>
 
                                     <Route path={RouteConfig.InternalErrorPage.path} element={<InternalErrorPage />} />

@@ -20,6 +20,8 @@ import { LanguageSwitcher } from '../../../components';
 const { Sider } = Layout;
 const { Text } = Typography;
 
+type ModuleType = 'recruitment' | 'training' | 'admin' | 'none';
+
 interface NavbarDashboardProps {
     collapsed: boolean;
     isMobile: boolean;
@@ -50,13 +52,17 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
     const { token } = theme.useToken();
     const { t } = useTranslation();
 
-    const menuItems: MenuItem[] = [
-        {
-            key: 'dashboard',
-            icon: <DashboardOutlined />,
-            label: t('menu.dashboard'),
-            onClick: () => navigate(RouteConfig.DashBoardPage.path)
-        },
+    const getCurrentModule = (): ModuleType => {
+        const path = location.pathname;
+        if (path.startsWith('/recruitment')) return 'recruitment';
+        if (path.startsWith('/training')) return 'training';
+        if (path.startsWith('/admin')) return 'admin';
+        return 'none';
+    };
+
+    const currentModule = getCurrentModule();
+
+    const recruitmentItems: MenuItem[] = [
         {
             key: 'recruitment',
             icon: <TeamOutlined />,
@@ -89,7 +95,10 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                     onClick: () => navigate(RouteConfig.InternList.path)
                 }
             ]
-        },
+        }
+    ];
+
+    const trainingItems: MenuItem[] = [
         {
             key: 'mentor',
             icon: <SolutionOutlined />,
@@ -148,7 +157,10 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                     onClick: () => navigate(RouteConfig.InternTaskBoard.path)
                 }
             ]
-        },
+        }
+    ];
+
+    const adminItems: MenuItem[] = [
         {
             key: 'director',
             icon: <FileProtectOutlined />,
@@ -162,24 +174,32 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
             ]
         },
         {
-            key: 'public',
-            icon: <RocketOutlined />,
-            label: t('menu.public_pages'),
-            children: [
-                {
-                    key: 'pub-jobs',
-                    label: t('menu.job_board'),
-                    onClick: () => navigate(RouteConfig.PublicJobBoard.path)
-                }
-            ]
-        },
-        {
             key: 'settings',
             icon: <SettingOutlined />,
             label: t('menu.settings'),
             onClick: () => navigate(RouteConfig.SettingPage.path)
         }
     ];
+
+    const getMenuItems = (): MenuItem[] => {
+        switch (currentModule) {
+            case 'recruitment':
+                return recruitmentItems;
+            case 'training':
+                return trainingItems;
+            case 'admin':
+                return adminItems;
+            default:
+                return [
+                    {
+                        key: 'dashboard',
+                        icon: <DashboardOutlined />,
+                        label: t('menu.dashboard'),
+                        onClick: () => navigate(RouteConfig.ModuleSelection.path)
+                    }
+                ];
+        }
+    };
 
     const getSelectedKeys = (): string[] => {
         const path = location.pathname;
@@ -190,27 +210,19 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
         if (path.includes('/recruitment/onboarding')) return ['recruitment', 'rec-onboarding'];
         if (path.includes('/recruitment/interns')) return ['recruitment', 'rec-interns'];
 
-        if (path.includes('/mentor/requests')) return ['mentor', 'mentor-req'];
-        if (path.includes('/mentor/learning-paths')) return ['mentor', 'mentor-path'];
-        if (path.includes('/mentor/eval-phase1')) return ['mentor', 'mentor-eval1'];
-        if (path.includes('/mentor/tasks')) return ['mentor', 'mentor-tasks'];
-        if (path.includes('/mentor/eval-phase2')) return ['mentor', 'mentor-eval2'];
-        if (path.includes('/mentor/eval-final')) return ['mentor', 'mentor-final'];
+        if (path.includes('/training/mentor/requests')) return ['mentor', 'mentor-req'];
+        if (path.includes('/training/mentor/learning-paths')) return ['mentor', 'mentor-path'];
+        if (path.includes('/training/mentor/eval-phase1')) return ['mentor', 'mentor-eval1'];
+        if (path.includes('/training/mentor/tasks')) return ['mentor', 'mentor-tasks'];
+        if (path.includes('/training/mentor/eval-phase2')) return ['mentor', 'mentor-eval2'];
+        if (path.includes('/training/mentor/eval-final')) return ['mentor', 'mentor-eval1']; // Reuse or adjust
 
-        if (path.includes('/intern/dashboard')) return ['intern', 'intern-dash'];
-        if (path.includes('/intern/test')) return ['intern', 'intern-test'];
-        if (path.includes('/intern/tasks')) return ['intern', 'intern-tasks'];
-        if (path.includes('/intern/reports')) return ['intern', 'intern-reports'];
-        if (path.includes('/intern/certificate')) return ['intern', 'intern-cert'];
+        if (path.includes('/training/intern/dashboard')) return ['intern', 'intern-dash'];
+        if (path.includes('/training/intern/test')) return ['intern', 'intern-test'];
+        if (path.includes('/training/intern/tasks')) return ['intern', 'intern-tasks'];
 
-        if (path.includes('/director/approvals')) return ['director', 'dir-approvals'];
-
-        if (path.includes('/jobs')) return ['public', 'pub-jobs'];
-
-        if (path.match(/\/users\/[^/]+\/update$/)) return ['users', 'users-list'];
-        if (path === '/users') return ['users', 'users-list'];
-
-        if (path === '/setting') return ['settings'];
+        if (path.includes('/admin/director/approvals')) return ['director', 'dir-approvals'];
+        if (path === '/admin/setting') return ['settings'];
 
         return ['dashboard'];
     };
@@ -241,24 +253,58 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                         justifyContent: 'center',
                         color: '#fff',
                         fontWeight: 'bold',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        cursor: 'pointer'
                     }}
+                    onClick={() => navigate(RouteConfig.ModuleSelection.path)}
                 >
                     A
                 </div>
-                {!collapsed && <span style={{ fontSize: '18px', fontWeight: '700', color: '#1f2937' }}>Admin</span>}
+                {!collapsed && (
+                    <span
+                        style={{ fontSize: '18px', fontWeight: '700', color: '#1f2937', cursor: 'pointer' }}
+                        onClick={() => navigate(RouteConfig.ModuleSelection.path)}
+                    >
+                        {currentModule === 'recruitment'
+                            ? 'Tuyển dụng'
+                            : currentModule === 'training'
+                              ? 'Đào tạo'
+                              : currentModule === 'admin'
+                                ? 'Quản trị'
+                                : 'Admin'}
+                    </span>
+                )}
                 <div style={{ marginLeft: 'auto', paddingRight: collapsed ? 0 : '12px' }}>
                     <LanguageSwitcher />
                 </div>
             </div>
 
-            <div style={{ height: 'calc(100vh - 64px - 70px)', overflowY: 'auto', paddingTop: '16px' }}>
+            <div style={{ padding: collapsed ? '12px 8px' : '16px 12px' }}>
+                <Button
+                    type='default'
+                    block={!collapsed}
+                    icon={<DashboardOutlined />}
+                    onClick={() => navigate(RouteConfig.ModuleSelection.path)}
+                    style={{
+                        borderRadius: '8px',
+                        height: '40px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: collapsed ? 'center' : 'flex-start',
+                        border: '1px dashed #d9d9d9'
+                    }}
+                >
+                    {!collapsed && 'Đổi phân hệ'}
+                </Button>
+            </div>
+
+            <div style={{ height: 'calc(100vh - 64px - 70px - 72px)', overflowY: 'auto' }}>
                 <Menu
                     theme='light'
                     mode='inline'
                     selectedKeys={getSelectedKeys()}
                     defaultOpenKeys={['recruitment', 'mentor', 'intern', 'director']}
-                    items={menuItems}
+                    items={getMenuItems()}
                     style={{
                         borderRight: 0,
                         fontSize: isLaptop ? '14px' : '15px',

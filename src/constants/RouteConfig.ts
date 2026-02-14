@@ -28,12 +28,12 @@ export const RouteConfig = {
         path: '/logout'
     },
 
-    DashBoardPage: {
+    ModuleSelection: {
         path: '/'
     },
 
     SettingPage: {
-        path: '/setting'
+        path: '/admin/setting'
     },
 
     PublicJobBoard: {
@@ -44,6 +44,7 @@ export const RouteConfig = {
         getPath: (id: string) => `/jobs/${id}`
     },
 
+    // RECRUITMENT MODULE
     RecruitmentPlanList: {
         path: '/recruitment/plans'
     },
@@ -57,7 +58,6 @@ export const RouteConfig = {
     RecruitmentJobList: {
         path: '/recruitment/jobs'
     },
-
     CVList: {
         path: '/recruitment/cvs'
     },
@@ -68,7 +68,6 @@ export const RouteConfig = {
     InterviewSchedule: {
         path: '/recruitment/interviews'
     },
-
     OnboardingList: {
         path: '/recruitment/onboarding'
     },
@@ -76,39 +75,40 @@ export const RouteConfig = {
         path: '/recruitment/interns'
     },
 
+    // TRAINING MODULE
     MentorRequestList: {
-        path: '/mentor/requests'
+        path: '/training/mentor/requests'
     },
     MentorLearningPath: {
-        path: '/mentor/learning-paths'
+        path: '/training/mentor/learning-paths'
     },
     MentorEvalPhase1: {
-        path: '/mentor/eval-phase1/:id',
-        getPath: (id: string) => `/mentor/eval-phase1/${id}`
+        path: '/training/mentor/eval-phase1/:id',
+        getPath: (id: string) => `/training/mentor/eval-phase1/${id}`
     },
     MentorTaskManagement: {
-        path: '/mentor/tasks'
+        path: '/training/mentor/tasks'
     },
     MentorEvalPhase2: {
-        path: '/mentor/eval-phase2/:id',
-        getPath: (id: string) => `/mentor/eval-phase2/${id}`
+        path: '/training/mentor/eval-phase2/:id',
+        getPath: (id: string) => `/training/mentor/eval-phase2/${id}`
     },
     MentorEvalFinal: {
-        path: '/mentor/eval-final/:id',
-        getPath: (id: string) => `/mentor/eval-final/${id}`
+        path: '/training/mentor/eval-final/:id',
+        getPath: (id: string) => `/training/mentor/eval-final/${id}`
     },
-
     InternDashboard: {
-        path: '/intern/dashboard'
+        path: '/training/intern/dashboard'
     },
     InternTest: {
-        path: '/intern/test'
+        path: '/training/intern/test'
     },
     InternTaskBoard: {
-        path: '/intern/tasks'
+        path: '/training/intern/tasks'
     },
 
+    // ADMIN MODULE
     DirectorApprovals: {
-        path: '/director/approvals'
+        path: '/admin/director/approvals'
     }
 };

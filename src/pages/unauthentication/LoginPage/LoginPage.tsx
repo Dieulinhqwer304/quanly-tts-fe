@@ -30,8 +30,8 @@ export const LoginPage = () => {
     } = useForm<LoginSchema>({
         resolver: zodResolver(loginSchema),
         defaultValues: {
-            email: '',
-            password: ''
+            email: 'admin@example.com',
+            password: 'admin123'
         }
     });
 
@@ -42,7 +42,7 @@ export const LoginPage = () => {
                 Cookies.set('accessToken', mockToken);
                 setIsAuthenticated(true);
                 message.success('Đăng nhập thành công!');
-                navigate(RouteConfig.DashBoardPage.path);
+                navigate(RouteConfig.ModuleSelection.path);
                 return;
             }
 
@@ -51,7 +51,7 @@ export const LoginPage = () => {
                 Cookies.set('accessToken', response.accessToken);
                 setIsAuthenticated(true);
                 message.success('Đăng nhập thành công!');
-                navigate(RouteConfig.DashBoardPage.path);
+                navigate(RouteConfig.ModuleSelection.path);
             }
         } catch (error: any) {
             message.error(error.response?.data?.message || 'Đăng nhập thất bại!');
@@ -195,19 +195,19 @@ export const LoginPage = () => {
                             )}
                         />
 
-                        <div
+                        {/* <div
                             style={{
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
                                 marginBottom: '24px'
                             }}
-                        >
-                            <Checkbox>Remember me</Checkbox>
-                            <Link href='#' style={{ fontWeight: 500 }}>
+                        > */}
+                        {/* <Checkbox>Remember me</Checkbox> */}
+                        {/* <Link href='#' style={{ fontWeight: 500 }}>
                                 Forgot password?
-                            </Link>
-                        </div>
+                            </Link> */}
+                        {/* </div> */}
 
                         <Button
                             type='primary'
@@ -218,24 +218,7 @@ export const LoginPage = () => {
                         >
                             Sign In
                         </Button>
-
-                        <Divider plain>
-                            <Text type='secondary' style={{ fontSize: '13px' }}>
-                                Or continue with
-                            </Text>
-                        </Divider>
-
-                        <Button icon={<GoogleOutlined />} block>
-                            Sign in with Google
-                        </Button>
                     </Form>
-
-                    <div style={{ marginTop: '32px', textAlign: 'center' }}>
-                        <Text type='secondary'>Don't have an account? </Text>
-                        <Link href='#' style={{ fontWeight: 600 }}>
-                            Sign up for free
-                        </Link>
-                    </div>
                 </div>
             </div>
         </div>
