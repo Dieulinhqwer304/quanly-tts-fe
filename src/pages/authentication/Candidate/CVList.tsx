@@ -254,65 +254,6 @@ export const CVList = () => {
                 </div>
             </div>
 
-            <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Text type='secondary'>{t('candidate.total_applications')}</Text>
-                            <TeamOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
-                        </div>
-                        <Title level={2} style={{ margin: '8px 0' }}>
-                            {dataSource.length}
-                        </Title>
-                        <Text type='success' style={{ fontSize: '12px' }}>
-                            <RiseOutlined /> +12% {t('common.last_week')}
-                        </Text>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px', borderRight: '4px solid #fa8c16' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Text type='secondary'>{t('candidate.pending_review')}</Text>
-                            <FilterOutlined style={{ fontSize: '20px', color: '#fa8c16' }} />
-                        </div>
-                        <Title level={2} style={{ margin: '8px 0' }}>
-                            {dataSource.filter((c) => c.status === 'Pending Review').length}
-                        </Title>
-                        <Text type='secondary' style={{ fontSize: '12px' }}>
-                            {t('candidate.needs_immediate_action')}
-                        </Text>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px', borderRight: '4px solid #52c41a' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Text type='secondary'>{t('candidate.shortlisted')}</Text>
-                            <CheckCircleOutlined style={{ fontSize: '20px', color: '#52c41a' }} />
-                        </div>
-                        <Title level={2} style={{ margin: '8px 0' }}>
-                            {dataSource.filter((c) => c.status === 'Shortlisted').length}
-                        </Title>
-                        <Text type='secondary' style={{ fontSize: '12px' }}>
-                            {t('candidate.ready_for_interview')}
-                        </Text>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Text type='secondary'>{t('candidate.rejected')}</Text>
-                            <CloseCircleOutlined style={{ fontSize: '20px', color: '#ff4d4f' }} />
-                        </div>
-                        <Title level={2} style={{ margin: '8px 0' }}>
-                            {dataSource.filter((c) => c.status === 'Rejected').length}
-                        </Title>
-                        <Text type='secondary' style={{ fontSize: '12px' }}>
-                            {t('candidate.archived_applications')}
-                        </Text>
-                    </Card>
-                </Col>
-            </Row>
-
             <Card bordered={false} style={{ borderRadius: '12px' }}>
                 <div
                     style={{

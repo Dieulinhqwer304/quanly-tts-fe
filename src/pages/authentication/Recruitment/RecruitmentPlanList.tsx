@@ -1,14 +1,4 @@
-import {
-    CalendarOutlined,
-    CheckCircleOutlined,
-    EllipsisOutlined,
-    FilterOutlined,
-    PlusOutlined,
-    SearchOutlined,
-    TeamOutlined,
-    RiseOutlined,
-    UserOutlined
-} from '@ant-design/icons';
+import { EllipsisOutlined, FilterOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import {
     Avatar,
     Button,
@@ -17,26 +7,24 @@ import {
     Dropdown,
     Input,
     MenuProps,
+    message,
+    Modal,
     Row,
     Select,
-    Space,
     Table,
     Tag,
-    Typography,
-    message,
-    Skeleton,
-    Modal
+    Typography
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
-import { useTranslation } from 'react-i18next';
+import { useInterviews } from '../../../hooks/Recruitment/useInterviews';
 import { useRecruitmentPlans } from '../../../hooks/Recruitment/useRecruitmentPlans';
 import { useDashboardStats } from '../../../hooks/useDashboardStats';
-import { useInterviews } from '../../../hooks/Recruitment/useInterviews';
 import { RecruitmentPlan } from '../../../services/Recruitment/recruitmentPlans';
 import { RecruitmentPlanModal } from './components/RecruitmentPlanModal';
-import { useState } from 'react';
 
 const { Title, Text } = Typography;
 
@@ -180,99 +168,8 @@ export const RecruitmentPlanList = () => {
     return (
         <div style={{ padding: '24px' }}>
             <div style={{ marginBottom: '24px' }}>
-                <Title level={3}>{t('recruitment.overview')}</Title>
+                <Title level={3}>{t('recruitment.campaigns')}</Title>
             </div>
-
-            <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card
-                        bordered={false}
-                        style={{ borderRadius: '12px', cursor: 'pointer' }}
-                        hoverable
-                        onClick={() => navigate(RouteConfig.RecruitmentJobList.path)}
-                        loading={statsLoading}
-                    >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                            <div>
-                                <Text type='secondary'>{t('recruitment.open_positions')}</Text>
-                                <Title level={2} style={{ margin: '8px 0' }}>
-                                    {stats?.openPositions || 0}
-                                </Title>
-                                <Text type='success' style={{ fontSize: '12px' }}>
-                                    <RiseOutlined /> +2 {t('common.last_month')}
-                                </Text>
-                            </div>
-                            <div style={{ background: '#e6f7ff', padding: '8px', borderRadius: '8px' }}>
-                                <TeamOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card
-                        bordered={false}
-                        style={{ borderRadius: '12px', cursor: 'pointer' }}
-                        hoverable
-                        onClick={() => navigate(RouteConfig.CVList.path)}
-                        loading={statsLoading}
-                    >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                            <div>
-                                <Text type='secondary'>{t('recruitment.pending_applications')}</Text>
-                                <Title level={2} style={{ margin: '8px 0' }}>
-                                    {stats?.pendingApplications || 0}
-                                </Title>
-                                <Text type='secondary' style={{ fontSize: '12px' }}>
-                                    {t('recruitment.require_review')}
-                                </Text>
-                            </div>
-                            <div style={{ background: '#fff7e6', padding: '8px', borderRadius: '8px' }}>
-                                <UserOutlined style={{ fontSize: '20px', color: '#fa8c16' }} />
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card
-                        bordered={false}
-                        style={{ borderRadius: '12px', cursor: 'pointer' }}
-                        hoverable
-                        onClick={() => navigate(RouteConfig.InterviewSchedule.path)}
-                        loading={statsLoading}
-                    >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                            <div>
-                                <Text type='secondary'>{t('recruitment.upcoming_interviews')}</Text>
-                                <Title level={2} style={{ margin: '8px 0' }}>
-                                    {stats?.upcomingInterviews || 0}
-                                </Title>
-                                <Tag color='purple'>{t('onboarding.today')}</Tag>
-                            </div>
-                            <div style={{ background: '#f9f0ff', padding: '8px', borderRadius: '8px' }}>
-                                <CalendarOutlined style={{ fontSize: '20px', color: '#722ed1' }} />
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px' }} loading={statsLoading}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                            <div>
-                                <Text type='secondary'>{t('recruitment.conversion_rate')}</Text>
-                                <Title level={2} style={{ margin: '8px 0' }}>
-                                    {stats?.conversionRate || 0}%
-                                </Title>
-                                <Text type='success' style={{ fontSize: '12px' }}>
-                                    <RiseOutlined /> 1.5% {t('common.last_week')}
-                                </Text>
-                            </div>
-                            <div style={{ background: '#f6ffed', padding: '8px', borderRadius: '8px' }}>
-                                <CheckCircleOutlined style={{ fontSize: '20px', color: '#52c41a' }} />
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-            </Row>
 
             <Row gutter={24}>
                 <Col xs={24} lg={24}>
@@ -334,7 +231,7 @@ export const RecruitmentPlanList = () => {
                         setIsModalOpen(false);
                         refetch();
                     }}
-                    initialValues={editingPlan}
+                    initialValues={editingPlan as any}
                     viewOnly={isViewOnly}
                 />
             </Row>

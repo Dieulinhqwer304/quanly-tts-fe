@@ -102,16 +102,16 @@ export const MentorRequestList = () => {
                 positions:
                     typeof values.positions === 'string'
                         ? values.positions
-                            .split(',')
-                            .map((p: string) => p.trim())
-                            .filter(Boolean)
+                              .split(',')
+                              .map((p: string) => p.trim())
+                              .filter(Boolean)
                         : values.positions,
                 requiredSkills:
                     typeof values.requiredSkills === 'string'
                         ? values.requiredSkills
-                            .split(',')
-                            .map((s: string) => s.trim())
-                            .filter(Boolean)
+                              .split(',')
+                              .map((s: string) => s.trim())
+                              .filter(Boolean)
                         : values.requiredSkills,
                 expectedStartDate: values.expectedStartDate ? values.expectedStartDate.format('YYYY-MM-DD') : undefined
             };
@@ -336,10 +336,7 @@ export const MentorRequestList = () => {
         <div style={{ padding: isMobile ? '12px' : isLaptop ? '18px' : '24px' }}>
             <div style={{ marginBottom: '16px' }}>
                 <Breadcrumb
-                    items={[
-                        { title: t('menu.recruitment_management') },
-                        { title: t('mentor_request.title') }
-                    ]}
+                    items={[{ title: t('menu.recruitment_management') }, { title: t('mentor_request.title') }]}
                 />
             </div>
 
@@ -363,117 +360,6 @@ export const MentorRequestList = () => {
                     {t('mentor_request.create_request')}
                 </Button>
             </div>
-
-            <Row gutter={16} style={{ marginBottom: '24px' }}>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div
-                                style={{
-                                    width: 48,
-                                    height: 48,
-                                    borderRadius: '50%',
-                                    background: '#e6f7ff',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#1890ff',
-                                    fontSize: '20px'
-                                }}
-                            >
-                                <CheckCircleOutlined />
-                            </div>
-                            <div>
-                                <Text type='secondary'>Total Requests</Text>
-                                <Title level={4} style={{ margin: 0 }}>
-                                    {requests.length}
-                                </Title>
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div
-                                style={{
-                                    width: 48,
-                                    height: 48,
-                                    borderRadius: '50%',
-                                    background: '#fff7e6',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#fa8c16',
-                                    fontSize: '20px'
-                                }}
-                            >
-                                <ClockCircleOutlined />
-                            </div>
-                            <div>
-                                <Text type='secondary'>{t('mentor_request.pending')}</Text>
-                                <Title level={4} style={{ margin: 0 }}>
-                                    {pendingCount}
-                                </Title>
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div
-                                style={{
-                                    width: 48,
-                                    height: 48,
-                                    borderRadius: '50%',
-                                    background: '#f6ffed',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#52c41a',
-                                    fontSize: '20px'
-                                }}
-                            >
-                                <CheckCircleOutlined />
-                            </div>
-                            <div>
-                                <Text type='secondary'>{t('mentor_request.approved')}</Text>
-                                <Title level={4} style={{ margin: 0 }}>
-                                    {approvedCount}
-                                </Title>
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div
-                                style={{
-                                    width: 48,
-                                    height: 48,
-                                    borderRadius: '50%',
-                                    background: '#e6f7ff',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#096dd9',
-                                    fontSize: '20px'
-                                }}
-                            >
-                                <ClockCircleOutlined />
-                            </div>
-                            <div>
-                                <Text type='secondary'>{t('mentor_request.in_progress')}</Text>
-                                <Title level={4} style={{ margin: 0 }}>
-                                    {processingCount}
-                                </Title>
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-            </Row>
 
             <Card bordered={false}>
                 <div

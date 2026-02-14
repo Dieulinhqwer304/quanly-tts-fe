@@ -141,14 +141,16 @@ export const OnboardingList = () => {
                                                                 item.status === 'Delayed'
                                                                     ? 'red'
                                                                     : item.status === 'Completed'
-                                                                        ? 'success'
-                                                                        : 'processing'
+                                                                      ? 'success'
+                                                                      : 'processing'
                                                             }
                                                             style={{ marginTop: '4px' }}
                                                         >
-                                                            {item.status === 'Delayed' ? t('onboarding.delayed') :
-                                                                item.status === 'Completed' ? t('onboarding.completed') :
-                                                                    t('onboarding.in_onboarding')}
+                                                            {item.status === 'Delayed'
+                                                                ? t('onboarding.delayed')
+                                                                : item.status === 'Completed'
+                                                                  ? t('onboarding.completed')
+                                                                  : t('onboarding.in_onboarding')}
                                                         </Tag>
                                                     </div>
                                                 </Space>
@@ -173,7 +175,9 @@ export const OnboardingList = () => {
                                                         onClick={() => handleAction('next', item)}
                                                         disabled={item.status === 'Completed'}
                                                     >
-                                                        {item.status === 'Completed' ? t('onboarding.completed') : t('onboarding.advance')}
+                                                        {item.status === 'Completed'
+                                                            ? t('onboarding.completed')
+                                                            : t('onboarding.advance')}
                                                     </Button>
                                                     <Dropdown menu={getActionMenu(item)} trigger={['click']}>
                                                         <Button size='small' icon={<MoreOutlined />}>
@@ -192,25 +196,6 @@ export const OnboardingList = () => {
 
                 <Col xs={24} lg={6}>
                     <Space direction='vertical' size='large' style={{ width: '100%' }}>
-                        <Card title={t('onboarding.quick_stats')} bordered={false} style={{ borderRadius: '12px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                                <Text type='secondary'>{t('onboarding.in_onboarding')}</Text>
-                                <Text strong>{data.filter((i: Onboarding) => i.status === 'In Progress').length}</Text>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                                <Text type='secondary'>{t('onboarding.delayed')}</Text>
-                                <Text strong style={{ color: '#ff4d4f' }}>
-                                    {data.filter((i: Onboarding) => i.status === 'Delayed').length}
-                                </Text>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Text type='secondary'>{t('onboarding.ready_for_work')}</Text>
-                                <Text strong style={{ color: '#52c41a' }}>
-                                    {data.filter((i: Onboarding) => i.status === 'Completed').length}
-                                </Text>
-                            </div>
-                        </Card>
-
                         <Card title={t('onboarding.next_steps')} bordered={false} style={{ borderRadius: '12px' }}>
                             <List
                                 size='small'
