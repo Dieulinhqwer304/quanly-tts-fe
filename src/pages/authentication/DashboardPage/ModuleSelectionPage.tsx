@@ -78,7 +78,7 @@ export const ModuleSelectionPage: FC = () => {
             description: 'Quản lý kế hoạch, tin tuyển dụng, sàng lọc CV và lịch phỏng vấn ứng viên.',
             icon: <TeamOutlined />,
             color: '#6366f1',
-            path: RouteConfig.RecruitmentPlanList.path
+            path: RouteConfig.RecruitmentDashboard.path
         },
         {
             title: 'Đào tạo',

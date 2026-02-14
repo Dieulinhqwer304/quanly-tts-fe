@@ -70,6 +70,11 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
             label: t('menu.recruitment_management'),
             children: [
                 {
+                    key: 'rec-dashboard',
+                    label: t('menu.dashboard'),
+                    onClick: () => navigate(RouteConfig.RecruitmentDashboard.path)
+                },
+                {
                     key: 'rec-plans',
                     label: t('menu.recruitment_plans'),
                     onClick: () => navigate(RouteConfig.RecruitmentPlanList.path)
@@ -216,6 +221,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
 
     const getSelectedKeys = (): string[] => {
         const path = location.pathname;
+        if (path.includes('/recruitment/dashboard')) return ['recruitment', 'rec-dashboard'];
         if (path.includes('/recruitment/plans')) return ['recruitment', 'rec-plans'];
         if (path.includes('/recruitment/jobs')) return ['recruitment', 'rec-jobs'];
         if (path.includes('/recruitment/cvs')) return ['recruitment', 'rec-cvs'];

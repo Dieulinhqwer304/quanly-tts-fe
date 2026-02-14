@@ -45,6 +45,9 @@ export const RouteConfig = {
     },
 
     // RECRUITMENT MODULE
+    RecruitmentDashboard: {
+        path: '/recruitment/dashboard'
+    },
     RecruitmentPlanList: {
         path: '/recruitment/plans'
     },

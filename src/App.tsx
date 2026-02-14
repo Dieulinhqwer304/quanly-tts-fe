@@ -22,6 +22,7 @@ import { NotFoundPage } from './pages/unauthentication/NotFoundPage/NotFoundPage
 
 import { JobBoardPage } from './pages/public/JobBoard/JobBoardPage';
 import { JobDetailPage } from './pages/public/JobBoard/JobDetailPage';
+import { RecruitmentDashboard } from './pages/authentication/Recruitment/RecruitmentDashboard';
 import { RecruitmentPlanList } from './pages/authentication/Recruitment/RecruitmentPlanList';
 import { RecruitmentJobList } from './pages/authentication/Recruitment/RecruitmentJobList';
 import { CVList } from './pages/authentication/Candidate/CVList';
@@ -72,6 +73,14 @@ const dashboardRoutes: RouteObject[] = [
         element: (
             <ProtectRoute>
                 <SettingPage />
+            </ProtectRoute>
+        )
+    },
+    {
+        path: RouteConfig.RecruitmentDashboard.path,
+        element: (
+            <ProtectRoute>
+                <RecruitmentDashboard />
             </ProtectRoute>
         )
     },
