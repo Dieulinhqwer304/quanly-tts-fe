@@ -110,5 +110,11 @@ export const RouteConfig = {
     // ADMIN MODULE
     DirectorApprovals: {
         path: '/admin/director/approvals'
+    },
+    UserManagement: {
+        path: '/admin/users'
+    },
+    PermissionManagement: {
+        path: '/admin/permissions'
     }
 };

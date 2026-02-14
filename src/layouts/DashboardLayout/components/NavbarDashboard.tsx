@@ -8,6 +8,7 @@ import {
     SolutionOutlined,
     BookOutlined,
     FileProtectOutlined,
+    SafetyCertificateOutlined,
     RocketOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -174,6 +175,18 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
             ]
         },
         {
+            key: 'user-management',
+            icon: <UserOutlined />,
+            label: 'Quản lý người dùng',
+            onClick: () => navigate(RouteConfig.UserManagement.path)
+        },
+        {
+            key: 'permission-management',
+            icon: <SafetyCertificateOutlined />,
+            label: 'Phân quyền',
+            onClick: () => navigate(RouteConfig.PermissionManagement.path)
+        },
+        {
             key: 'settings',
             icon: <SettingOutlined />,
             label: t('menu.settings'),
@@ -222,6 +235,8 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
         if (path.includes('/training/intern/tasks')) return ['intern', 'intern-tasks'];
 
         if (path.includes('/admin/director/approvals')) return ['director', 'dir-approvals'];
+        if (path.includes('/admin/users')) return ['user-management'];
+        if (path.includes('/admin/permissions')) return ['permission-management'];
         if (path === '/admin/setting') return ['settings'];
 
         return ['dashboard'];

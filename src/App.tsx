@@ -39,6 +39,8 @@ import { InternDashboard } from './pages/authentication/Internship/InternDashboa
 import { InternTest } from './pages/authentication/Internship/InternTest';
 import { InternTaskBoard } from './pages/authentication/Internship/InternTaskBoard';
 import { DirectorApprovals } from './pages/authentication/Director/DirectorApprovals';
+import { UserManagement } from './pages/authentication/Admin/UserManagement';
+import { PermissionManagement } from './pages/authentication/Admin/PermissionManagement';
 
 const dashboardRoutes: RouteObject[] = [
     {
@@ -46,6 +48,22 @@ const dashboardRoutes: RouteObject[] = [
         element: (
             <ProtectRoute>
                 <ModuleSelectionPage />
+            </ProtectRoute>
+        )
+    },
+    {
+        path: RouteConfig.UserManagement.path,
+        element: (
+            <ProtectRoute>
+                <UserManagement />
+            </ProtectRoute>
+        )
+    },
+    {
+        path: RouteConfig.PermissionManagement.path,
+        element: (
+            <ProtectRoute>
+                <PermissionManagement />
             </ProtectRoute>
         )
     },
