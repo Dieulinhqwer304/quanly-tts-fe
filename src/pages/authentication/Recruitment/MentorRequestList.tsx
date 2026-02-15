@@ -222,13 +222,6 @@ export const MentorRequestList = () => {
 
     const columns: ColumnsType<MentorRequest> = [
         {
-            title: t('mentor_request.request_id'),
-            dataIndex: 'id',
-            key: 'id',
-            width: 120,
-            render: (text) => <Text strong>{text}</Text>
-        },
-        {
             title: t('mentor_request.request_title'),
             dataIndex: 'title',
             key: 'title',

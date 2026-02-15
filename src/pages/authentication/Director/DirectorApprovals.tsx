@@ -284,8 +284,6 @@ export const DirectorApprovals = () => {
                                     }}
                                 >
                                     <span>{t('director.requests')}</span>
-                                    <span style={{ fontSize: '10px' }}>▶</span>
-                                    <span>#{selectedRequest.id}</span>
                                 </div>
                                 <Title level={2} style={{ margin: '0 0 8px 0' }}>
                                     {selectedRequest.type} {t('director.proposal')}: {selectedRequest.name}
