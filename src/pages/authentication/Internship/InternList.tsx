@@ -44,7 +44,11 @@ export const InternList = () => {
     const [editingIntern, setEditingIntern] = useState<any>(null);
     const [isViewOnly, setIsViewOnly] = useState(false);
 
-    const { data: internsData, isLoading, refetch } = useInterns({
+    const {
+        data: internsData,
+        isLoading,
+        refetch
+    } = useInterns({
         searcher: searchText ? { keyword: searchText, field: 'name' } : undefined,
         status: statusFilter
     });
@@ -217,17 +221,13 @@ export const InternList = () => {
                             render: (_, record: any) => (
                                 <Space>
                                     <Tooltip title={t('common.view')}>
-                                        <Button
-                                            type='text'
-                                            icon={<EyeOutlined />}
-                                            onClick={() => handleView(record)}
-                                        />
+                                        <Button type='text' icon={<EyeOutlined />} onClick={() => handleView(record)} />
                                     </Tooltip>
-                                    <Tooltip title={t('menu.eval_phase_1')}>
+                                    <Tooltip title={t('menu.evaluations')}>
                                         <Button
                                             type='text'
                                             icon={<StarOutlined style={{ color: '#faad14' }} />}
-                                            onClick={() => navigate(RouteConfig.MentorEvalPhase1.getPath(record.id))}
+                                            onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}
                                         />
                                     </Tooltip>
                                     <Tooltip title={t('common.edit')}>

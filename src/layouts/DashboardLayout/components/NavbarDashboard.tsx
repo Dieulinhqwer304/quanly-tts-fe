@@ -121,24 +121,14 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                     onClick: () => navigate(RouteConfig.MentorLearningPath.path)
                 },
                 {
-                    key: 'mentor-eval1',
-                    label: t('menu.eval_phase_1'),
-                    onClick: () => navigate(RouteConfig.MentorEvalPhase1.path)
+                    key: 'mentor-eval',
+                    label: t('menu.evaluations'),
+                    onClick: () => navigate(RouteConfig.InternList.path) // Or a specific evaluation overview page
                 },
                 {
                     key: 'mentor-tasks',
                     label: t('menu.task_management'),
                     onClick: () => navigate(RouteConfig.MentorTaskManagement.path)
-                },
-                {
-                    key: 'mentor-eval2',
-                    label: t('menu.eval_phase_2'),
-                    onClick: () => navigate(RouteConfig.MentorEvalPhase2.path)
-                },
-                {
-                    key: 'mentor-final',
-                    label: t('menu.final_eval'),
-                    onClick: () => navigate(RouteConfig.MentorEvalFinal.path)
                 }
             ]
         },
@@ -231,10 +221,8 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
 
         if (path.includes('/training/mentor/requests')) return ['mentor', 'mentor-req'];
         if (path.includes('/training/mentor/learning-paths')) return ['mentor', 'mentor-path'];
-        if (path.includes('/training/mentor/eval-phase1')) return ['mentor', 'mentor-eval1'];
+        if (path.includes('/training/mentor/evaluations')) return ['mentor', 'mentor-eval'];
         if (path.includes('/training/mentor/tasks')) return ['mentor', 'mentor-tasks'];
-        if (path.includes('/training/mentor/eval-phase2')) return ['mentor', 'mentor-eval2'];
-        if (path.includes('/training/mentor/eval-final')) return ['mentor', 'mentor-eval1']; // Reuse or adjust
 
         if (path.includes('/training/intern/dashboard')) return ['intern', 'intern-dash'];
         if (path.includes('/training/intern/test')) return ['intern', 'intern-test'];

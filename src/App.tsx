@@ -42,6 +42,7 @@ import { InternTaskBoard } from './pages/authentication/Internship/InternTaskBoa
 import { DirectorApprovals } from './pages/authentication/Director/DirectorApprovals';
 import { UserManagement } from './pages/authentication/Admin/UserManagement';
 import { PermissionManagement } from './pages/authentication/Admin/PermissionManagement';
+import { MentorEvaluation } from './pages/authentication/Internship/MentorEvaluation';
 
 const dashboardRoutes: RouteObject[] = [
     {
@@ -154,6 +155,14 @@ const dashboardRoutes: RouteObject[] = [
         element: (
             <ProtectRoute>
                 <MentorLearningPath />
+            </ProtectRoute>
+        )
+    },
+    {
+        path: RouteConfig.MentorEvaluation.path,
+        element: (
+            <ProtectRoute>
+                <MentorEvaluation />
             </ProtectRoute>
         )
     },

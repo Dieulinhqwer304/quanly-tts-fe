@@ -100,6 +100,10 @@ export const RouteConfig = {
         path: '/training/mentor/eval-final/:id',
         getPath: (id: string) => `/training/mentor/eval-final/${id}`
     },
+    MentorEvaluation: {
+        path: '/training/mentor/evaluations/:id',
+        getPath: (id: string) => `/training/mentor/evaluations/${id}`
+    },
     InternDashboard: {
         path: '/training/intern/dashboard'
     },
