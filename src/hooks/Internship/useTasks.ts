@@ -10,7 +10,7 @@ export const useTasks = (params?: GetTasksParams) => {
         initialData: {
             code: 200,
             data: {
-                hits: MOCK_DATA.tasks,
+                hits: MOCK_DATA.tasks as tasksService.Task[],
                 pagination: {
                     totalPages: 1,
                     totalRows: MOCK_DATA.tasks.length

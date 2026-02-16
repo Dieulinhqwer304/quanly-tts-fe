@@ -410,7 +410,11 @@
         "on_track": "Đúng tiến độ",
         "behind": "Chậm tiến độ",
         "search_intern_task": "Tìm kiếm thực tập sinh, công việc...",
-        "view_all_interns": "Xem tất cả thực tập sinh"
+        "view_all_interns": "Xem tất cả thực tập sinh",
+        "view_details": "Xem chi tiết",
+        "approve_complete": "Duyệt / Hoàn thành",
+        "request_revision": "Yêu cầu chỉnh sửa",
+        "choose_intern": "Chọn thực tập sinh"
     },
     "test": {
         "title": "Bài kiểm tra kiến thức",

@@ -98,21 +98,21 @@ export const MentorTaskManagement = () => {
         items: [
             {
                 key: 'view',
-                label: 'View Details',
+                label: t('task_mgmt.view_details'),
                 icon: <EyeOutlined />,
                 onClick: () =>
                     Modal.info({ title: record.title, content: record.description || 'No description provided.' })
             },
             {
                 key: 'approve',
-                label: 'Approve / Complete',
+                label: t('task_mgmt.approve_complete'),
                 icon: <CheckOutlined />,
                 disabled: record.status === 'Completed',
                 onClick: () => handleUpdateStatus(record.id, 'Completed')
             },
             {
                 key: 'return',
-                label: 'Request Revision',
+                label: t('task_mgmt.request_revision'),
                 icon: <CloseOutlined />,
                 disabled: record.status === 'Completed' || record.status === 'To Do',
                 onClick: () => handleUpdateStatus(record.id, 'In Progress')
@@ -132,15 +132,40 @@ export const MentorTaskManagement = () => {
             )
         },
         {
+            title: t('common.status'),
+            dataIndex: 'status',
+            key: 'status',
+            width: 120,
+            render: (status) => {
+                let color = 'default';
+                if (status === 'In Progress') color = 'blue';
+                if (status === 'Completed') color = 'success';
+                if (status === 'Under Review') color = 'warning';
+                const statusMap: any = {
+                    'In Progress': t('task_mgmt.in_progress'),
+                    'Under Review': t('task_mgmt.under_review'),
+                    Completed: t('task_mgmt.completed'),
+                    'To Do': t('task_mgmt.to_do')
+                };
+                return (
+                    <Tag color={color} style={{ borderRadius: '10px' }}>
+                        {statusMap[status] || status}
+                    </Tag>
+                );
+            }
+        },
+        {
             title: t('task_mgmt.task_title'),
             dataIndex: 'title',
             key: 'title',
+            ellipsis: true,
             render: (text) => <Text strong>{text}</Text>
         },
         {
             title: t('task_mgmt.intern'),
             dataIndex: 'intern',
             key: 'intern',
+            ellipsis: true,
             render: (text, record) => (
                 <Space>
                     <Avatar size='small' src={record.internAvatar} />
@@ -179,30 +204,9 @@ export const MentorTaskManagement = () => {
             )
         },
         {
-            title: t('common.status'),
-            dataIndex: 'status',
-            key: 'status',
-            render: (status) => {
-                let color = 'default';
-                if (status === 'In Progress') color = 'blue';
-                if (status === 'Completed') color = 'success';
-                if (status === 'Under Review') color = 'warning';
-                const statusMap: any = {
-                    'In Progress': t('task_mgmt.in_progress'),
-                    'Under Review': t('task_mgmt.under_review'),
-                    Completed: t('task_mgmt.completed'),
-                    'To Do': t('task_mgmt.to_do')
-                };
-                return (
-                    <Tag color={color} style={{ borderRadius: '10px' }}>
-                        {statusMap[status] || status}
-                    </Tag>
-                );
-            }
-        },
-        {
             title: t('common.actions'),
             key: 'action',
+            width: 80,
             render: (_, record) => (
                 <Dropdown menu={getActionMenu(record)} trigger={['click']}>
                     <Button type='text' icon={<EllipsisOutlined />} />
@@ -233,65 +237,7 @@ export const MentorTaskManagement = () => {
             </div>
 
             <Row gutter={[24, 24]}>
-                <Col xs={24} lg={6}>
-                    <Space direction='vertical' style={{ width: '100%' }} size='large'>
-                        <Card title={t('task_mgmt.stats')} bordered={false} style={{ borderRadius: '12px' }}>
-                            <div style={{ padding: '10px 0' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                    <Space>
-                                        <TeamOutlined style={{ color: '#136dec' }} />{' '}
-                                        <Text>{t('task_mgmt.active_interns')}</Text>
-                                    </Space>
-                                    <Text strong>4</Text>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                    <Space>
-                                        <ProjectOutlined style={{ color: '#faad14' }} />{' '}
-                                        <Text>{t('task_mgmt.open_tasks')}</Text>
-                                    </Space>
-                                    <Text strong>15</Text>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <Space>
-                                        <CheckCircleOutlined style={{ color: '#52c41a' }} />{' '}
-                                        <Text>{t('task_mgmt.completed')}</Text>
-                                    </Space>
-                                    <Text strong>42</Text>
-                                </div>
-                            </div>
-                        </Card>
-
-                        <Card title={t('task_mgmt.activity')} bordered={false} style={{ borderRadius: '12px' }}>
-                            <List
-                                itemLayout='horizontal'
-                                dataSource={[
-                                    { name: 'Sarah J.', action: 'submitted task', time: '10m ago' },
-                                    { name: 'David C.', action: 'started task', time: '1h ago' },
-                                    { name: 'Sarah J.', action: 'requested review', time: '3h ago' }
-                                ]}
-                                renderItem={(item) => (
-                                    <List.Item style={{ padding: '12px 0' }}>
-                                        <List.Item.Meta
-                                            avatar={<Avatar size='small' icon={<UserOutlined />} />}
-                                            title={
-                                                <Text style={{ fontSize: '13px' }}>
-                                                    <Text strong>{item.name}</Text> {item.action}
-                                                </Text>
-                                            }
-                                            description={
-                                                <Space style={{ fontSize: '11px' }}>
-                                                    <HistoryOutlined /> {item.time}
-                                                </Space>
-                                            }
-                                        />
-                                    </List.Item>
-                                )}
-                            />
-                        </Card>
-                    </Space>
-                </Col>
-
-                <Col xs={24} lg={18}>
+                <Col xs={24} lg={24}>
                     <Card bordered={false} style={{ borderRadius: '12px' }}>
                         <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
                             <Space size='middle'>
@@ -366,7 +312,7 @@ export const MentorTaskManagement = () => {
                                 rules={[{ required: true, message: t('common.required_field') }]}
                             >
                                 <Select
-                                    placeholder='Choose intern'
+                                    placeholder={t('task_mgmt.choose_intern')}
                                     options={internsData?.data?.hits?.map((i) => ({ value: i.id, label: i.name }))}
                                 />
                             </Form.Item>

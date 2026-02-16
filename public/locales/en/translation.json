@@ -295,7 +295,11 @@
         "on_track": "On Track",
         "behind": "Behind",
         "search_intern_task": "Search interns, tasks...",
-        "view_all_interns": "View All Interns"
+        "view_all_interns": "View All Interns",
+        "view_details": "View Details",
+        "approve_complete": "Approve / Complete",
+        "request_revision": "Request Revision",
+        "choose_intern": "Choose Intern"
     },
     "test": {
         "title": "Knowledge Test",
