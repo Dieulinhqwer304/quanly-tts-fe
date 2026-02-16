@@ -107,6 +107,7 @@
         "all_tracks": "Tất cả chuyên ngành"
     },
     "common": {
+        "loading": "Đang tải...",
         "actions": "Hành động",
         "status": "Trạng thái",
         "view": "Xem chi tiết",
