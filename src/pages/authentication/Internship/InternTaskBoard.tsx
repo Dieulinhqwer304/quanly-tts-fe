@@ -8,7 +8,6 @@ import {
     LinkOutlined,
     MessageOutlined,
     MoreOutlined,
-    PlusOutlined,
     UploadOutlined,
     UserOutlined
 } from '@ant-design/icons';
@@ -25,15 +24,13 @@ import {
     Typography,
     Upload,
     message,
-    Modal,
     Spin,
-    Empty,
-    Form
+    Empty
 } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useTasks, useUpdateTask, useCreateTask } from '../../../hooks/Internship/useTasks';
-import { CreateTaskParams, Task } from '../../../services/Internship/tasks';
+import { useTasks, useUpdateTask } from '../../../hooks/Internship/useTasks';
+import { Task } from '../../../services/Internship/tasks';
 import { useResponsive } from '../../../hooks/useResponsive';
 
 const { Content, Sider } = Layout;
@@ -44,12 +41,9 @@ export const InternTaskBoard = () => {
     const { isMobile, isLaptop } = useResponsive();
     const internId = 'intern-1'; // Mock for now, should come from auth
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [form] = Form.useForm();
 
     const { data: tasksData, isLoading: isTasksLoading } = useTasks({ internId });
     const updateTaskMutation = useUpdateTask();
-    const createTaskMutation = useCreateTask();
 
     const tasks = tasksData?.data?.hits || [];
 
@@ -65,24 +59,6 @@ export const InternTaskBoard = () => {
             }
         } catch {
             message.error(t('intern_task_board.task_move_failed'));
-        }
-    };
-
-    const handleCreateTask = async (
-        values: Pick<CreateTaskParams, 'title' | 'description' | 'priority' | 'dueDate'>
-    ) => {
-        try {
-            await createTaskMutation.mutateAsync({
-                ...values,
-                internId,
-                intern: 'Alex Johnson', // Mock
-                internAvatar: 'https://i.pravatar.cc/150?u=1' // Mock
-            });
-            setIsCreateModalOpen(false);
-            form.resetFields();
-            message.success(t('intern_task_board.task_created_success'));
-        } catch {
-            message.error(t('intern_task_board.task_create_failed'));
         }
     };
 
@@ -211,14 +187,6 @@ export const InternTaskBoard = () => {
                                 <UserOutlined /> {t('intern_task_board.mentor_label')}: Sarah Jenkins
                             </div>
                         </div>
-                        <Button
-                            type='primary'
-                            icon={<PlusOutlined />}
-                            size='large'
-                            onClick={() => setIsCreateModalOpen(true)}
-                        >
-                            {t('intern_task_board.new_task')}
-                        </Button>
                     </div>
 
                     <div
@@ -531,37 +499,6 @@ export const InternTaskBoard = () => {
                     </div>
                 </Sider>
             )}
-
-            <Modal
-                title={t('intern_task_board.create_task_title')}
-                open={isCreateModalOpen}
-                onOk={() => form.submit()}
-                onCancel={() => setIsCreateModalOpen(false)}
-                confirmLoading={createTaskMutation.isPending}
-                width={isMobile ? 'calc(100vw - 24px)' : 520}
-            >
-                <Form form={form} layout='vertical' onFinish={handleCreateTask}>
-                    <Form.Item name='title' label={t('task_mgmt.task_title')} rules={[{ required: true }]}>
-                        <Input placeholder={t('task_mgmt.task_title')} />
-                    </Form.Item>
-                    <Form.Item name='description' label={t('common.description')} rules={[{ required: true }]}>
-                        <Input.TextArea placeholder={t('common.description')} rows={3} />
-                    </Form.Item>
-                    <Form.Item name='priority' label={t('task_mgmt.priority')} rules={[{ required: true }]}>
-                        <Select
-                            placeholder={t('task_mgmt.priority')}
-                            options={[
-                                { value: 'High', label: t('task_mgmt.high') },
-                                { value: 'Medium', label: t('task_mgmt.medium') },
-                                { value: 'Low', label: t('task_mgmt.low') }
-                            ]}
-                        />
-                    </Form.Item>
-                    <Form.Item name='dueDate' label={t('task_mgmt.due_date')} rules={[{ required: true }]}>
-                        <Input type='date' />
-                    </Form.Item>
-                </Form>
-            </Modal>
         </Layout>
     );
 };
