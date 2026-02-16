@@ -565,5 +565,24 @@
         "nav_msg": "Đang chuyển đến: {{path}}",
         "download_msg": "Đang tải xuống {{file}}...",
         "calendar_msg": "Đang mở lịch..."
+    },
+    "admin": {
+        "user_mgmt": "Quản lý người dùng",
+        "user_mgmt_desc": "Quản lý tài khoản, vai trò và quyền truy cập của nhân viên.",
+        "add_user": "Thêm người dùng mới",
+        "edit_user": "Cập nhật người dùng",
+        "delete_user": "Xóa người dùng",
+        "permission_mgmt": "Phân quyền hệ thống",
+        "permission_mgmt_desc": "Định nghĩa các vai trò và gán quyền hạn chi tiết cho từng nhóm người dùng.",
+        "add_role": "Tạo vai trò mới",
+        "edit_permissions": "Cấu hình quyền hạn",
+        "role_name": "Tên vai trò",
+        "role_description": "Mô tả vai trò",
+        "user_count": "Số người dùng",
+        "last_login": "Đăng nhập cuối",
+        "full_name": "Họ và tên",
+        "role_label": "Vai trò",
+        "status_active": "Đang hoạt động",
+        "status_inactive": "Đã khóa"
     }
 }
