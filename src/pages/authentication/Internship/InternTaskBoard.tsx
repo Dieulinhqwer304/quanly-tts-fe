@@ -31,6 +31,7 @@ import {
     Form
 } from 'antd';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTasks, useUpdateTask, useCreateTask } from '../../../hooks/Internship/useTasks';
 import { CreateTaskParams, Task } from '../../../services/Internship/tasks';
 import { useResponsive } from '../../../hooks/useResponsive';
@@ -39,6 +40,7 @@ const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
 
 export const InternTaskBoard = () => {
+    const { t } = useTranslation();
     const { isMobile, isLaptop } = useResponsive();
     const internId = 'intern-1'; // Mock for now, should come from auth
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -57,12 +59,12 @@ export const InternTaskBoard = () => {
                 id: task.id,
                 status: newStatus
             });
-            message.success(`Task moved to ${newStatus}`);
+            message.success(t('intern_task_board.task_moved_success', { status: newStatus }));
             if (selectedTask?.id === task.id) {
                 setSelectedTask({ ...selectedTask, status: newStatus });
             }
         } catch {
-            message.error('Failed to move task');
+            message.error(t('intern_task_board.task_move_failed'));
         }
     };
 
@@ -78,9 +80,9 @@ export const InternTaskBoard = () => {
             });
             setIsCreateModalOpen(false);
             form.resetFields();
-            message.success('New task created!');
+            message.success(t('intern_task_board.task_created_success'));
         } catch {
-            message.error('Failed to create task');
+            message.error(t('intern_task_board.task_create_failed'));
         }
     };
 
@@ -106,7 +108,7 @@ export const InternTaskBoard = () => {
                     }}
                     disabled={task.status === 'To Do'}
                 >
-                    To Do
+                    {t('task_mgmt.to_do')}
                 </Button>,
                 <Button
                     type='text'
@@ -117,7 +119,7 @@ export const InternTaskBoard = () => {
                     }}
                     disabled={task.status === 'In Progress'}
                 >
-                    Progress
+                    {t('task_mgmt.in_progress')}
                 </Button>,
                 <Button
                     type='text'
@@ -128,13 +130,13 @@ export const InternTaskBoard = () => {
                     }}
                     disabled={task.status === 'Completed'}
                 >
-                    Done
+                    {t('task_mgmt.completed')}
                 </Button>
             ]}
         >
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <Tag color={task.priority === 'High' ? 'red' : task.priority === 'Medium' ? 'orange' : 'green'}>
-                    {task.priority}
+                    {t(`task_mgmt.${task.priority.toLowerCase()}`)}
                 </Tag>
                 <MoreOutlined style={{ color: '#8c8c8c' }} />
             </div>
@@ -178,9 +180,11 @@ export const InternTaskBoard = () => {
                             marginBottom: '8px'
                         }}
                     >
-                        <span>Phase 2</span> <span style={{ fontSize: '10px' }}>▶</span> <span>Project Alpha</span>{' '}
+                        <span>{t('intern_task_board.breadcrumb_phase')}</span>{' '}
                         <span style={{ fontSize: '10px' }}>▶</span>{' '}
-                        <span style={{ color: '#111827', fontWeight: 500 }}>Task Board</span>
+                        <span>{t('intern_task_board.breadcrumb_project')}</span>{' '}
+                        <span style={{ fontSize: '10px' }}>▶</span>{' '}
+                        <span style={{ color: '#111827', fontWeight: 500 }}>{t('menu.task_board')}</span>
                     </div>
                     <div
                         style={{
@@ -193,7 +197,7 @@ export const InternTaskBoard = () => {
                     >
                         <div>
                             <Title level={2} style={{ margin: 0 }}>
-                                Phase 2: Project Deliverables
+                                {t('intern_task_board.title')}
                             </Title>
                             <div
                                 style={{
@@ -204,7 +208,7 @@ export const InternTaskBoard = () => {
                                     marginTop: '4px'
                                 }}
                             >
-                                <UserOutlined /> Mentor: Sarah Jenkins
+                                <UserOutlined /> {t('intern_task_board.mentor_label')}: Sarah Jenkins
                             </div>
                         </div>
                         <Button
@@ -213,7 +217,7 @@ export const InternTaskBoard = () => {
                             size='large'
                             onClick={() => setIsCreateModalOpen(true)}
                         >
-                            New Task
+                            {t('intern_task_board.new_task')}
                         </Button>
                     </div>
 
@@ -232,17 +236,17 @@ export const InternTaskBoard = () => {
                                 style={{ background: '#fff', fontWeight: 500 }}
                                 icon={<CheckSquareOutlined />}
                             >
-                                Kanban Board
+                                {t('intern_task_board.kanban_board')}
                             </Button>
                         </Space>
                         <Space wrap>
                             <Select
-                                defaultValue='All Priorities'
+                                defaultValue={t('intern_task_board.all_priorities')}
                                 style={{ width: 140 }}
                                 bordered={false}
                                 className='bg-white rounded-lg border border-gray-200'
                             />
-                            <Button icon={<FilterOutlined />}>More Filters</Button>
+                            <Button icon={<FilterOutlined />}>{t('common.more_filters')}</Button>
                         </Space>
                     </div>
                 </div>
@@ -258,7 +262,7 @@ export const InternTaskBoard = () => {
                             }}
                         >
                             <div style={{ fontWeight: 600, color: '#374151' }}>
-                                To Do{' '}
+                                {t('task_mgmt.to_do')}{' '}
                                 <Tag style={{ marginLeft: '8px', borderRadius: '12px' }}>
                                     {tasks.filter((t) => t.status === 'To Do').length}
                                 </Tag>
@@ -267,7 +271,10 @@ export const InternTaskBoard = () => {
                         <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px' }}>
                             {tasks.filter((t) => t.status === 'To Do').map(renderTaskCard)}
                             {tasks.filter((t) => t.status === 'To Do').length === 0 && (
-                                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description='No tasks' />
+                                <Empty
+                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                    description={t('intern_task_board.no_tasks')}
+                                />
                             )}
                         </div>
                     </div>
@@ -282,7 +289,7 @@ export const InternTaskBoard = () => {
                             }}
                         >
                             <div style={{ fontWeight: 600, color: '#374151' }}>
-                                In Progress{' '}
+                                {t('task_mgmt.in_progress')}{' '}
                                 <Tag color='blue' style={{ marginLeft: '8px', borderRadius: '12px' }}>
                                     {tasks.filter((t) => t.status === 'In Progress').length}
                                 </Tag>
@@ -301,7 +308,10 @@ export const InternTaskBoard = () => {
                         >
                             {tasks.filter((t) => t.status === 'In Progress').map(renderTaskCard)}
                             {tasks.filter((t) => t.status === 'In Progress').length === 0 && (
-                                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description='No tasks in progress' />
+                                <Empty
+                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                    description={t('intern_task_board.no_tasks_in_progress')}
+                                />
                             )}
                         </div>
                     </div>
@@ -316,7 +326,7 @@ export const InternTaskBoard = () => {
                             }}
                         >
                             <div style={{ fontWeight: 600, color: '#374151' }}>
-                                Done{' '}
+                                {t('task_mgmt.completed')}{' '}
                                 <Tag color='green' style={{ marginLeft: '8px', borderRadius: '12px' }}>
                                     {tasks.filter((t) => t.status === 'Completed').length}
                                 </Tag>
@@ -325,7 +335,10 @@ export const InternTaskBoard = () => {
                         <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px', opacity: 0.7 }}>
                             {tasks.filter((t) => t.status === 'Completed').map(renderTaskCard)}
                             {tasks.filter((t) => t.status === 'Completed').length === 0 && (
-                                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description='No completed tasks' />
+                                <Empty
+                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                    description={t('intern_task_board.no_completed_tasks')}
+                                />
                             )}
                         </div>
                     </div>
@@ -363,13 +376,20 @@ export const InternTaskBoard = () => {
                                     marginBottom: '4px'
                                 }}
                             >
-                                Selected Task
+                                {t('intern_task_board.selected_task')}
                             </Text>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <div
                                     style={{ width: '8px', height: '8px', background: '#136dec', borderRadius: '50%' }}
                                 ></div>
-                                <span style={{ fontWeight: 500 }}>{selectedTask.status}</span>
+                                <span style={{ fontWeight: 500 }}>
+                                    {t(
+                                        `task_mgmt.${selectedTask.status
+                                            .toLowerCase()
+                                            .replace(' ', '_')
+                                            .replace('completed', 'completed')}`
+                                    )}
+                                </span>
                             </div>
                         </div>
                         <Button type='text' icon={<CloseOutlined />} onClick={() => setSelectedTask(null)} />
@@ -382,9 +402,11 @@ export const InternTaskBoard = () => {
 
                         <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
                             <Tag color='orange' icon={<FlagOutlined />}>
-                                Priority: {selectedTask.priority}
+                                {t('task_mgmt.priority')}: {t(`task_mgmt.${selectedTask.priority.toLowerCase()}`)}
                             </Tag>
-                            <Tag icon={<CalendarOutlined />}>Due: {selectedTask.dueDate}</Tag>
+                            <Tag icon={<CalendarOutlined />}>
+                                {t('intern_dashboard.due')}: {selectedTask.dueDate}
+                            </Tag>
                         </div>
 
                         <Paragraph type='secondary' style={{ marginBottom: '24px' }}>
@@ -403,7 +425,8 @@ export const InternTaskBoard = () => {
                                     marginBottom: '12px'
                                 }}
                             >
-                                <UploadOutlined style={{ color: '#136dec' }} /> Submit Deliverable
+                                <UploadOutlined style={{ color: '#136dec' }} />{' '}
+                                {t('intern_task_board.submit_deliverable')}
                             </div>
                             <div style={{ marginBottom: '12px' }}>
                                 <Text
@@ -415,7 +438,7 @@ export const InternTaskBoard = () => {
                                         marginBottom: '4px'
                                     }}
                                 >
-                                    Repository / PR Link
+                                    {t('intern_task_board.repo_link')}
                                 </Text>
                                 <Input
                                     prefix={<LinkOutlined style={{ color: '#9ca3af' }} />}
@@ -435,7 +458,7 @@ export const InternTaskBoard = () => {
                                     <CloudUploadOutlined style={{ fontSize: '24px', color: '#9ca3af' }} />
                                 </p>
                                 <p className='ant-upload-text' style={{ fontSize: '12px' }}>
-                                    Click to upload report
+                                    {t('intern_task_board.upload_report')}
                                 </p>
                             </Upload.Dragger>
 
@@ -445,7 +468,7 @@ export const InternTaskBoard = () => {
                                 onClick={() => moveTask(selectedTask, 'Under Review')}
                                 loading={updateTaskMutation.isPending}
                             >
-                                Submit for Review
+                                {t('intern_task_board.submit_for_review')}
                             </Button>
                         </div>
 
@@ -461,7 +484,8 @@ export const InternTaskBoard = () => {
                                     marginBottom: '16px'
                                 }}
                             >
-                                <MessageOutlined style={{ color: '#722ed1' }} /> Mentor Feedback
+                                <MessageOutlined style={{ color: '#722ed1' }} />{' '}
+                                {t('intern_task_board.mentor_feedback')}
                             </div>
 
                             <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
@@ -499,7 +523,7 @@ export const InternTaskBoard = () => {
                                         size='small'
                                         style={{ padding: 0, marginTop: '4px', fontSize: '12px' }}
                                     >
-                                        Reply
+                                        {t('common.reply')}
                                     </Button>
                                 </div>
                             </div>
@@ -509,7 +533,7 @@ export const InternTaskBoard = () => {
             )}
 
             <Modal
-                title='Create New Task'
+                title={t('intern_task_board.create_task_title')}
                 open={isCreateModalOpen}
                 onOk={() => form.submit()}
                 onCancel={() => setIsCreateModalOpen(false)}
@@ -517,23 +541,23 @@ export const InternTaskBoard = () => {
                 width={isMobile ? 'calc(100vw - 24px)' : 520}
             >
                 <Form form={form} layout='vertical' onFinish={handleCreateTask}>
-                    <Form.Item name='title' label='Task Title' rules={[{ required: true }]}>
-                        <Input placeholder='Task Title' />
+                    <Form.Item name='title' label={t('task_mgmt.task_title')} rules={[{ required: true }]}>
+                        <Input placeholder={t('task_mgmt.task_title')} />
                     </Form.Item>
-                    <Form.Item name='description' label='Description' rules={[{ required: true }]}>
-                        <Input.TextArea placeholder='Description' rows={3} />
+                    <Form.Item name='description' label={t('common.description')} rules={[{ required: true }]}>
+                        <Input.TextArea placeholder={t('common.description')} rows={3} />
                     </Form.Item>
-                    <Form.Item name='priority' label='Priority' rules={[{ required: true }]}>
+                    <Form.Item name='priority' label={t('task_mgmt.priority')} rules={[{ required: true }]}>
                         <Select
-                            placeholder='Priority'
+                            placeholder={t('task_mgmt.priority')}
                             options={[
-                                { value: 'High', label: 'High' },
-                                { value: 'Medium', label: 'Medium' },
-                                { value: 'Low', label: 'Low' }
+                                { value: 'High', label: t('task_mgmt.high') },
+                                { value: 'Medium', label: t('task_mgmt.medium') },
+                                { value: 'Low', label: t('task_mgmt.low') }
                             ]}
                         />
                     </Form.Item>
-                    <Form.Item name='dueDate' label='Due Date' rules={[{ required: true }]}>
+                    <Form.Item name='dueDate' label={t('task_mgmt.due_date')} rules={[{ required: true }]}>
                         <Input type='date' />
                     </Form.Item>
                 </Form>

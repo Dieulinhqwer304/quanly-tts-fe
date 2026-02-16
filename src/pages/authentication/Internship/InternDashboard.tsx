@@ -16,6 +16,7 @@ import {
 } from '@ant-design/icons';
 import { Avatar, Button, Card, Col, Progress, Row, Tag, Timeline, Typography, message, Skeleton } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useIntern } from '../../../hooks/Internship/useInterns';
 import { useTasks } from '../../../hooks/Internship/useTasks';
 import { useLearningPath } from '../../../hooks/Internship/useLearningPath';
@@ -27,6 +28,7 @@ dayjs.extend(relativeTime);
 const { Title, Text } = Typography;
 
 export const InternDashboard = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const internId = 'ITS-001'; // Default for now, ideally from auth context
 
@@ -46,11 +48,11 @@ export const InternDashboard = () => {
         .sort((a, b) => dayjs(a.dueDate).diff(dayjs(b.dueDate)))[0];
 
     const handleNavigation = (path: string) => {
-        message.info(`Navigating to: ${path}`);
+        message.info(t('intern_dashboard.nav_msg', { path }));
     };
 
     const handleDownload = (file: string) => {
-        message.success(`Downloading ${file}...`);
+        message.success(t('intern_dashboard.download_msg', { file }));
     };
 
     if (isLoadingIntern || isLoadingTasks || isLoadingLP) {
@@ -74,10 +76,10 @@ export const InternDashboard = () => {
                 }}
             >
                 <span style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-                    Home
+                    {t('menu.dashboard')}
                 </span>
                 <RightOutlined style={{ fontSize: '10px' }} />
-                <span style={{ cursor: 'pointer' }}>Internship Program</span>
+                <span style={{ cursor: 'pointer' }}>{t('intern_dashboard.breadcrumb_program')}</span>
                 <RightOutlined style={{ fontSize: '10px' }} />
                 <span style={{ color: '#136dec', fontWeight: 600 }}>Phase 1: Foundations</span>
             </div>
@@ -114,7 +116,7 @@ export const InternDashboard = () => {
                                 marginRight: '8px'
                             }}
                         ></span>
-                        Current Track
+                        {t('intern_dashboard.current_track')}
                     </Tag>
                     <Title level={1} style={{ margin: '0 0 8px 0' }}>
                         {intern?.track || 'Software Development Track'}
@@ -130,16 +132,16 @@ export const InternDashboard = () => {
                         size='large'
                         onClick={() => handleDownload('Syllabus_Q3_2024.pdf')}
                     >
-                        Syllabus
+                        {t('intern_dashboard.syllabus')}
                     </Button>
                     <Button
                         icon={<CalendarOutlined />}
                         size='large'
                         type='primary'
                         style={{ background: '#101822' }}
-                        onClick={() => message.info('Opening Calendar...')}
+                        onClick={() => message.info(t('intern_dashboard.calendar_msg'))}
                     >
-                        Schedule
+                        {t('intern_dashboard.schedule')}
                     </Button>
                 </div>
             </div>
@@ -251,7 +253,11 @@ export const InternDashboard = () => {
                                                             marginBottom: '8px'
                                                         }}
                                                     >
-                                                        {module.status === 'Ready' ? 'Completed' : module.status}
+                                                        {module.status === 'Ready'
+                                                            ? t('common.completed')
+                                                            : module.status === 'In Progress'
+                                                              ? t('task_mgmt.in_progress')
+                                                              : t('common.locked')}
                                                     </Tag>
                                                     <Title
                                                         level={module.status === 'In Progress' ? 3 : 4}
@@ -268,7 +274,7 @@ export const InternDashboard = () => {
                                                         style={{ background: '#136dec' }}
                                                         onClick={() => navigate('/internship/tasks')}
                                                     >
-                                                        Go to Tasks
+                                                        {t('intern_dashboard.go_to_tasks')}
                                                     </Button>
                                                 )}
                                             </div>
@@ -342,7 +348,11 @@ export const InternDashboard = () => {
                                                                                   : 'default'
                                                                         }
                                                                     >
-                                                                        {task.status}
+                                                                        {t(
+                                                                            `task_mgmt.${task.status
+                                                                                .toLowerCase()
+                                                                                .replace(' ', '_')}`
+                                                                        )}
                                                                     </Tag>
                                                                 </div>
                                                                 <div
@@ -355,11 +365,14 @@ export const InternDashboard = () => {
                                                                     }}
                                                                 >
                                                                     <span>
-                                                                        <CalendarOutlined /> Due{' '}
+                                                                        <CalendarOutlined /> {t('intern_dashboard.due')}{' '}
                                                                         {dayjs(task.dueDate).format('MMM DD, YYYY')}
                                                                     </span>
                                                                     <span>•</span>
-                                                                    <span>{task.priority} Priority</span>
+                                                                    <span>
+                                                                        {t(`task_mgmt.${task.priority.toLowerCase()}`)}{' '}
+                                                                        {t('task_mgmt.priority')}
+                                                                    </span>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -373,13 +386,13 @@ export const InternDashboard = () => {
                                                     style={{ padding: 0 }}
                                                     onClick={() => handleNavigation(`Module ${module.id} Review`)}
                                                 >
-                                                    Review Materials
+                                                    {t('intern_dashboard.review_materials')}
                                                 </Button>
                                             )}
 
                                             {module.status === 'Locked' && (
                                                 <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                    <InfoCircleOutlined /> Complete previous module to unlock
+                                                    <InfoCircleOutlined /> {t('intern_dashboard.unlock_info')}
                                                 </Text>
                                             )}
                                         </div>
@@ -411,9 +424,9 @@ export const InternDashboard = () => {
                                         style={{ borderRadius: '12px', border: '1px dashed #d9d9d9', opacity: 0.5 }}
                                     >
                                         <Title level={4} style={{ margin: '0 0 4px 0' }}>
-                                            Phase 1 Capstone Exam
+                                            {t('intern_dashboard.capstone_title')}
                                         </Title>
-                                        <Text type='secondary'>Final assessment covering all modules in Phase 1.</Text>
+                                        <Text type='secondary'>{t('intern_dashboard.capstone_desc')}</Text>
                                     </Card>
                                 )
                             }
@@ -455,7 +468,7 @@ export const InternDashboard = () => {
                                             textTransform: 'uppercase'
                                         }}
                                     >
-                                        <ClockCircleOutlined /> Upcoming Deadline
+                                        <ClockCircleOutlined /> {t('intern_dashboard.upcoming_deadline')}
                                     </div>
                                     <Title level={4} style={{ color: 'white', margin: '0 0 4px 0' }}>
                                         {upcomingTask.title}
@@ -500,7 +513,7 @@ export const InternDashboard = () => {
                                                 {dayjs(upcomingTask.dueDate).format('h:mm A')}
                                             </div>
                                             <div style={{ fontSize: '12px', color: '#fca5a5' }}>
-                                                Due {dayjs(upcomingTask.dueDate).fromNow()}
+                                                {t('intern_dashboard.due')} {dayjs(upcomingTask.dueDate).fromNow()}
                                             </div>
                                         </div>
                                     </div>
@@ -513,7 +526,7 @@ export const InternDashboard = () => {
                                 <Avatar size={48} src={`https://i.pravatar.cc/150?u=${intern?.mentor}`} />
                                 <div style={{ flex: 1 }}>
                                     <Text strong style={{ display: 'block' }}>
-                                        {intern?.mentor || 'Assigned Mentor'}
+                                        {intern?.mentor || t('internship.mentor')}
                                     </Text>
                                     <Text type='secondary' style={{ fontSize: '12px' }}>
                                         Senior Engineer • Mentor
