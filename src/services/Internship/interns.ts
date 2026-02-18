@@ -8,44 +8,39 @@ import {
 
 export interface Intern {
     id: string;
-    name: string;
-    avatar: string;
-    email: string;
-    phone: string;
+    userId: string;
+    user?: {
+        fullName: string;
+        avatarUrl: string;
+        email: string;
+        phone: string;
+    };
+    code: string;
     track: string;
-    mentor: string;
+    mentorId: string;
+    mentor?: {
+        fullName: string;
+    };
+    department: string;
     startDate: string;
     endDate: string;
-    progress: number;
-    status: 'Active' | 'Completed' | 'Dropped';
+    overallProgress: number;
+    status: string;
     createdAt: string;
     updatedAt: string;
 }
 
-export interface GetInternsParams {
-    pagination?: PaginateParams;
-    searcher?: SearchParams;
-    track?: string;
-    status?: string;
-}
+export const getInterns = async (params?: any): Promise<ResponseListSuccess<Intern>> => {
+    const response = await http.get('/interns', {
+        params: {
+            page: params?.pagination?.page,
+            limit: params?.pagination?.pageSize,
+            search: params?.searcher?.keyword,
+            track: params?.track !== 'All' ? params?.track : undefined,
+            status: params?.status !== 'All' ? params?.status : undefined
+        }
+    });
 
-export const getInterns = async (params?: GetInternsParams): Promise<ResponseListSuccess<Intern>> => {
-    const queryParams: any = {
-        q: params?.searcher?.keyword,
-        _page: params?.pagination?.page || 1,
-        _limit: params?.pagination?.pageSize || 10
-    };
-
-    if (params?.track && params.track !== 'All') {
-        queryParams.track = params.track;
-    }
-
-    if (params?.status && params.status !== 'All') {
-        queryParams.status = params.status;
-    }
-
-    const response = await http.get('/interns', { params: queryParams });
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
     const data = response.data;
 
     return {
@@ -53,8 +48,8 @@ export const getInterns = async (params?: GetInternsParams): Promise<ResponseLis
         data: {
             hits: data,
             pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
+                totalPages: 1,
+                totalRows: data.length
             }
         }
     };
@@ -70,9 +65,9 @@ export const getIntern = async (id: string): Promise<ResponseDetailSuccess<Inter
 
 export interface UpdateInternParams {
     id: string;
-    progress?: number;
+    overallProgress?: number;
     status?: string;
-    mentor?: string;
+    mentorId?: string;
 }
 
 export const updateIntern = async (params: UpdateInternParams): Promise<ResponseDetailSuccess<Intern>> => {

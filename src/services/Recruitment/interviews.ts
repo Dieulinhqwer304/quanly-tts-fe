@@ -9,40 +9,38 @@ import {
 export interface Interview {
     id: string;
     candidateId: string;
-    candidateName: string;
+    candidate?: {
+        fullName: string;
+    };
     jobId: string;
-    jobTitle: string;
-    date: string;
-    time: string;
-    duration: string;
-    format: 'Online' | 'In Person';
+    job?: {
+        title: string;
+    };
+    interviewDate: string;
+    interviewTime: string;
+    durationMinutes: number;
+    format: string;
     location: string;
-    interviewer: string;
-    status: 'Scheduled' | 'Completed' | 'Cancelled';
+    interviewerId: string;
+    interviewer?: {
+        fullName: string;
+    };
+    status: string;
     notes: string;
     createdAt: string;
     updatedAt: string;
 }
 
-export interface GetInterviewsParams {
-    pagination?: PaginateParams;
-    searcher?: SearchParams;
-    status?: string;
-}
+export const getInterviews = async (params?: any): Promise<ResponseListSuccess<Interview>> => {
+    const response = await http.get('/interviews', {
+        params: {
+            page: params?.pagination?.page,
+            limit: params?.pagination?.pageSize,
+            search: params?.searcher?.keyword,
+            status: params?.status !== 'all' ? params?.status : undefined
+        }
+    });
 
-export const getInterviews = async (params?: GetInterviewsParams): Promise<ResponseListSuccess<Interview>> => {
-    const queryParams: any = {
-        q: params?.searcher?.keyword,
-        _page: params?.pagination?.page || 1,
-        _limit: params?.pagination?.pageSize || 10
-    };
-
-    if (params?.status && params.status !== 'all') {
-        queryParams.status = params.status;
-    }
-
-    const response = await http.get('/interviews', { params: queryParams });
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
     const data = response.data;
 
     return {
@@ -50,8 +48,8 @@ export const getInterviews = async (params?: GetInterviewsParams): Promise<Respo
         data: {
             hits: data,
             pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
+                totalPages: 1,
+                totalRows: data.length
             }
         }
     };

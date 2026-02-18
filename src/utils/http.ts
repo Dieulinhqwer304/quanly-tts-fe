@@ -1,5 +1,6 @@
 import { message } from 'antd';
 import axios, { AxiosInstance } from 'axios';
+import Cookies from 'js-cookie';
 
 class Http {
     instance: AxiosInstance;
@@ -31,6 +32,10 @@ class Http {
         // Thêm interceptor để xử lý request cho instance có authentication
         this.instance.interceptors.request.use(
             (config) => {
+                const token = Cookies.get('accessToken');
+                if (token) {
+                    config.headers.Authorization = `Bearer ${token}`;
+                }
                 return config;
             },
             (error) => {

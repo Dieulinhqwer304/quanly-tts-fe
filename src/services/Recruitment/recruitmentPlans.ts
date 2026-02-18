@@ -28,15 +28,14 @@ export interface GetRecruitmentPlansParams {
 export const getRecruitmentPlans = async (
     params?: GetRecruitmentPlansParams
 ): Promise<ResponseListSuccess<RecruitmentPlan>> => {
-    const response = await http.get('/recruitmentPlans', {
+    const response = await http.get('/recruitment-plans', {
         params: {
-            q: params?.searcher?.keyword,
-            _page: params?.pagination?.page || 1,
-            _limit: params?.pagination?.pageSize || 10
+            page: params?.pagination?.page,
+            limit: params?.pagination?.pageSize,
+            search: params?.searcher?.keyword
         }
     });
 
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
     const data = response.data;
 
     return {
@@ -44,15 +43,15 @@ export const getRecruitmentPlans = async (
         data: {
             hits: data,
             pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
+                totalPages: 1,
+                totalRows: data.length
             }
         }
     };
 };
 
 export const getRecruitmentPlan = async (id: string): Promise<ResponseDetailSuccess<RecruitmentPlan>> => {
-    const response = await http.get(`/recruitmentPlans/${id}`);
+    const response = await http.get(`/recruitment-plans/${id}`);
     return {
         code: 200,
         data: response.data
@@ -72,7 +71,7 @@ export interface CreateRecruitmentPlanParams {
 export const createRecruitmentPlan = async (
     params: CreateRecruitmentPlanParams
 ): Promise<ResponseDetailSuccess<RecruitmentPlan>> => {
-    const response = await http.post('/recruitmentPlans', {
+    const response = await http.post('/recruitment-plans', {
         ...params,
         candidates: 0,
         createdAt: new Date().toISOString(),
@@ -99,7 +98,7 @@ export const updateRecruitmentPlan = async (
     params: UpdateRecruitmentPlanParams
 ): Promise<ResponseDetailSuccess<RecruitmentPlan>> => {
     const { id, ...data } = params;
-    const response = await http.patch(`/recruitmentPlans/${id}`, {
+    const response = await http.patch(`/recruitment-plans/${id}`, {
         ...data,
         updatedAt: new Date().toISOString()
     });
@@ -116,7 +115,7 @@ export interface DeleteRecruitmentPlanParams {
 export const deleteRecruitmentPlan = async (
     params: DeleteRecruitmentPlanParams
 ): Promise<ResponseDetailSuccess<null>> => {
-    await http.delete(`/recruitmentPlans/${params.id}`);
+    await http.delete(`/recruitment-plans/${params.id}`);
     return {
         code: 200,
         data: null

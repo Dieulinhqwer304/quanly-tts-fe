@@ -1,22 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as onboardingService from '../../services/Recruitment/onboarding';
-import { GetOnboardingParams, UpdateOnboardingParams } from '../../services/Recruitment/onboarding';
-import { MOCK_DATA } from '../../constants/MockData';
+import { UpdateOnboardingParams } from '../../services/Recruitment/onboarding';
 
-export const useOnboardingList = (params?: GetOnboardingParams) => {
+export const useOnboardingList = (params?: any) => {
     return useQuery({
         queryKey: ['onboardingList', params],
-        queryFn: () => onboardingService.getOnboardingList(params),
-        initialData: {
-            code: 200,
-            data: {
-                hits: MOCK_DATA.onboarding as onboardingService.Onboarding[],
-                pagination: {
-                    totalPages: 1,
-                    totalRows: MOCK_DATA.onboarding.length
-                }
-            }
-        }
+        queryFn: () => onboardingService.getOnboardingList(params)
     });
 };
 
@@ -31,8 +20,7 @@ export const useOnboarding = (id: string) => {
 export const useCreateOnboarding = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (params: onboardingService.CreateOnboardingParams) =>
-            onboardingService.createOnboarding(params),
+        mutationFn: (params: onboardingService.CreateOnboardingParams) => onboardingService.createOnboarding(params),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['onboardingList'] });
             queryClient.invalidateQueries({ queryKey: ['interns'] });

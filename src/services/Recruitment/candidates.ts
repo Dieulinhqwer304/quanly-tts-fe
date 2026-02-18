@@ -8,55 +8,48 @@ import {
 
 export interface Candidate {
     id: string;
-    name: string;
+    fullName: string;
     email: string;
     phone: string;
     location: string;
-    avatar: string;
-    role: string;
+    avatarUrl: string;
     education: string;
     experience: string;
     skills: string[];
     resumeUrl: string;
     appliedDate: string;
-    appliedFor: string;
-    appliedForTitle: string;
-    status: 'Pending Review' | 'CV Screened' | 'Shortlisted' | 'Interview Scheduled' | 'Passed Interview' | 'Rejected';
+    job?: {
+        id: string;
+        title: string;
+        department: string;
+    };
+    status: string;
     matchScore: number;
-    timeAgo: string;
     coverLetter: string;
     createdAt: string;
     updatedAt: string;
 }
 
 export interface GetCandidatesParams {
-    pagination?: PaginateParams;
-    searcher?: SearchParams;
+    page?: number;
+    limit?: number;
     status?: string;
+    search?: string;
 }
 
 export const getCandidates = async (params?: GetCandidatesParams): Promise<ResponseListSuccess<Candidate>> => {
-    const queryParams: any = {
-        q: params?.searcher?.keyword,
-        _page: params?.pagination?.page || 1,
-        _limit: params?.pagination?.pageSize || 10
-    };
-
-    if (params?.status && params.status !== 'all') {
-        queryParams.status = params.status;
-    }
-
-    const response = await http.get('/candidates', { params: queryParams });
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
+    const response = await http.get('/candidates', { params });
     const data = response.data;
 
+    // Backend hiện đang trả về array trực tiếp (chưa phân trang ở tầng controller)
+    // Tôi sẽ giả lập cấu trúc bọc để khớp với UI
     return {
         code: 200,
         data: {
             hits: data,
             pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
+                totalPages: 1,
+                totalRows: data.length
             }
         }
     };

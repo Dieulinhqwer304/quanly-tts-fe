@@ -1,0 +1,51 @@
+image: node:22
+
+cache:
+  paths:
+    - .yarn
+    - node_modules/
+
+stages:
+  - install
+  - test
+  - build
+  - deploy
+
+install_dependencies:
+  stage: install
+  script:
+    - yarn install --frozen-lockfile
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 1 hour
+
+lint_and_format:
+  stage: test
+  script:
+    - yarn format:check
+    - yarn lint
+  dependencies:
+    - install_dependencies
+
+build_project:
+  stage: build
+  script:
+    - yarn build
+  artifacts:
+    paths:
+      - dist/
+  dependencies:
+    - install_dependencies
+
+deploy_production:
+  stage: deploy
+  script:
+    - echo "Deploying to production server..."
+  artifacts:
+    paths:
+      - dist/
+  only:
+    - main
+  dependencies:
+    - build_project

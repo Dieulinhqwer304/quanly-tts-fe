@@ -8,43 +8,37 @@ import {
 
 export interface JobPosition {
     id: string;
+    code: string;
     title: string;
-    campaign: string;
-    campaignId: string;
+    recruitmentPlanId: string;
+    recruitmentPlan?: {
+        id: string;
+        name: string;
+    };
     department: string;
     level: string;
-    required: number;
-    filled: number;
-    status: 'Open' | 'Closed' | 'On Hold';
+    requiredQuantity: number;
+    filledQuantity: number;
+    status: string;
     postedDate: string;
     description: string;
     requirements: string;
     location: string;
-    salary: string;
+    salaryRange: string;
     createdAt: string;
     updatedAt: string;
 }
 
-export interface GetJobPositionsParams {
-    pagination?: PaginateParams;
-    searcher?: SearchParams;
-    department?: string;
-    status?: 'Open' | 'Closed' | 'On Hold';
-}
+export const getJobPositions = async (params?: any): Promise<ResponseListSuccess<JobPosition>> => {
+    const response = await http.get('/job-positions', {
+        params: {
+            page: params?.pagination?.page,
+            limit: params?.pagination?.pageSize,
+            search: params?.searcher?.keyword,
+            department: params?.department !== 'All' ? params?.department : undefined
+        }
+    });
 
-export const getJobPositions = async (params?: GetJobPositionsParams): Promise<ResponseListSuccess<JobPosition>> => {
-    const queryParams: any = {
-        q: params?.searcher?.keyword,
-        _page: params?.pagination?.page || 1,
-        _limit: params?.pagination?.pageSize || 10
-    };
-
-    if (params?.department && params.department !== 'All') {
-        queryParams.department = params.department;
-    }
-
-    const response = await http.get('/jobPositions', { params: queryParams });
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
     const data = response.data;
 
     return {
@@ -52,15 +46,15 @@ export const getJobPositions = async (params?: GetJobPositionsParams): Promise<R
         data: {
             hits: data,
             pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
+                totalPages: 1,
+                totalRows: data.length
             }
         }
     };
 };
 
 export const getJobPosition = async (id: string): Promise<ResponseDetailSuccess<JobPosition>> => {
-    const response = await http.get(`/jobPositions/${id}`);
+    const response = await http.get(`/job-positions/${id}`);
     return {
         code: 200,
         data: response.data
@@ -83,7 +77,7 @@ export interface CreateJobPositionParams {
 export const createJobPosition = async (
     params: CreateJobPositionParams
 ): Promise<ResponseDetailSuccess<JobPosition>> => {
-    const response = await http.post('/jobPositions', {
+    const response = await http.post('/job-positions', {
         ...params,
         filled: 0,
         status: 'Open',
@@ -117,7 +111,7 @@ export const updateJobPosition = async (
     params: UpdateJobPositionParams
 ): Promise<ResponseDetailSuccess<JobPosition>> => {
     const { id, ...data } = params;
-    const response = await http.patch(`/jobPositions/${id}`, {
+    const response = await http.patch(`/job-positions/${id}`, {
         ...data,
         updatedAt: new Date().toISOString()
     });
@@ -132,7 +126,7 @@ export interface DeleteJobPositionParams {
 }
 
 export const deleteJobPosition = async (params: DeleteJobPositionParams): Promise<ResponseDetailSuccess<null>> => {
-    await http.delete(`/jobPositions/${params.id}`);
+    await http.delete(`/job-positions/${params.id}`);
     return {
         code: 200,
         data: null

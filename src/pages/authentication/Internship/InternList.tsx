@@ -49,7 +49,7 @@ export const InternList = () => {
         isLoading,
         refetch
     } = useInterns({
-        searcher: searchText ? { keyword: searchText, field: 'name' } : undefined,
+        search: searchText,
         status: statusFilter
     });
 
@@ -128,17 +128,17 @@ export const InternList = () => {
                     columns={[
                         {
                             title: t('internship.intern_info'),
-                            dataIndex: 'name',
+                            dataIndex: ['user', 'fullName'],
                             key: 'name',
                             render: (text, record: any) => (
                                 <Space size='middle'>
-                                    <Avatar size={40} src={record.avatar} icon={<UserOutlined />} />
+                                    <Avatar size={40} src={record.user?.avatarUrl} icon={<UserOutlined />} />
                                     <div>
                                         <Text strong style={{ display: 'block' }}>
                                             {text}
                                         </Text>
                                         <Text type='secondary' style={{ fontSize: '12px' }}>
-                                            {record.id}
+                                            {record.code}
                                         </Text>
                                     </div>
                                 </Space>
@@ -152,12 +152,14 @@ export const InternList = () => {
                                     <div
                                         style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}
                                     >
-                                        <MailOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} /> {record.email}
+                                        <MailOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} />{' '}
+                                        {record.user?.email}
                                     </div>
                                     <div
                                         style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}
                                     >
-                                        <PhoneOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} /> {record.phone}
+                                        <PhoneOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} />{' '}
+                                        {record.user?.phone}
                                     </div>
                                 </div>
                             )
@@ -170,7 +172,7 @@ export const InternList = () => {
                                     <Tag color='purple'>{record.track}</Tag>
                                     <div style={{ marginTop: '4px', fontSize: '12px' }}>
                                         <Text type='secondary'>Mentor: </Text>
-                                        <Text strong>{record.mentor}</Text>
+                                        <Text strong>{record.mentor?.fullName || 'N/A'}</Text>
                                     </div>
                                 </div>
                             )
@@ -191,7 +193,7 @@ export const InternList = () => {
                         },
                         {
                             title: t('internship.progress'),
-                            dataIndex: 'progress',
+                            dataIndex: 'overallProgress',
                             key: 'progress',
                             width: 180,
                             render: (progress) => (

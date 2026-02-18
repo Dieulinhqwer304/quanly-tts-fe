@@ -68,7 +68,7 @@ export const MentorRequestList = () => {
 
     // Data fetching
     const { data: requestsData, isLoading } = useMentorRequests({
-        searcher: searchText ? { keyword: searchText, field: 'title' } : undefined,
+        search: searchText,
         status: statusFilter === 'all' ? undefined : statusFilter
     });
 
@@ -88,8 +88,6 @@ export const MentorRequestList = () => {
         setEditingId(record.id);
         form.setFieldsValue({
             ...record,
-            positions: record.positions?.join(', '),
-            requiredSkills: record.requiredSkills?.join(', '),
             expectedStartDate: record.expectedStartDate ? dayjs(record.expectedStartDate) : undefined
         });
         setIsModalOpen(true);
@@ -97,22 +95,8 @@ export const MentorRequestList = () => {
 
     const handleSubmit = async (values: MentorRequestFormValues) => {
         try {
-            const formData: CreateMentorRequestParams = {
+            const formData: any = {
                 ...values,
-                positions:
-                    typeof values.positions === 'string'
-                        ? values.positions
-                              .split(',')
-                              .map((p: string) => p.trim())
-                              .filter(Boolean)
-                        : values.positions,
-                requiredSkills:
-                    typeof values.requiredSkills === 'string'
-                        ? values.requiredSkills
-                              .split(',')
-                              .map((s: string) => s.trim())
-                              .filter(Boolean)
-                        : values.requiredSkills,
                 expectedStartDate: values.expectedStartDate ? values.expectedStartDate.format('YYYY-MM-DD') : undefined
             };
 
@@ -229,7 +213,7 @@ export const MentorRequestList = () => {
                 <div>
                     <div style={{ fontWeight: 600, marginBottom: '4px' }}>{text}</div>
                     <Text type='secondary' style={{ fontSize: '12px' }}>
-                        {record.name}
+                        {record.mentor?.fullName || 'N/A'}
                     </Text>
                 </div>
             )
@@ -242,15 +226,11 @@ export const MentorRequestList = () => {
         },
         {
             title: t('mentor_request.positions_quantity'),
-            key: 'positions',
+            key: 'position',
             width: 250,
             render: (_, record) => (
                 <div>
-                    {record.positions?.map((pos, idx) => (
-                        <Tag key={idx} style={{ marginBottom: '4px' }}>
-                            {pos}
-                        </Tag>
-                    ))}
+                    <Tag style={{ marginBottom: '4px' }}>{record.position}</Tag>
                     {record.quantity && (
                         <div style={{ marginTop: '4px' }}>
                             <Text type='secondary' style={{ fontSize: '12px' }}>
@@ -472,8 +452,8 @@ export const MentorRequestList = () => {
                             </Form.Item>
                         </Col>
                     </Row>
-                    <Form.Item label={t('mentor_request.form.positions')} name='positions'>
-                        <TextArea rows={2} placeholder={t('mentor_request.form.positions_placeholder')} />
+                    <Form.Item label={t('mentor_request.form.positions')} name='position'>
+                        <Input placeholder={t('mentor_request.form.positions_placeholder')} />
                     </Form.Item>
                     <Form.Item label={t('mentor_request.form.skills')} name='requiredSkills'>
                         <TextArea rows={2} placeholder={t('mentor_request.form.skills_placeholder')} />

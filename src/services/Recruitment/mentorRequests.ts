@@ -8,52 +8,36 @@ import {
 
 export interface MentorRequest {
     id: string;
-    type: 'Recruitment' | 'Training' | 'Equipment';
-    name: string;
     title: string;
     department: string;
-    requestedBy: string;
-    priority: 'High' | 'Medium' | 'Low';
-    status: 'Pending' | 'Approved' | 'Rejected' | 'In Progress';
-    positions?: string[];
-    quantity?: number;
-    requiredSkills?: string[];
-    expectedStartDate?: string;
+    mentorId: string;
+    mentor?: {
+        id: string;
+        fullName: string;
+    };
+    position: string;
+    quantity: number;
+    requiredSkills: string;
+    expectedStartDate: string;
+    priority: string;
+    status: string;
+    notes?: string;
     createdAt: string;
     updatedAt: string;
 }
 
-export interface GetMentorRequestsParams {
-    pagination?: PaginateParams;
-    searcher?: SearchParams;
-    status?: string;
-    priority?: string;
-    department?: string;
-}
+export const getMentorRequests = async (params?: any): Promise<ResponseListSuccess<MentorRequest>> => {
+    const response = await http.get('/mentor-requests', {
+        params: {
+            page: params?.pagination?.page,
+            limit: params?.pagination?.pageSize,
+            search: params?.searcher?.keyword,
+            status: params?.status !== 'all' ? params?.status : undefined,
+            priority: params?.priority !== 'all' ? params?.priority : undefined,
+            department: params?.department !== 'all' ? params?.department : undefined
+        }
+    });
 
-export const getMentorRequests = async (
-    params?: GetMentorRequestsParams
-): Promise<ResponseListSuccess<MentorRequest>> => {
-    const queryParams: any = {
-        q: params?.searcher?.keyword,
-        _page: params?.pagination?.page || 1,
-        _limit: params?.pagination?.pageSize || 10
-    };
-
-    if (params?.status && params.status !== 'all') {
-        queryParams.status = params.status;
-    }
-
-    if (params?.priority && params.priority !== 'all') {
-        queryParams.priority = params.priority;
-    }
-
-    if (params?.department && params.department !== 'all') {
-        queryParams.department = params.department;
-    }
-
-    const response = await http.get('/mentor-requests', { params: queryParams });
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
     const data = response.data;
 
     return {
@@ -61,8 +45,8 @@ export const getMentorRequests = async (
         data: {
             hits: data,
             pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
+                totalPages: 1,
+                totalRows: data.length
             }
         }
     };

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { useResponsive } from '../../../../hooks/useResponsive';
+import { useCreateRecruitmentPlan, useUpdateRecruitmentPlan } from '../../../../hooks/Recruitment/useRecruitmentPlans';
 
 const { RangePicker } = DatePicker;
 
@@ -50,16 +51,32 @@ export const RecruitmentPlanModal = ({
         }
     }, [open, initialValues, form]);
 
-    const onFinish = (values: RecruitmentPlanFormValues) => {
-        setLoading(true);
-        console.log('Form values:', values);
+    const createMutation = useCreateRecruitmentPlan();
+    const updateMutation = useUpdateRecruitmentPlan();
 
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false);
-            message.success(t('common.success'));
+    const onFinish = async (values: any) => {
+        setLoading(true);
+        try {
+            const payload = {
+                ...values,
+                startDate: values.period?.[0]?.format('YYYY-MM-DD'),
+                endDate: values.period?.[1]?.format('YYYY-MM-DD')
+            };
+            delete payload.period;
+
+            if (initialValues?.id) {
+                await updateMutation.mutateAsync({ id: initialValues.id as string, ...payload });
+                message.success(t('common.success'));
+            } else {
+                await createMutation.mutateAsync(payload);
+                message.success(t('common.success'));
+            }
             onSuccess();
-        }, 1500);
+        } catch (error) {
+            message.error(t('common.error'));
+        } finally {
+            setLoading(false);
+        }
     };
 
     const getTitle = () => {

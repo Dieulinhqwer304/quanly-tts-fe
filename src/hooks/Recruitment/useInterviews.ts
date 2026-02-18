@@ -1,26 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as interviewsService from '../../services/Recruitment/interviews';
-import {
-    GetInterviewsParams,
-    CreateInterviewParams,
-    UpdateInterviewParams
-} from '../../services/Recruitment/interviews';
-import { MOCK_DATA } from '../../constants/MockData';
+import { CreateInterviewParams, UpdateInterviewParams } from '../../services/Recruitment/interviews';
 
-export const useInterviews = (params?: GetInterviewsParams) => {
+export const useInterviews = (params?: any) => {
     return useQuery({
         queryKey: ['interviews', params],
-        queryFn: () => interviewsService.getInterviews(params),
-        initialData: {
-            code: 200,
-            data: {
-                hits: MOCK_DATA.interviews,
-                pagination: {
-                    totalPages: 1,
-                    totalRows: MOCK_DATA.interviews.length
-                }
-            }
-        }
+        queryFn: () => interviewsService.getInterviews(params)
     });
 };
 

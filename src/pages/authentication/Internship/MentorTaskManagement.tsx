@@ -64,8 +64,6 @@ export const MentorTaskManagement = () => {
             await createTaskMutation.mutateAsync({
                 title: values.title,
                 internId: values.internId,
-                intern: selectedIntern?.name || '',
-                internAvatar: selectedIntern?.avatar || '',
                 priority: values.priority,
                 dueDate: values.dueDate.format('YYYY-MM-DD'),
                 description: values.description || ''
@@ -163,12 +161,12 @@ export const MentorTaskManagement = () => {
         },
         {
             title: t('task_mgmt.intern'),
-            dataIndex: 'intern',
+            dataIndex: ['intern', 'user', 'fullName'],
             key: 'intern',
             ellipsis: true,
             render: (text, record) => (
                 <Space>
-                    <Avatar size='small' src={record.internAvatar} />
+                    <Avatar size='small' src={record.intern?.user?.avatarUrl} />
                     <Text>{text}</Text>
                 </Space>
             )
@@ -247,7 +245,10 @@ export const MentorTaskManagement = () => {
                                     onChange={setInternFilter}
                                     options={[
                                         { value: 'All Interns', label: t('task_mgmt.all_interns') },
-                                        ...(internsData?.data?.hits?.map((i) => ({ value: i.id, label: i.name })) || [])
+                                        ...(internsData?.data?.hits?.map((i) => ({
+                                            value: i.id,
+                                            label: i.user?.fullName
+                                        })) || [])
                                     ]}
                                 />
                                 <Select
@@ -313,7 +314,10 @@ export const MentorTaskManagement = () => {
                             >
                                 <Select
                                     placeholder={t('task_mgmt.choose_intern')}
-                                    options={internsData?.data?.hits?.map((i) => ({ value: i.id, label: i.name }))}
+                                    options={internsData?.data?.hits?.map((i) => ({
+                                        value: i.id,
+                                        label: i.user?.fullName
+                                    }))}
                                 />
                             </Form.Item>
                         </Col>

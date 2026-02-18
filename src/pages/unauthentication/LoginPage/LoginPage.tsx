@@ -37,23 +37,18 @@ export const LoginPage = () => {
 
     const onFinish = async (values: { email: string; password: string }) => {
         try {
-            if (values.email === 'admin@example.com' && values.password === 'admin123') {
-                const mockToken = 'mock-jwt-token-' + Date.now();
-                Cookies.set('accessToken', mockToken);
-                setIsAuthenticated(true);
-                message.success('Đăng nhập thành công!');
-                navigate(RouteConfig.ModuleSelection.path);
-                return;
-            }
-
             const response = await login(values.email, values.password);
-            if (response.accessToken) {
-                Cookies.set('accessToken', response.accessToken);
+            if (response.access_token) {
+                Cookies.set('accessToken', response.access_token);
+                // Lưu thêm thông tin user nếu cần
+                Cookies.set('userInfo', JSON.stringify(response.user));
+
                 setIsAuthenticated(true);
                 message.success('Đăng nhập thành công!');
                 navigate(RouteConfig.ModuleSelection.path);
             }
         } catch (error: any) {
+            console.error('Login error:', error);
             message.error(error.response?.data?.message || 'Đăng nhập thất bại!');
         }
     };

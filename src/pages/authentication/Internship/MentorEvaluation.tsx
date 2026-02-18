@@ -54,9 +54,9 @@ export const MentorEvaluation = () => {
     // Logic to determine initial step based on intern progress
     useEffect(() => {
         if (internData?.data) {
-            const progress = internData.data.progress || 0;
-            if (progress >= 66) setCurrentStep(2);
-            else if (progress >= 33) setCurrentStep(1);
+            const progress = internData.data.overallProgress || 0;
+            if (progress >= 33 && progress < 66) setCurrentStep(1);
+            else if (progress >= 66) setCurrentStep(2);
             else setCurrentStep(0);
         }
     }, [internData]);
@@ -96,18 +96,16 @@ export const MentorEvaluation = () => {
 
             await createEvalMutation.mutateAsync({
                 internId: id,
-                internName: internData.data.name,
-                mentorId: 'mentor-1',
-                mentorName: 'Harvey Specter',
-                type: evalType as any,
-                score: parseFloat(score.toFixed(1)),
+                mentorId: internData.data.mentorId,
+                type: currentStep === 0 ? 'probation' : currentStep === 1 ? 'mid-term' : 'final',
+                overallScore: parseFloat(score.toFixed(1)),
                 feedback,
-                date: new Date().toISOString()
-            });
+                evaluationDate: new Date().toISOString()
+            } as any);
 
             await updateInternMutation.mutateAsync({
                 id,
-                progress: nextProgress,
+                overallProgress: nextProgress,
                 status
             });
 
@@ -512,7 +510,7 @@ export const MentorEvaluation = () => {
                     items={[
                         { title: t('menu.mentor_portal') },
                         { title: t('menu.evaluations') },
-                        { title: intern?.name || 'Intern' }
+                        { title: intern?.user?.fullName || 'Intern' }
                     ]}
                 />
             </div>
@@ -523,18 +521,18 @@ export const MentorEvaluation = () => {
             >
                 <Row align='middle' gutter={24}>
                     <Col>
-                        <Avatar size={80} src={intern?.avatar} />
+                        <Avatar size={80} src={intern?.user?.avatarUrl} />
                     </Col>
                     <Col flex='1'>
                         <Title level={3} style={{ margin: 0 }}>
-                            {intern?.name}
+                            {intern?.user?.fullName}
                         </Title>
                         <Text type='secondary'>
-                            {intern?.track} • {intern?.id}
+                            {intern?.track} • {intern?.code}
                         </Text>
                         <div style={{ marginTop: '8px' }}>
                             <Tag color='blue'>{intern?.status}</Tag>
-                            <Tag color='purple'>{intern?.mentor}</Tag>
+                            <Tag color='purple'>{intern?.mentor?.fullName || 'N/A'}</Tag>
                         </div>
                     </Col>
                     <Col style={{ textAlign: 'right' }}>
@@ -542,9 +540,14 @@ export const MentorEvaluation = () => {
                             {t('internship.progress').toUpperCase()}
                         </Text>
                         <Text strong style={{ fontSize: '20px' }}>
-                            {intern?.progress}%
+                            {intern?.overallProgress}%
                         </Text>
-                        <Progress percent={intern?.progress} size='small' status='active' style={{ width: '120px' }} />
+                        <Progress
+                            percent={intern?.overallProgress}
+                            size='small'
+                            status='active'
+                            style={{ width: '120px' }}
+                        />
                     </Col>
                 </Row>
             </Card>

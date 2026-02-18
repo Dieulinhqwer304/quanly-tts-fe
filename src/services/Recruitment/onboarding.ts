@@ -38,18 +38,15 @@ export interface GetOnboardingParams {
 }
 
 export const getOnboardingList = async (params?: GetOnboardingParams): Promise<ResponseListSuccess<Onboarding>> => {
-    const queryParams: Record<string, string | number | undefined> = {
-        q: params?.searcher?.keyword,
-        _page: params?.pagination?.page || 1,
-        _limit: params?.pagination?.pageSize || 10
-    };
+    const response = await http.get('/onboardings', {
+        params: {
+            page: params?.pagination?.page,
+            limit: params?.pagination?.pageSize,
+            search: params?.searcher?.keyword,
+            status: params?.status !== 'all' ? params?.status : undefined
+        }
+    });
 
-    if (params?.status && params.status !== 'all') {
-        queryParams.status = params.status;
-    }
-
-    const response = await http.get('/onboarding', { params: queryParams });
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
     const data = response.data;
 
     return {
@@ -57,15 +54,15 @@ export const getOnboardingList = async (params?: GetOnboardingParams): Promise<R
         data: {
             hits: data,
             pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
+                totalPages: 1,
+                totalRows: data.length
             }
         }
     };
 };
 
 export const getOnboarding = async (id: string): Promise<ResponseDetailSuccess<Onboarding>> => {
-    const response = await http.get(`/onboarding/${id}`);
+    const response = await http.get(`/onboardings/${id}`);
     return {
         code: 200,
         data: response.data
@@ -125,7 +122,7 @@ export const createOnboarding = async (params: CreateOnboardingParams): Promise<
         });
     }
 
-    const response = await http.post('/onboarding', {
+    const response = await http.post('/onboardings', {
         ...params,
         internId: intern.id,
         currentStep: 0,
@@ -154,7 +151,7 @@ export interface UpdateOnboardingParams {
 
 export const updateOnboarding = async (params: UpdateOnboardingParams): Promise<ResponseDetailSuccess<Onboarding>> => {
     const { id, ...data } = params;
-    const response = await http.patch(`/onboarding/${id}`, {
+    const response = await http.patch(`/onboardings/${id}`, {
         ...data,
         updatedAt: new Date().toISOString()
     });

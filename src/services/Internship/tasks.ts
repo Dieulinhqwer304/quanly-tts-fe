@@ -8,42 +8,36 @@ import {
 
 export interface Task {
     id: string;
+    code: string;
     title: string;
-    intern: string;
-    internId: string;
-    internAvatar: string;
-    priority: 'High' | 'Medium' | 'Low';
-    dueDate: string;
-    status: 'To Do' | 'In Progress' | 'Under Review' | 'Completed';
     description: string;
+    internId: string;
+    intern?: {
+        id: string;
+        user?: {
+            fullName: string;
+            avatarUrl: string;
+        };
+    };
+    mentorId: string;
+    priority: string;
+    dueDate: string;
+    status: string;
     createdAt: string;
     updatedAt: string;
 }
 
-export interface GetTasksParams {
-    pagination?: PaginateParams;
-    searcher?: SearchParams;
-    internId?: string;
-    status?: string;
-}
+export const getTasks = async (params?: any): Promise<ResponseListSuccess<Task>> => {
+    const response = await http.get('/tasks', {
+        params: {
+            page: params?.pagination?.page,
+            limit: params?.pagination?.pageSize,
+            search: params?.searcher?.keyword,
+            internId: params?.internId,
+            status: params?.status !== 'All' ? params?.status : undefined
+        }
+    });
 
-export const getTasks = async (params?: GetTasksParams): Promise<ResponseListSuccess<Task>> => {
-    const queryParams: any = {
-        q: params?.searcher?.keyword,
-        _page: params?.pagination?.page || 1,
-        _limit: params?.pagination?.pageSize || 10
-    };
-
-    if (params?.internId) {
-        queryParams.internId = params.internId;
-    }
-
-    if (params?.status && params.status !== 'All') {
-        queryParams.status = params.status;
-    }
-
-    const response = await http.get('/tasks', { params: queryParams });
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
     const data = response.data;
 
     return {
@@ -51,8 +45,8 @@ export const getTasks = async (params?: GetTasksParams): Promise<ResponseListSuc
         data: {
             hits: data,
             pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
+                totalPages: 1,
+                totalRows: data.length
             }
         }
     };
@@ -68,9 +62,7 @@ export const getTask = async (id: string): Promise<ResponseDetailSuccess<Task>> 
 
 export interface CreateTaskParams {
     title: string;
-    intern: string;
     internId: string;
-    internAvatar: string;
     priority: string;
     dueDate: string;
     description: string;

@@ -65,7 +65,7 @@ export const CVList = () => {
     const hasSelected = selectedRowKeys.length > 0;
 
     const { data: candidatesData, isLoading } = useCandidates({
-        searcher: searchText ? { keyword: searchText, field: 'name' } : undefined,
+        search: searchText,
         status: statusFilter
     });
 
@@ -93,18 +93,18 @@ export const CVList = () => {
     const columns: ColumnsType<Candidate> = [
         {
             title: t('candidate.candidate_info'),
-            dataIndex: 'name',
-            key: 'name',
-            render: (text: any, record: any) => (
+            dataIndex: 'fullName',
+            key: 'fullName',
+            render: (text: string, record: Candidate) => (
                 <div
                     style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
                     onClick={() => handleView(record)}
                 >
-                    {record.avatar?.includes('http') ? (
-                        <Avatar src={record.avatar} size={40} />
+                    {record.avatarUrl?.includes('http') ? (
+                        <Avatar src={record.avatarUrl} size={40} />
                     ) : (
                         <Avatar style={{ backgroundColor: '#f56a00', verticalAlign: 'middle' }} size={40}>
-                            {record.name?.[0]}
+                            {record.fullName?.[0]}
                         </Avatar>
                     )}
                     <div>
@@ -120,20 +120,17 @@ export const CVList = () => {
         },
         {
             title: t('candidate.job_title'),
-            dataIndex: 'appliedForTitle',
+            dataIndex: ['job', 'title'],
             key: 'job',
-            render: (text: any) => <Text style={{ fontSize: '13px' }}>{text}</Text>
+            render: (text: string) => <Text style={{ fontSize: '13px' }}>{text || 'N/A'}</Text>
         },
         {
             title: t('candidate.applied_date'),
             dataIndex: 'appliedDate',
             key: 'appliedDate',
-            render: (text: any, record: any) => (
+            render: (text: any) => (
                 <div>
                     <Text style={{ display: 'block' }}>{text}</Text>
-                    <Text type='secondary' style={{ fontSize: '12px' }}>
-                        {record.timeAgo}
-                    </Text>
                 </div>
             )
         },
@@ -211,7 +208,7 @@ export const CVList = () => {
                             label: t('candidate.shortlist_candidate'),
                             icon: <CheckCircleOutlined />,
                             disabled: record.status === 'Shortlisted' || record.status === 'Rejected',
-                            onClick: () => handleShortlist(record.id, record.name)
+                            onClick: () => handleShortlist(record.id, record.fullName)
                         },
                         {
                             key: 'reject',
@@ -219,7 +216,7 @@ export const CVList = () => {
                             icon: <CloseCircleOutlined />,
                             danger: true,
                             disabled: record.status === 'Rejected',
-                            onClick: () => handleReject(record.id, record.name)
+                            onClick: () => handleReject(record.id, record.fullName)
                         }
                     ]
                 };
