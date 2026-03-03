@@ -101,7 +101,7 @@ export const MentorTaskManagement = () => {
     const handleAddTask = async (values: any) => {
         setIsProcessing(true);
         try {
-            const selectedIntern = internsData?.data?.hits?.find((i: any) => i.id === values.internId);
+            const selectedIntern = internsData?.data?.find((i: any) => i.id === values.internId);
             await http.post('/tasks', {
                 title: values.title,
                 internId: values.internId,
@@ -131,8 +131,8 @@ export const MentorTaskManagement = () => {
         });
     };
 
-    const responseData = tasksData?.data || tasksData;
-    const dataSource = responseData?.hits || (Array.isArray(responseData) ? responseData : []);
+    const responseData = tasksData;
+    const dataSource = responseData?.data || [];
 
     const getActionMenu = (record: Task): MenuProps => ({
         items: [
@@ -292,7 +292,7 @@ export const MentorTaskManagement = () => {
                                     onChange={setInternFilter}
                                     options={[
                                         { value: 'All Interns', label: t('task_mgmt.all_interns') },
-                                        ...(internsData?.data?.hits?.map((i) => ({ value: i.id, label: i.name })) || [])
+                                        ...(internsData?.data?.map((i: any) => ({ value: i.id, label: i.name })) || [])
                                     ]}
                                 />
                                 <Select
@@ -320,7 +320,7 @@ export const MentorTaskManagement = () => {
                             dataSource={dataSource}
                             loading={isLoading}
                             pagination={{
-                                total: responseData?.pagination?.totalRows || dataSource.length,
+                                total: tasksData?.pagination?.totalRows || dataSource.length,
                                 pageSize: 8
                             }}
                             rowKey='id'
@@ -358,7 +358,7 @@ export const MentorTaskManagement = () => {
                             >
                                 <Select
                                     placeholder={t('task_mgmt.choose_intern')}
-                                    options={internsData?.data?.hits?.map((i) => ({ value: i.id, label: i.name }))}
+                                    options={internsData?.data?.map((i: any) => ({ value: i.id, label: i.name }))}
                                 />
                             </Form.Item>
                         </Col>

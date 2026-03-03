@@ -66,7 +66,7 @@ export const MentorEvalFinal = () => {
     }, [id]);
 
     const onFinish = async (values: any) => {
-        if (!id || !internData?.data) return;
+        if (!id || !internData) return;
 
         setIsProcessing(true);
         try {
@@ -82,7 +82,7 @@ export const MentorEvalFinal = () => {
 
             await http.post('/evaluations', {
                 internId: id,
-                internName: internData.data.name,
+                internName: internData.name,
                 mentorId: 'mentor-1', // Mock for now
                 mentorName: 'Harvey Specter', // Mock for now
                 type: 'Final',
@@ -114,7 +114,7 @@ export const MentorEvalFinal = () => {
         );
     }
 
-    const intern = internData?.data;
+    const intern = internData;
 
     return (
         <Layout style={{ minHeight: '100vh', background: '#f6f7f8' }}>

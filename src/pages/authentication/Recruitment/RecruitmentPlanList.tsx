@@ -40,7 +40,7 @@ export const RecruitmentPlanList = () => {
         setIsLoading(true);
         try {
             const res = await http.get('/recruitment-plans');
-            setPlansData(res.data);
+            setPlansData(res);
         } catch (error) {
             console.error(error);
         } finally {
@@ -229,7 +229,7 @@ export const RecruitmentPlanList = () => {
 
                         <Table
                             columns={columns as any}
-                            dataSource={plansData?.hits || []}
+                            dataSource={plansData?.data || []}
                             pagination={{
                                 current: 1,
                                 total: plansData?.pagination?.totalRows || 0,

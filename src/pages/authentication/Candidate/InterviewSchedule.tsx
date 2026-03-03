@@ -117,7 +117,7 @@ export const InterviewSchedule = () => {
 
     const candidateNames =
         selectedCandidates
-            .map((id) => candidatesData?.data?.hits?.find((c: any) => c.id === id)?.name)
+            .map((id) => candidatesData?.data?.find((c: any) => c.id === id)?.name)
             .filter(Boolean)
             .join(', ') || '{Candidate_Name}';
 
@@ -133,7 +133,7 @@ export const InterviewSchedule = () => {
         setIsEditing(false);
     };
 
-    const candidates = candidatesData?.data?.hits || [];
+    const candidates = candidatesData?.data || [];
 
     const toggleCandidate = (id: string) => {
         setSelectedCandidates((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));

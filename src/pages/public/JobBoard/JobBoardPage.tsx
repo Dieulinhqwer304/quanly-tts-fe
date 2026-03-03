@@ -24,7 +24,7 @@ export const JobBoardPage = () => {
         status: 'Open' // Only show open positions on public job board
     });
 
-    const jobs = jobPositionsData?.data?.hits || [];
+    const jobs = jobPositionsData?.data || [];
 
     return (
         <Layout style={{ minHeight: '100vh', background: '#f8fafc' }}>
