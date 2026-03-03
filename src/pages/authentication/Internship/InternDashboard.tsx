@@ -45,7 +45,7 @@ export const InternDashboard = () => {
             try {
                 const res = await http.get('/interns/me');
                 setInternData(res);
-                const internObj = res?.data;
+                const internObj = res;
 
                 if (internObj) {
                     setIsLoadingTasks(true);
@@ -72,9 +72,9 @@ export const InternDashboard = () => {
         fetchInitialData();
     }, []);
 
-    const intern = internData?.data;
+    const intern = internData;
 
-    const tasks = tasksData?.data?.hits || [];
+    const tasks = tasksData?.data || [];
     const learningPath = learningPathData?.data;
     const modules = useMemo(() => {
         if (!learningPath?.modules) return [];

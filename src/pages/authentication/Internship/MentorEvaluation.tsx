@@ -69,8 +69,8 @@ export const MentorEvaluation = () => {
 
     // Logic to determine initial step based on intern progress
     useEffect(() => {
-        if (internData?.data) {
-            const progress = internData.data.progress || 0;
+        if (internData) {
+            const progress = internData.progress || 0;
             if (progress >= 66) setCurrentStep(2);
             else if (progress >= 33) setCurrentStep(1);
             else setCurrentStep(0);
@@ -78,7 +78,7 @@ export const MentorEvaluation = () => {
     }, [internData]);
 
     const onFinish = async (values: any) => {
-        if (!id || !internData?.data) return;
+        if (!id || !internData) return;
 
         setIsProcessing(true);
         try {
@@ -86,7 +86,7 @@ export const MentorEvaluation = () => {
             let score = 0;
             let feedback = '';
             let nextProgress = 33;
-            let status = internData.data.status;
+            let status = internData.status;
 
             if (currentStep === 0) {
                 evalType = 'Probation';
@@ -113,7 +113,7 @@ export const MentorEvaluation = () => {
 
             await http.post('/evaluations', {
                 internId: id,
-                internName: internData.data.name,
+                internName: internData.name,
                 mentorId: 'mentor-1',
                 mentorName: 'Harvey Specter',
                 type: evalType as any,
@@ -148,7 +148,7 @@ export const MentorEvaluation = () => {
         );
     }
 
-    const intern = internData?.data;
+    const intern = internData;
 
     const renderStepContent = () => {
         switch (currentStep) {

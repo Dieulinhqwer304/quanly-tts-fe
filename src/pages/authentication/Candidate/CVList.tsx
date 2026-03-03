@@ -259,7 +259,7 @@ export const CVList = () => {
         }
     ];
 
-    const dataSource = candidatesData?.data?.hits || [];
+    const dataSource = candidatesData?.data || [];
 
     return (
         <div style={{ padding: '24px' }}>

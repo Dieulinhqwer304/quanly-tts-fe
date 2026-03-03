@@ -94,7 +94,7 @@ export const CVDetail = () => {
         );
     }
 
-    const candidate = candidateData?.data;
+    const candidate = candidateData;
 
     if (!candidate) {
         return (

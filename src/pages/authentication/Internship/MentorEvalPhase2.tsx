@@ -52,13 +52,13 @@ export const MentorEvalPhase2 = () => {
     }, [id]);
 
     const onFinish = async (values: any) => {
-        if (!id || !internData?.data) return;
+        if (!id || !internData) return;
 
         setIsProcessing(true);
         try {
             await http.post('/evaluations', {
                 internId: id,
-                internName: internData.data.name,
+                internName: internData.name,
                 mentorId: 'mentor-1',
                 mentorName: 'Harvey Specter',
                 type: 'Mid-term', // Phase 2
@@ -90,7 +90,7 @@ export const MentorEvalPhase2 = () => {
         );
     }
 
-    const intern = internData?.data;
+    const intern = internData;
 
     return (
         <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
