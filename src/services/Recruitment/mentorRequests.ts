@@ -39,12 +39,10 @@ export const getMentorRequests = async (
 ): Promise<ResponseListSuccess<MentorRequest>> => {
     const result = await http.get<any>('/mentor-requests', { params });
 
-    // Mapping structure { data: { hits: [], pagination: {} } } from BE
-    // to match ResponseListSuccess<T> { data: T[], pagination: {} }
     return {
         errorCode: result.errorCode,
-        data: result.data?.hits || [],
-        pagination: result.data?.pagination
+        data: result.data || [],
+        pagination: result.pagination
     };
 };
 
