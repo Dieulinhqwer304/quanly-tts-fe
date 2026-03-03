@@ -43,10 +43,7 @@ export const getApprovals = async (params?: GetApprovalsParams): Promise<Respons
     };
 
     const result = await http.get<any>('/approvals', { params: queryParams });
-    return {
-        errorCode: 0,
-        data: result
-    } as any;
+    return result;
 };
 
 export const getApproval = async (id: string): Promise<ResponseDetailSuccess<Approval>> => {

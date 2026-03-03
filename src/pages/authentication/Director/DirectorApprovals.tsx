@@ -60,7 +60,10 @@ export const DirectorApprovals = () => {
 
     const updateApproval = useUpdateApproval();
 
-    const queue = useMemo<Approval[]>(() => approvalsRes?.data?.hits || [], [approvalsRes?.data?.hits]);
+    const queue = useMemo<Approval[]>(() => {
+        console.log('--- approvalsRes in component ---', approvalsRes);
+        return approvalsRes?.hits || [];
+    }, [approvalsRes?.hits]);
     const selectedRequest =
         queue.find((r) => r.id === selectedRequestId) || (queue.length > 0 && !selectedRequestId ? queue[0] : null);
 
