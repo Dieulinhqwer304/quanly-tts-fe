@@ -62,8 +62,8 @@ export const DirectorApprovals = () => {
 
     const queue = useMemo<Approval[]>(() => {
         console.log('--- approvalsRes in component ---', approvalsRes);
-        return approvalsRes?.hits || [];
-    }, [approvalsRes?.hits]);
+        return approvalsRes?.data || [];
+    }, [approvalsRes?.data]);
     const selectedRequest =
         queue.find((r) => r.id === selectedRequestId) || (queue.length > 0 && !selectedRequestId ? queue[0] : null);
 
@@ -74,7 +74,11 @@ export const DirectorApprovals = () => {
     }, [queue, selectedRequestId]);
 
     const handleAction = async (action: 'approve' | 'reject' | 'adjust') => {
-        if (!selectedRequest) return;
+        console.log('--- handleAction called ---', action);
+        if (!selectedRequest) {
+            console.error('No selected request!');
+            return;
+        }
 
         const statusMap = {
             approve: 'Approved',
@@ -83,13 +87,19 @@ export const DirectorApprovals = () => {
         } as const;
 
         const newStatus = statusMap[action];
+        console.log('--- Mutating with payload ---', {
+            id: selectedRequest.id,
+            status: newStatus,
+            notes: directorNote
+        });
 
         try {
-            await updateApproval.mutate({
+            const res = await updateApproval.mutate({
                 id: selectedRequest.id,
                 status: newStatus,
                 notes: directorNote
             });
+            console.log('--- Mutate response ---', res);
             message.success(`Request for ${selectedRequest.name} has been ${newStatus.toLowerCase()}`);
             setDirectorNote('');
             refetch();
@@ -98,6 +108,7 @@ export const DirectorApprovals = () => {
                 setSelectedRequestId(null);
             }
         } catch (err) {
+            console.error('--- Mutate error ---', err);
             message.error('Failed to update request. Please try again.');
         }
     };
