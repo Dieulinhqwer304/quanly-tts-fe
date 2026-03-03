@@ -36,8 +36,8 @@ export const getRecruitmentPlans = async (
 
     return {
         errorCode: result.errorCode,
-        data: result.data?.hits || [],
-        pagination: result.data?.pagination
+        data: result.data || [],
+        pagination: result.pagination
     };
 };
 
