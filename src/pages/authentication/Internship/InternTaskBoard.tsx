@@ -67,8 +67,8 @@ export const InternTaskBoard = () => {
             try {
                 const res = await http.get('/interns/me');
                 setInternData(res);
-                if (res?.data?.id) {
-                    fetchTasks(res.data.id);
+                if (res?.id) {
+                    fetchTasks(res.id);
                 }
             } catch (error) {
                 console.error(error);
@@ -79,9 +79,9 @@ export const InternTaskBoard = () => {
         fetchIntern();
     }, []);
 
-    const intern = internData?.data;
+    const intern = internData;
     const internId = intern?.id;
-    const tasks = tasksData?.data?.hits || [];
+    const tasks = tasksData?.data || [];
 
     const moveTask = async (task: Task, newStatus: Task['status']) => {
         setIsMutating(true);

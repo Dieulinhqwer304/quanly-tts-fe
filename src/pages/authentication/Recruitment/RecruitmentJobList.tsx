@@ -237,7 +237,7 @@ export const RecruitmentJobList = () => {
         }
     ];
 
-    const dataSource = jobPositionsData?.data?.hits || [];
+    const dataSource = jobPositionsData?.data || [];
 
     return (
         <div style={{ padding: '24px' }}>
@@ -304,7 +304,7 @@ export const RecruitmentJobList = () => {
                     dataSource={dataSource}
                     loading={isLoading}
                     pagination={{
-                        total: jobPositionsData?.data?.pagination?.totalRows || 0,
+                        total: jobPositionsData?.pagination?.totalRows || 0,
                         pageSize: 10
                     }}
                     rowKey='id'

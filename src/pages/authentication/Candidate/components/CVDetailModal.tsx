@@ -58,7 +58,7 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: C
         if (open) fetchCandidate();
     }, [open, initialCandidate?.id]);
 
-    const candidate = candidateData?.data || initialCandidate;
+    const candidate = candidateData || initialCandidate;
 
     const handleApprove = async () => {
         if (!candidate?.id) return;
