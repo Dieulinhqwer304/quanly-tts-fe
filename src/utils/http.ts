@@ -36,7 +36,7 @@ class Http {
                     message.error(res.message || 'Có lỗi xảy ra');
                     return Promise.reject(res);
                 }
-                return res;
+                return res.data;
             },
             (error) => {
                 if (error.response) {
@@ -74,7 +74,7 @@ class Http {
                     }
                     return Promise.reject(res);
                 }
-                return res;
+                return res.data;
             },
             (error) => {
                 // Xử lý các lỗi HTTP status codes (nếu có)
