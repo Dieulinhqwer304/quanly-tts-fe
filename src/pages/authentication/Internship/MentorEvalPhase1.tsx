@@ -18,9 +18,9 @@ import {
 } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useIntern, useUpdateIntern } from '../../../hooks/Internship/useInterns';
-import { useCreateEvaluation } from '../../../hooks/Internship/useEvaluations';
+import { http } from '../../../utils/http';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -31,15 +31,32 @@ export const MentorEvalPhase1 = () => {
     const { id } = useParams<{ id: string }>();
     const [form] = Form.useForm();
 
-    const { data: internData, isLoading: isInternLoading } = useIntern(id || '');
-    const createEvalMutation = useCreateEvaluation();
-    const updateInternMutation = useUpdateIntern();
+    const [internData, setInternData] = useState<any>(null);
+    const [isInternLoading, setIsInternLoading] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    useEffect(() => {
+        const fetchIntern = async () => {
+            if (!id) return;
+            setIsInternLoading(true);
+            try {
+                const res = await http.get(`/interns/${id}`);
+                setInternData(res);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setIsInternLoading(true);
+            }
+        };
+        fetchIntern();
+    }, [id]);
 
     const onFinish = async (values: any) => {
         if (!id || !internData?.data) return;
 
+        setIsProcessing(true);
         try {
-            await createEvalMutation.mutateAsync({
+            await http.post('/evaluations', {
                 internId: id,
                 internName: internData.data.name,
                 mentorId: 'mentor-1', // Mock for now, should come from auth
@@ -52,8 +69,7 @@ export const MentorEvalPhase1 = () => {
             });
 
             // Update intern progress
-            await updateInternMutation.mutateAsync({
-                id,
+            await http.patch(`/interns/${id}`, {
                 progress: 33
             });
 
@@ -61,6 +77,8 @@ export const MentorEvalPhase1 = () => {
             navigate(RouteConfig.InternList.path);
         } catch {
             message.error(t('common.error'));
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -103,7 +121,7 @@ export const MentorEvalPhase1 = () => {
                     <Button icon={<SaveOutlined />} onClick={() => message.info(t('eval.draft_saved'))}>
                         {t('eval.save_draft')}
                     </Button>
-                    <Button type='primary' onClick={() => form.submit()} loading={createEvalMutation.isPending}>
+                    <Button type='primary' onClick={() => form.submit()} loading={isProcessing}>
                         {t('eval.submit_eval')}
                     </Button>
                 </Space>

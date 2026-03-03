@@ -5,13 +5,15 @@ import {
     ClockCircleOutlined,
     BulbOutlined,
     DashboardOutlined,
-    FileSearchOutlined
+    FileSearchOutlined,
+    CloseOutlined
 } from '@ant-design/icons';
-import { Button, Card, Progress, Radio, Space, Typography, message, Modal, Result, Spin } from 'antd';
+import { Button, Card, Progress, Radio, Space, Typography, message, Modal, Result, Spin, Divider } from 'antd';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useCreateEvaluation } from '../../../hooks/Internship/useEvaluations';
-import { useIntern } from '../../../hooks/Internship/useInterns';
+import { http } from '../../../utils/http';
+import { RouteConfig } from '../../../constants';
 import dayjs from 'dayjs';
 
 const { Title, Text, Paragraph } = Typography;
@@ -73,15 +75,33 @@ const questions: Question[] = [
 
 export const InternTest = () => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState<Record<number, number>>({});
     const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
     const [submitted, setSubmitted] = useState(false);
     const [score, setScore] = useState(0);
+    const [showAnswers, setShowAnswers] = useState(false);
 
-    // Get current intern info (Mocked ID for now)
-    const { data: internRes, isLoading: isLoadingIntern } = useIntern('ITS-001');
-    const createEvaluation = useCreateEvaluation();
+    const [internRes, setInternRes] = useState<any>(null);
+    const [isLoadingIntern, setIsLoadingIntern] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const fetchIntern = async () => {
+        setIsLoadingIntern(true);
+        try {
+            const res = await http.get('/interns/ITS-001'); // Mocked ID
+            setInternRes(res);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoadingIntern(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchIntern();
+    }, []);
 
     useEffect(() => {
         if (timeLeft > 0 && !submitted) {
@@ -102,7 +122,7 @@ export const InternTest = () => {
         setAnswers({ ...answers, [currentQuestion]: e.target.value });
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         let finalScore = 0;
         questions.forEach((q, index) => {
             if (answers[index] === q.correctAnswer) {
@@ -115,27 +135,22 @@ export const InternTest = () => {
 
         if (internRes?.data) {
             const intern = internRes.data;
-            createEvaluation.mutate(
-                {
+            setIsSubmitting(true);
+            try {
+                await http.post('/evaluations', {
                     internId: intern.id,
-                    internName: intern.name,
-                    mentorId: 'MT-001', // Mock mentor ID if not available in intern data
-                    mentorName: intern.mentor || 'Default Mentor',
+                    mentorId: intern.mentorId || 'MT-001',
                     type: 'Knowledge-test',
-                    score: calculatedScore,
-                    feedback: `Completed Fundamental React Knowledge Test with ${finalScore}/${questions.length} correct answers.`,
-                    date: dayjs().format('YYYY-MM-DD')
-                },
-                {
-                    onSuccess: () => {
-                        setSubmitted(true);
-                        message.success(t('test.submitted_success') || 'Test result submitted successfully!');
-                    },
-                    onError: () => {
-                        message.error('Failed to submit test results. Please try again.');
-                    }
-                }
-            );
+                    technicalScore: calculatedScore,
+                    feedback: `Completed Fundamental React Knowledge Test with ${finalScore}/${questions.length} correct answers.`
+                });
+                setSubmitted(true);
+                message.success(t('test.submitted_success') || 'Test result submitted successfully!');
+            } catch (err) {
+                message.error('Failed to submit test results. Please try again.');
+            } finally {
+                setIsSubmitting(false);
+            }
         } else {
             setSubmitted(true);
             message.warning('Test completed locally but failed to find intern profile to save results.');
@@ -162,15 +177,94 @@ export const InternTest = () => {
                             type='primary'
                             key='dashboard'
                             icon={<DashboardOutlined />}
-                            onClick={() => (window.location.href = '/dashboard/intern')}
+                            onClick={() => navigate(RouteConfig.InternDashboard.path)}
                         >
                             Back to Dashboard
                         </Button>,
-                        <Button key='feedback' icon={<FileSearchOutlined />}>
-                            {t('test.view_feedback')}
+                        <Button key='review' icon={<FileSearchOutlined />} onClick={() => setShowAnswers(true)}>
+                            Review Answers
                         </Button>
                     ]}
-                />
+                >
+                    <div style={{ marginTop: '24px' }}>
+                        <Card variant='borderless' style={{ background: '#f8fafc', borderRadius: '12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '48px' }}>
+                                <div>
+                                    <Text type='secondary' style={{ display: 'block' }}>
+                                        Correct Answers
+                                    </Text>
+                                    <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
+                                        {Math.round((score / 100) * questions.length)} / {questions.length}
+                                    </Title>
+                                </div>
+                                <Divider type='vertical' style={{ height: 'auto' }} />
+                                <div>
+                                    <Text type='secondary' style={{ display: 'block' }}>
+                                        Percentage
+                                    </Text>
+                                    <Title level={3} style={{ margin: 0, color: score >= 80 ? '#136dec' : '#f5222d' }}>
+                                        {score}%
+                                    </Title>
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+
+                    {showAnswers && (
+                        <div style={{ marginTop: '32px', textAlign: 'left' }}>
+                            <Title level={4}>Review Questions</Title>
+                            {questions.map((q, index) => (
+                                <Card
+                                    key={q.id}
+                                    variant='borderless'
+                                    style={{
+                                        marginBottom: '16px',
+                                        borderRadius: '12px',
+                                        border: '1px solid #f0f0f0'
+                                    }}
+                                >
+                                    <Paragraph strong>
+                                        {q.id}. {q.text}
+                                    </Paragraph>
+                                    <Space direction='vertical'>
+                                        {q.options.map((option, optIdx) => (
+                                            <div
+                                                key={optIdx}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px',
+                                                    color:
+                                                        optIdx === q.correctAnswer
+                                                            ? '#52c41a'
+                                                            : answers[index] === optIdx
+                                                              ? '#ff4d4f'
+                                                              : 'inherit'
+                                                }}
+                                            >
+                                                {optIdx === q.correctAnswer ? (
+                                                    <CheckCircleOutlined />
+                                                ) : answers[index] === optIdx ? (
+                                                    <CloseOutlined />
+                                                ) : (
+                                                    <div style={{ width: 14 }} />
+                                                )}
+                                                <Text
+                                                    style={{
+                                                        fontWeight: optIdx === q.correctAnswer ? 600 : 400,
+                                                        color: 'inherit'
+                                                    }}
+                                                >
+                                                    {option}
+                                                </Text>
+                                            </div>
+                                        ))}
+                                    </Space>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+                </Result>
             </div>
         );
     }
@@ -178,7 +272,7 @@ export const InternTest = () => {
     return (
         <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto' }}>
             <Card
-                bordered={false}
+                variant='borderless'
                 style={{
                     borderRadius: '16px',
                     marginBottom: '24px',
@@ -220,9 +314,9 @@ export const InternTest = () => {
             </Card>
 
             <Card
-                bordered={false}
+                variant='borderless'
                 style={{ borderRadius: '16px', minHeight: '400px' }}
-                loading={createEvaluation.isPending}
+                loading={isSubmitting}
                 title={
                     <Space>
                         <BulbOutlined style={{ color: '#136dec' }} />
@@ -283,7 +377,7 @@ export const InternTest = () => {
                         <Button
                             type='primary'
                             icon={<CheckCircleOutlined />}
-                            loading={createEvaluation.isPending}
+                            loading={isSubmitting}
                             onClick={() =>
                                 Modal.confirm({
                                     title: t('test.submit_confirm') || 'Submit Test?',

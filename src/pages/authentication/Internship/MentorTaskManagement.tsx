@@ -17,105 +17,145 @@ import {
     Card,
     Col,
     Input,
-    List,
     Row,
     Space,
     Table,
     Tag,
     Typography,
-    message,
     Modal,
     Form,
     Select,
     DatePicker,
     Dropdown,
-    MenuProps
+    MenuProps,
+    App
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useTasks, useCreateTask, useUpdateTask } from '../../../hooks/Internship/useTasks';
-import { useInterns } from '../../../hooks/Internship/useInterns';
+import { http } from '../../../utils/http';
 import { Task } from '../../../services/Internship/tasks';
 
 const { Title, Text } = Typography;
 
+const STATUS_MAP_TO_BACKEND: any = {
+    'In Progress': 'in_progress',
+    'Under Review': 'under_review',
+    Completed: 'completed',
+    'To Do': 'to_do'
+};
+
 export const MentorTaskManagement = () => {
     const { t } = useTranslation();
+    const { message: messageApi } = App.useApp();
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [internFilter, setInternFilter] = useState<string | undefined>(undefined);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
 
-    const { data: tasksData, isLoading } = useTasks({
-        searcher: searchText ? { keyword: searchText, field: 'title' } : undefined,
-        status: statusFilter === 'All Statuses' || statusFilter === 'All' ? undefined : statusFilter,
-        internId: internFilter === 'All Interns' ? undefined : internFilter
-    });
+    const [tasksData, setTasksData] = useState<any>(null);
+    const [internsData, setInternsData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    const { data: internsData } = useInterns();
-    const createTaskMutation = useCreateTask();
-    const updateTaskMutation = useUpdateTask();
+    const fetchTasks = async () => {
+        setIsLoading(true);
+        try {
+            const params: any = {};
+            if (searchText) {
+                params.searcher = JSON.stringify({ keyword: searchText, field: 'title' });
+            }
+            if (statusFilter !== 'All Statuses' && statusFilter !== 'All') {
+                params.status = statusFilter;
+            }
+            if (internFilter && internFilter !== 'All Interns') {
+                params.internId = internFilter;
+            }
+            const res = await http.get('/tasks', { params });
+            setTasksData(res);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchInterns = async () => {
+        try {
+            const res = await http.get('/interns');
+            setInternsData(res);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    useEffect(() => {
+        fetchTasks();
+    }, [searchText, statusFilter, internFilter]);
+
+    useEffect(() => {
+        fetchInterns();
+    }, []);
 
     const handleAddTask = async (values: any) => {
+        setIsProcessing(true);
         try {
-            const selectedIntern = internsData?.data?.hits?.find((i) => i.id === values.internId);
-            await createTaskMutation.mutateAsync({
+            const selectedIntern = internsData?.data?.hits?.find((i: any) => i.id === values.internId);
+            await http.post('/tasks', {
                 title: values.title,
                 internId: values.internId,
-                intern: selectedIntern?.name || '',
-                internAvatar: selectedIntern?.avatar || '',
-                priority: values.priority,
+                mentorId: selectedIntern?.mentorId || '93086eb4-a316-431b-a53c-1349f280a8f8', // Fallback to mentor from intern or default
+                priority: values.priority.toLowerCase() as any,
                 dueDate: values.dueDate.format('YYYY-MM-DD'),
                 description: values.description || ''
             });
             setIsModalOpen(false);
             form.resetFields();
-            message.success(t('common.success'));
+            messageApi.success(t('common.success'));
+            fetchTasks();
         } catch {
-            message.error(t('common.error'));
+            messageApi.error(t('common.error'));
+        } finally {
+            setIsProcessing(false);
         }
     };
 
     const handleUpdateStatus = (id: string, newStatus: string) => {
-        updateTaskMutation.mutate(
-            {
-                id,
-                status: newStatus as any
-            },
-            {
-                onSuccess: () => {
-                    message.success(t('common.success'));
-                }
-            }
-        );
+        const backendStatus = STATUS_MAP_TO_BACKEND[newStatus] || newStatus.toLowerCase().replace(' ', '_');
+        http.patch(`/tasks/${id}`, {
+            status: backendStatus
+        }).then(() => {
+            messageApi.success(t('common.success'));
+            fetchTasks();
+        });
     };
 
-    const dataSource = tasksData?.data?.hits || [];
+    const responseData = tasksData?.data || tasksData;
+    const dataSource = responseData?.hits || (Array.isArray(responseData) ? responseData : []);
 
     const getActionMenu = (record: Task): MenuProps => ({
         items: [
             {
                 key: 'view',
-                label: 'View Details',
+                label: t('task_mgmt.view_details'),
                 icon: <EyeOutlined />,
                 onClick: () =>
                     Modal.info({ title: record.title, content: record.description || 'No description provided.' })
             },
             {
                 key: 'approve',
-                label: 'Approve / Complete',
+                label: t('task_mgmt.approve_complete'),
                 icon: <CheckOutlined />,
-                disabled: record.status === 'Completed',
-                onClick: () => handleUpdateStatus(record.id, 'Completed')
+                disabled: record.status === 'completed',
+                onClick: () => handleUpdateStatus(record.id, 'completed')
             },
             {
                 key: 'return',
-                label: 'Request Revision',
+                label: t('task_mgmt.request_revision'),
                 icon: <CloseOutlined />,
-                disabled: record.status === 'Completed' || record.status === 'To Do',
-                onClick: () => handleUpdateStatus(record.id, 'In Progress')
+                disabled: record.status === 'completed' || record.status === 'to_do',
+                onClick: () => handleUpdateStatus(record.id, 'in_progress')
             }
         ]
     });
@@ -132,19 +172,48 @@ export const MentorTaskManagement = () => {
             )
         },
         {
+            title: t('common.status'),
+            dataIndex: 'status',
+            key: 'status',
+            width: 120,
+            render: (status) => {
+                const s = status?.toLowerCase();
+                let color = 'default';
+                if (s === 'in_progress') color = 'blue';
+                if (s === 'completed') color = 'success';
+                if (s === 'under_review') color = 'warning';
+                if (s === 'need_rework') color = 'error';
+
+                const statusMap: any = {
+                    in_progress: t('task_mgmt.in_progress'),
+                    under_review: t('task_mgmt.under_review'),
+                    completed: t('task_mgmt.completed'),
+                    to_do: t('task_mgmt.to_do'),
+                    need_rework: t('task_mgmt.need_rework')
+                };
+                return (
+                    <Tag color={color} style={{ borderRadius: '10px' }}>
+                        {statusMap[s] || status}
+                    </Tag>
+                );
+            }
+        },
+        {
             title: t('task_mgmt.task_title'),
             dataIndex: 'title',
             key: 'title',
+            ellipsis: true,
             render: (text) => <Text strong>{text}</Text>
         },
         {
             title: t('task_mgmt.intern'),
-            dataIndex: 'intern',
-            key: 'intern',
-            render: (text, record) => (
+            dataIndex: 'internName',
+            key: 'internName',
+            ellipsis: true,
+            render: (text, record: any) => (
                 <Space>
                     <Avatar size='small' src={record.internAvatar} />
-                    <Text>{text}</Text>
+                    <Text>{typeof text === 'string' ? text : record.intern?.user?.fullName || 'N/A'}</Text>
                 </Space>
             )
         },
@@ -153,14 +222,15 @@ export const MentorTaskManagement = () => {
             dataIndex: 'priority',
             key: 'priority',
             render: (priority) => {
+                const p = priority?.toLowerCase();
                 let color = 'blue';
-                if (priority === 'High') color = 'volcano';
-                if (priority === 'Medium') color = 'gold';
+                if (p === 'high') color = 'volcano';
+                if (p === 'medium') color = 'gold';
                 return (
                     <Tag color={color}>
-                        {priority === 'High'
+                        {p === 'high'
                             ? t('task_mgmt.high')
-                            : priority === 'Medium'
+                            : p === 'medium'
                               ? t('task_mgmt.medium')
                               : t('task_mgmt.low')}
                     </Tag>
@@ -174,35 +244,14 @@ export const MentorTaskManagement = () => {
             render: (date) => (
                 <Space>
                     <ClockCircleOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} />
-                    <Text style={{ fontSize: '13px' }}>{date}</Text>
+                    <Text style={{ fontSize: '13px' }}>{typeof date === 'string' ? date : 'N/A'}</Text>
                 </Space>
             )
         },
         {
-            title: t('common.status'),
-            dataIndex: 'status',
-            key: 'status',
-            render: (status) => {
-                let color = 'default';
-                if (status === 'In Progress') color = 'blue';
-                if (status === 'Completed') color = 'success';
-                if (status === 'Under Review') color = 'warning';
-                const statusMap: any = {
-                    'In Progress': t('task_mgmt.in_progress'),
-                    'Under Review': t('task_mgmt.under_review'),
-                    Completed: t('task_mgmt.completed'),
-                    'To Do': t('task_mgmt.to_do')
-                };
-                return (
-                    <Tag color={color} style={{ borderRadius: '10px' }}>
-                        {statusMap[status] || status}
-                    </Tag>
-                );
-            }
-        },
-        {
             title: t('common.actions'),
             key: 'action',
+            width: 80,
             render: (_, record) => (
                 <Dropdown menu={getActionMenu(record)} trigger={['click']}>
                     <Button type='text' icon={<EllipsisOutlined />} />
@@ -233,66 +282,8 @@ export const MentorTaskManagement = () => {
             </div>
 
             <Row gutter={[24, 24]}>
-                <Col xs={24} lg={6}>
-                    <Space direction='vertical' style={{ width: '100%' }} size='large'>
-                        <Card title={t('task_mgmt.stats')} bordered={false} style={{ borderRadius: '12px' }}>
-                            <div style={{ padding: '10px 0' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                    <Space>
-                                        <TeamOutlined style={{ color: '#136dec' }} />{' '}
-                                        <Text>{t('task_mgmt.active_interns')}</Text>
-                                    </Space>
-                                    <Text strong>4</Text>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                    <Space>
-                                        <ProjectOutlined style={{ color: '#faad14' }} />{' '}
-                                        <Text>{t('task_mgmt.open_tasks')}</Text>
-                                    </Space>
-                                    <Text strong>15</Text>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <Space>
-                                        <CheckCircleOutlined style={{ color: '#52c41a' }} />{' '}
-                                        <Text>{t('task_mgmt.completed')}</Text>
-                                    </Space>
-                                    <Text strong>42</Text>
-                                </div>
-                            </div>
-                        </Card>
-
-                        <Card title={t('task_mgmt.activity')} bordered={false} style={{ borderRadius: '12px' }}>
-                            <List
-                                itemLayout='horizontal'
-                                dataSource={[
-                                    { name: 'Sarah J.', action: 'submitted task', time: '10m ago' },
-                                    { name: 'David C.', action: 'started task', time: '1h ago' },
-                                    { name: 'Sarah J.', action: 'requested review', time: '3h ago' }
-                                ]}
-                                renderItem={(item) => (
-                                    <List.Item style={{ padding: '12px 0' }}>
-                                        <List.Item.Meta
-                                            avatar={<Avatar size='small' icon={<UserOutlined />} />}
-                                            title={
-                                                <Text style={{ fontSize: '13px' }}>
-                                                    <Text strong>{item.name}</Text> {item.action}
-                                                </Text>
-                                            }
-                                            description={
-                                                <Space style={{ fontSize: '11px' }}>
-                                                    <HistoryOutlined /> {item.time}
-                                                </Space>
-                                            }
-                                        />
-                                    </List.Item>
-                                )}
-                            />
-                        </Card>
-                    </Space>
-                </Col>
-
-                <Col xs={24} lg={18}>
-                    <Card bordered={false} style={{ borderRadius: '12px' }}>
+                <Col xs={24} lg={24}>
+                    <Card variant='borderless' style={{ borderRadius: '12px' }}>
                         <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
                             <Space size='middle'>
                                 <Select
@@ -310,10 +301,10 @@ export const MentorTaskManagement = () => {
                                     onChange={setStatusFilter}
                                     options={[
                                         { value: 'All Statuses', label: t('task_mgmt.all_statuses') },
-                                        { value: 'In Progress', label: t('task_mgmt.in_progress') },
-                                        { value: 'Under Review', label: t('task_mgmt.under_review') },
-                                        { value: 'Completed', label: t('task_mgmt.completed') },
-                                        { value: 'To Do', label: t('task_mgmt.to_do') }
+                                        { value: 'in_progress', label: t('task_mgmt.in_progress') },
+                                        { value: 'under_review', label: t('task_mgmt.under_review') },
+                                        { value: 'completed', label: t('task_mgmt.completed') },
+                                        { value: 'to_do', label: t('task_mgmt.to_do') }
                                     ]}
                                 />
                             </Space>
@@ -329,7 +320,7 @@ export const MentorTaskManagement = () => {
                             dataSource={dataSource}
                             loading={isLoading}
                             pagination={{
-                                total: tasksData?.data?.pagination?.totalRows || 0,
+                                total: responseData?.pagination?.totalRows || dataSource.length,
                                 pageSize: 8
                             }}
                             rowKey='id'
@@ -347,7 +338,7 @@ export const MentorTaskManagement = () => {
                 open={isModalOpen}
                 onCancel={() => setIsModalOpen(false)}
                 onOk={() => form.submit()}
-                confirmLoading={createTaskMutation.isPending}
+                confirmLoading={isProcessing}
                 destroyOnClose
             >
                 <Form form={form} layout='vertical' onFinish={handleAddTask} style={{ marginTop: '16px' }}>
@@ -366,7 +357,7 @@ export const MentorTaskManagement = () => {
                                 rules={[{ required: true, message: t('common.required_field') }]}
                             >
                                 <Select
-                                    placeholder='Choose intern'
+                                    placeholder={t('task_mgmt.choose_intern')}
                                     options={internsData?.data?.hits?.map((i) => ({ value: i.id, label: i.name }))}
                                 />
                             </Form.Item>

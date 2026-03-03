@@ -29,9 +29,9 @@ import {
     Spin
 } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useIntern, useUpdateIntern } from '../../../hooks/Internship/useInterns';
-import { useCreateEvaluation } from '../../../hooks/Internship/useEvaluations';
+import { http } from '../../../utils/http';
 import { RouteConfig } from '../../../constants';
 
 const { Content } = Layout;
@@ -44,13 +44,31 @@ export const MentorEvalFinal = () => {
     const { id } = useParams<{ id: string }>();
     const [form] = Form.useForm();
 
-    const { data: internData, isLoading: isInternLoading } = useIntern(id || '');
-    const createEvalMutation = useCreateEvaluation();
-    const updateInternMutation = useUpdateIntern();
+    const [internData, setInternData] = useState<any>(null);
+    const [isInternLoading, setIsInternLoading] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const fetchIntern = async () => {
+        if (!id) return;
+        setIsInternLoading(true);
+        try {
+            const res = await http.get(`/interns/${id}`);
+            setInternData(res);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsInternLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchIntern();
+    }, [id]);
 
     const onFinish = async (values: any) => {
         if (!id || !internData?.data) return;
 
+        setIsProcessing(true);
         try {
             // Calculate an average score from the radio groups
             const technicalScores = [values.codeQuality, values.architecture, values.tooling];
@@ -62,7 +80,7 @@ export const MentorEvalFinal = () => {
                     ? (allScores.reduce((a, b) => a + b, 0) / allScores.length) * 2 // Map 5 stars to 10 points
                     : 0;
 
-            await createEvalMutation.mutateAsync({
+            await http.post('/evaluations', {
                 internId: id,
                 internName: internData.data.name,
                 mentorId: 'mentor-1', // Mock for now
@@ -74,8 +92,7 @@ export const MentorEvalFinal = () => {
             });
 
             // Update intern progress to 100% and set status if hired
-            await updateInternMutation.mutateAsync({
-                id,
+            await http.patch(`/interns/${id}`, {
                 progress: 100,
                 status: values.recommendation === 'hire' ? 'Completed' : 'Active'
             });
@@ -84,6 +101,8 @@ export const MentorEvalFinal = () => {
             navigate(RouteConfig.InternList.path);
         } catch {
             message.error(t('common.error'));
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -592,7 +611,7 @@ export const MentorEvalFinal = () => {
                                     icon={<SendOutlined />}
                                     size='large'
                                     onClick={() => form.submit()}
-                                    loading={createEvalMutation.isPending}
+                                    loading={isProcessing}
                                 >
                                     Submit Evaluation
                                 </Button>

@@ -30,10 +30,10 @@ import {
     CalendarOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useCandidates, useShortlistCandidate, useRejectCandidate } from '../../../hooks/Recruitment/useCandidates';
+import { http } from '../../../utils/http';
 import { Candidate } from '../../../services/Recruitment/candidates';
 import { CVDetailModal } from './components/CVDetailModal';
 
@@ -64,18 +64,37 @@ export const CVList = () => {
 
     const hasSelected = selectedRowKeys.length > 0;
 
-    const { data: candidatesData, isLoading } = useCandidates({
-        searcher: searchText ? { keyword: searchText, field: 'name' } : undefined,
-        status: statusFilter
-    });
+    const [candidatesData, setCandidatesData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const shortlistMutation = useShortlistCandidate();
-    const rejectMutation = useRejectCandidate();
+    const fetchCandidates = async () => {
+        setIsLoading(true);
+        try {
+            const params: any = {};
+            if (searchText) {
+                params.searcher = JSON.stringify({ keyword: searchText, field: 'fullName' });
+            }
+            if (statusFilter !== 'all') {
+                params.status = statusFilter;
+            }
+            const res = await http.get('/candidates', { params });
+            setCandidatesData(res);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchCandidates();
+    }, [searchText, statusFilter]);
 
     const handleShortlist = async (id: string, name: string) => {
         try {
-            await shortlistMutation.mutateAsync({ id });
+            await http.patch(`/candidates/${id}/status`, { status: 'shortlisted' });
             message.success(`${t('candidate.shortlisted')} ${name}`);
+            fetchCandidates();
         } catch {
             message.error(t('common.error'));
         }
@@ -83,8 +102,9 @@ export const CVList = () => {
 
     const handleReject = async (id: string, name: string) => {
         try {
-            await rejectMutation.mutateAsync({ id });
+            await http.patch(`/candidates/${id}/status`, { status: 'rejected' });
             message.success(`${t('candidate.rejected')} ${name}`);
+            fetchCandidates();
         } catch {
             message.error(t('common.error'));
         }
@@ -93,18 +113,18 @@ export const CVList = () => {
     const columns: ColumnsType<Candidate> = [
         {
             title: t('candidate.candidate_info'),
-            dataIndex: 'name',
-            key: 'name',
+            dataIndex: 'fullName',
+            key: 'fullName',
             render: (text: any, record: any) => (
                 <div
                     style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
                     onClick={() => handleView(record)}
                 >
-                    {record.avatar?.includes('http') ? (
-                        <Avatar src={record.avatar} size={40} />
+                    {record.avatarUrl?.includes('http') ? (
+                        <Avatar src={record.avatarUrl} size={40} />
                     ) : (
                         <Avatar style={{ backgroundColor: '#f56a00', verticalAlign: 'middle' }} size={40}>
-                            {record.name?.[0]}
+                            {record.fullName?.[0]}
                         </Avatar>
                     )}
                     <div>
@@ -120,9 +140,9 @@ export const CVList = () => {
         },
         {
             title: t('candidate.job_title'),
-            dataIndex: 'appliedForTitle',
+            dataIndex: 'job',
             key: 'job',
-            render: (text: any) => <Text style={{ fontSize: '13px' }}>{text}</Text>
+            render: (job: any) => <Text style={{ fontSize: '13px' }}>{job?.title}</Text>
         },
         {
             title: t('candidate.applied_date'),
@@ -144,21 +164,27 @@ export const CVList = () => {
             render: (status: any) => {
                 let color = 'default';
                 let translatedStatus = status;
-                if (status === 'Pending Review') {
+                if (status === 'pending_review') {
                     color = 'warning';
                     translatedStatus = t('candidate.pending_review');
-                }
-                if (status === 'CV Screened') {
+                } else if (status === 'cv_screened') {
                     color = 'processing';
                     translatedStatus = t('candidate.cv_screened');
-                }
-                if (status === 'Shortlisted') {
+                } else if (status === 'shortlisted') {
                     color = 'success';
                     translatedStatus = t('candidate.shortlisted');
-                }
-                if (status === 'Rejected') {
+                } else if (status === 'rejected') {
                     color = 'error';
                     translatedStatus = t('candidate.rejected');
+                } else if (status === 'interview_scheduled') {
+                    color = 'blue';
+                    translatedStatus = t('candidate.interview_scheduled');
+                } else if (status === 'passed_interview') {
+                    color = 'green';
+                    translatedStatus = t('candidate.passed_interview');
+                } else if (status === 'converted_to_intern') {
+                    color = 'purple';
+                    translatedStatus = t('candidate.converted_to_intern');
                 }
 
                 return (
@@ -202,7 +228,7 @@ export const CVList = () => {
                             key: 'interview',
                             label: t('interview.schedule_title'),
                             icon: <CalendarOutlined />,
-                            disabled: record.status !== 'Shortlisted',
+                            disabled: record.status !== 'shortlisted',
                             onClick: () => navigate('/recruitment/interviews')
                         },
                         { type: 'divider' },
@@ -210,16 +236,16 @@ export const CVList = () => {
                             key: 'shortlist',
                             label: t('candidate.shortlist_candidate'),
                             icon: <CheckCircleOutlined />,
-                            disabled: record.status === 'Shortlisted' || record.status === 'Rejected',
-                            onClick: () => handleShortlist(record.id, record.name)
+                            disabled: record.status === 'shortlisted' || record.status === 'rejected',
+                            onClick: () => handleShortlist(record.id, record.fullName)
                         },
                         {
                             key: 'reject',
                             label: t('candidate.reject_candidate'),
                             icon: <CloseCircleOutlined />,
                             danger: true,
-                            disabled: record.status === 'Rejected',
-                            onClick: () => handleReject(record.id, record.name)
+                            disabled: record.status === 'rejected',
+                            onClick: () => handleReject(record.id, record.fullName)
                         }
                     ]
                 };
@@ -254,65 +280,6 @@ export const CVList = () => {
                 </div>
             </div>
 
-            <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Text type='secondary'>{t('candidate.total_applications')}</Text>
-                            <TeamOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
-                        </div>
-                        <Title level={2} style={{ margin: '8px 0' }}>
-                            {dataSource.length}
-                        </Title>
-                        <Text type='success' style={{ fontSize: '12px' }}>
-                            <RiseOutlined /> +12% {t('common.last_week')}
-                        </Text>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px', borderRight: '4px solid #fa8c16' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Text type='secondary'>{t('candidate.pending_review')}</Text>
-                            <FilterOutlined style={{ fontSize: '20px', color: '#fa8c16' }} />
-                        </div>
-                        <Title level={2} style={{ margin: '8px 0' }}>
-                            {dataSource.filter((c) => c.status === 'Pending Review').length}
-                        </Title>
-                        <Text type='secondary' style={{ fontSize: '12px' }}>
-                            {t('candidate.needs_immediate_action')}
-                        </Text>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px', borderRight: '4px solid #52c41a' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Text type='secondary'>{t('candidate.shortlisted')}</Text>
-                            <CheckCircleOutlined style={{ fontSize: '20px', color: '#52c41a' }} />
-                        </div>
-                        <Title level={2} style={{ margin: '8px 0' }}>
-                            {dataSource.filter((c) => c.status === 'Shortlisted').length}
-                        </Title>
-                        <Text type='secondary' style={{ fontSize: '12px' }}>
-                            {t('candidate.ready_for_interview')}
-                        </Text>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: '12px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Text type='secondary'>{t('candidate.rejected')}</Text>
-                            <CloseCircleOutlined style={{ fontSize: '20px', color: '#ff4d4f' }} />
-                        </div>
-                        <Title level={2} style={{ margin: '8px 0' }}>
-                            {dataSource.filter((c) => c.status === 'Rejected').length}
-                        </Title>
-                        <Text type='secondary' style={{ fontSize: '12px' }}>
-                            {t('candidate.archived_applications')}
-                        </Text>
-                    </Card>
-                </Col>
-            </Row>
-
             <Card bordered={false} style={{ borderRadius: '12px' }}>
                 <div
                     style={{
@@ -336,10 +303,10 @@ export const CVList = () => {
                             onChange={setStatusFilter}
                             options={[
                                 { value: 'all', label: t('common.all') },
-                                { value: 'Pending Review', label: t('candidate.pending_review') },
-                                { value: 'CV Screened', label: t('candidate.cv_screened') },
-                                { value: 'Shortlisted', label: t('candidate.shortlisted') },
-                                { value: 'Rejected', label: t('candidate.rejected') }
+                                { value: 'pending_review', label: t('candidate.pending_review') },
+                                { value: 'cv_screened', label: t('candidate.cv_screened') },
+                                { value: 'shortlisted', label: t('candidate.shortlisted') },
+                                { value: 'rejected', label: t('candidate.rejected') }
                             ]}
                         />
                     </div>
@@ -391,7 +358,7 @@ export const CVList = () => {
                     dataSource={dataSource}
                     loading={isLoading}
                     pagination={{
-                        total: candidatesData?.data?.pagination?.totalRows || 0,
+                        total: candidatesData?.pagination?.totalRows || 0,
                         showTotal: (total, range) =>
                             `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.candidates')}`,
                         pageSize: 5

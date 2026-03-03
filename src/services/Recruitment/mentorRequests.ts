@@ -8,17 +8,20 @@ import {
 
 export interface MentorRequest {
     id: string;
-    type: 'Recruitment' | 'Training' | 'Equipment';
-    name: string;
+    mentorId: string;
+    mentor?: {
+        id: string;
+        fullName: string;
+    };
     title: string;
     department: string;
-    requestedBy: string;
-    priority: 'High' | 'Medium' | 'Low';
-    status: 'Pending' | 'Approved' | 'Rejected' | 'In Progress';
-    positions?: string[];
-    quantity?: number;
-    requiredSkills?: string[];
-    expectedStartDate?: string;
+    position: string;
+    quantity: number;
+    requiredSkills: string;
+    expectedStartDate: string;
+    priority: 'low' | 'medium' | 'high';
+    status: 'pending' | 'approved' | 'rejected' | 'in_progress';
+    notes?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -34,107 +37,62 @@ export interface GetMentorRequestsParams {
 export const getMentorRequests = async (
     params?: GetMentorRequestsParams
 ): Promise<ResponseListSuccess<MentorRequest>> => {
-    const queryParams: any = {
-        q: params?.searcher?.keyword,
-        _page: params?.pagination?.page || 1,
-        _limit: params?.pagination?.pageSize || 10
-    };
+    const result = await http.get<any>('/mentor-requests', { params });
 
-    if (params?.status && params.status !== 'all') {
-        queryParams.status = params.status;
-    }
-
-    if (params?.priority && params.priority !== 'all') {
-        queryParams.priority = params.priority;
-    }
-
-    if (params?.department && params.department !== 'all') {
-        queryParams.department = params.department;
-    }
-
-    const response = await http.get('/mentor-requests', { params: queryParams });
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
-    const data = response.data;
-
+    // Mapping structure { data: { hits: [], pagination: {} } } from BE
+    // to match ResponseListSuccess<T> { data: T[], pagination: {} }
     return {
-        code: 200,
-        data: {
-            hits: data,
-            pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
-            }
-        }
+        errorCode: result.errorCode,
+        data: result.data?.hits || [],
+        pagination: result.data?.pagination
     };
 };
 
 export const getMentorRequest = async (id: string): Promise<ResponseDetailSuccess<MentorRequest>> => {
-    const response = await http.get(`/mentor-requests/${id}`);
-    return {
-        code: 200,
-        data: response.data
-    };
+    const result = await http.get<ResponseDetailSuccess<MentorRequest>>(`/mentor-requests/${id}`);
+    return result;
 };
 
 export interface CreateMentorRequestParams {
-    type: 'Recruitment' | 'Training' | 'Equipment';
-    name: string;
     title: string;
     department: string;
-    priority: 'High' | 'Medium' | 'Low';
-    positions?: string[];
+    position: string;
     quantity?: number;
-    requiredSkills?: string[];
+    requiredSkills?: string;
     expectedStartDate?: string;
+    priority?: 'high' | 'medium' | 'low';
+    notes?: string;
 }
 
 export const createMentorRequest = async (
     params: CreateMentorRequestParams
 ): Promise<ResponseDetailSuccess<MentorRequest>> => {
-    const response = await http.post('/mentor-requests', {
-        ...params,
-        status: 'Pending',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    });
-    return {
-        code: 201,
-        data: response.data
-    };
+    const result = await http.post<ResponseDetailSuccess<MentorRequest>>('/mentor-requests', params);
+    return result;
 };
 
 export interface UpdateMentorRequestParams {
     id: string;
-    type?: 'Recruitment' | 'Training' | 'Equipment';
-    name?: string;
     title?: string;
     department?: string;
-    priority?: 'High' | 'Medium' | 'Low';
-    status?: 'Pending' | 'Approved' | 'Rejected' | 'In Progress';
-    positions?: string[];
+    position?: string;
+    priority?: 'high' | 'medium' | 'low';
+    status?: 'pending' | 'approved' | 'rejected' | 'in_progress';
     quantity?: number;
-    requiredSkills?: string[];
+    requiredSkills?: string;
     expectedStartDate?: string;
+    notes?: string;
 }
 
 export const updateMentorRequest = async (
     params: UpdateMentorRequestParams
 ): Promise<ResponseDetailSuccess<MentorRequest>> => {
     const { id, ...data } = params;
-    const response = await http.patch(`/mentor-requests/${id}`, {
-        ...data,
-        updatedAt: new Date().toISOString()
-    });
-    return {
-        code: 200,
-        data: response.data
-    };
+    const result = await http.patch<ResponseDetailSuccess<MentorRequest>>(`/mentor-requests/${id}`, data);
+    return result;
 };
 
 export const deleteMentorRequest = async (id: string): Promise<ResponseDetailSuccess<null>> => {
-    await http.delete(`/mentor-requests/${id}`);
-    return {
-        code: 200,
-        data: null
-    };
+    const result = await http.delete<ResponseDetailSuccess<null>>(`/mentor-requests/${id}`);
+    return result;
 };

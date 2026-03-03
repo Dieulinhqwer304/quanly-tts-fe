@@ -23,6 +23,7 @@ export interface Approval {
     status: 'Pending' | 'Approved' | 'Rejected' | 'Adjusting';
     createdAt: string;
     updatedAt: string;
+    details?: any;
 }
 
 export interface GetApprovalsParams {
@@ -35,37 +36,22 @@ export interface GetApprovalsParams {
 export const getApprovals = async (params?: GetApprovalsParams): Promise<ResponseListSuccess<Approval>> => {
     const queryParams: any = {
         q: params?.searcher?.keyword,
-        _page: params?.pagination?.page || 1,
-        _limit: params?.pagination?.pageSize || 10,
-        status: params?.status || 'Pending'
+        page: params?.pagination?.page || 1,
+        limit: params?.pagination?.pageSize || 10,
+        status: params?.status,
+        type: params?.type
     };
 
-    if (params?.type && params.type !== 'all') {
-        queryParams.type = params.type;
-    }
-
-    const response = await http.get('/approvals', { params: queryParams });
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
-    const data = response.data;
-
+    const result = await http.get<any>('/approvals', { params: queryParams });
     return {
-        code: 200,
-        data: {
-            hits: data,
-            pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
-            }
-        }
-    };
+        errorCode: 0,
+        data: result
+    } as any;
 };
 
 export const getApproval = async (id: string): Promise<ResponseDetailSuccess<Approval>> => {
-    const response = await http.get(`/approvals/${id}`);
-    return {
-        code: 200,
-        data: response.data
-    };
+    const result = await http.get<ResponseDetailSuccess<Approval>>(`/approvals/${id}`);
+    return result;
 };
 
 export interface UpdateApprovalParams {
@@ -76,12 +62,6 @@ export interface UpdateApprovalParams {
 
 export const updateApproval = async (params: UpdateApprovalParams): Promise<ResponseDetailSuccess<Approval>> => {
     const { id, ...data } = params;
-    const response = await http.patch(`/approvals/${id}`, {
-        ...data,
-        updatedAt: new Date().toISOString()
-    });
-    return {
-        code: 200,
-        data: response.data
-    };
+    const result = await http.patch<ResponseDetailSuccess<Approval>>(`/approvals/${id}`, data);
+    return result;
 };

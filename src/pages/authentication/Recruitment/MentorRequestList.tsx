@@ -24,7 +24,6 @@ import {
     InputNumber,
     message,
     Breadcrumb,
-    Dropdown,
     DatePicker
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -32,26 +31,19 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import TextArea from 'antd/es/input/TextArea';
 import dayjs, { Dayjs } from 'dayjs';
-import {
-    useMentorRequests,
-    useCreateMentorRequest,
-    useUpdateMentorRequest,
-    useDeleteMentorRequest
-} from '../../../hooks/Recruitment/useMentorRequests';
+import { http } from '../../../utils/http';
 import { CreateMentorRequestParams, MentorRequest } from '../../../services/Recruitment/mentorRequests';
 import { useResponsive } from '../../../hooks/useResponsive';
 
 const { Title, Text } = Typography;
 
 interface MentorRequestFormValues {
-    type: 'Recruitment' | 'Training' | 'Equipment';
-    priority: 'High' | 'Medium' | 'Low';
-    name: string;
+    priority: 'high' | 'medium' | 'low';
     title: string;
     department: string;
+    position?: string;
     quantity?: number;
-    positions?: string | string[];
-    requiredSkills?: string | string[];
+    requiredSkills?: string;
     expectedStartDate?: Dayjs;
 }
 
@@ -65,18 +57,36 @@ export const MentorRequestList = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form] = Form.useForm();
+    const [isLoading, setIsLoading] = useState(false);
+    const [isMutating, setIsMutating] = useState(false);
 
-    // Data fetching
-    const { data: requestsData, isLoading } = useMentorRequests({
-        searcher: searchText ? { keyword: searchText, field: 'title' } : undefined,
-        status: statusFilter === 'all' ? undefined : statusFilter
+    // Data handling
+    const [requestsData, setRequestsData] = useState<any>(null);
+
+    const fetchRequests = async () => {
+        setIsLoading(true);
+        try {
+            const params: any = {};
+            if (searchText) {
+                params.searcher = JSON.stringify({ keyword: searchText, field: 'title' });
+            }
+            if (statusFilter !== 'all') {
+                params.status = statusFilter;
+            }
+            const res = await http.get('/mentor-requests', { params });
+            setRequestsData(res);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useState(() => {
+        fetchRequests();
     });
 
-    const createMutation = useCreateMentorRequest();
-    const updateMutation = useUpdateMentorRequest();
-    const deleteMutation = useDeleteMentorRequest();
-
-    const requests: MentorRequest[] = requestsData?.data?.hits || [];
+    const requests: MentorRequest[] = requestsData?.data || [];
 
     const handleOpenCreate = () => {
         setEditingId(null);
@@ -88,48 +98,43 @@ export const MentorRequestList = () => {
         setEditingId(record.id);
         form.setFieldsValue({
             ...record,
-            positions: record.positions?.join(', '),
-            requiredSkills: record.requiredSkills?.join(', '),
+            position: record.position,
             expectedStartDate: record.expectedStartDate ? dayjs(record.expectedStartDate) : undefined
         });
         setIsModalOpen(true);
     };
 
-    const handleSubmit = async (values: MentorRequestFormValues) => {
+    const handleSubmit = async (values: any) => {
+        setIsMutating(true);
         try {
-            const formData: CreateMentorRequestParams = {
-                ...values,
-                positions:
-                    typeof values.positions === 'string'
-                        ? values.positions
-                            .split(',')
-                            .map((p: string) => p.trim())
-                            .filter(Boolean)
-                        : values.positions,
-                requiredSkills:
-                    typeof values.requiredSkills === 'string'
-                        ? values.requiredSkills
-                            .split(',')
-                            .map((s: string) => s.trim())
-                            .filter(Boolean)
-                        : values.requiredSkills,
-                expectedStartDate: values.expectedStartDate ? values.expectedStartDate.format('YYYY-MM-DD') : undefined
+            const formData: any = {
+                title: values.title,
+                department: values.department,
+                position: values.position,
+                quantity: values.quantity,
+                requiredSkills: values.requiredSkills,
+                priority: values.priority?.toLowerCase(),
+                expectedStartDate: values.expectedStartDate ? values.expectedStartDate.format('YYYY-MM-DD') : undefined,
+                notes: values.notes
             };
 
             if (editingId) {
-                await updateMutation.mutateAsync({
-                    id: editingId,
-                    ...formData
+                await http.patch(`/mentor-requests/${editingId}`, {
+                    ...formData,
+                    status: (requests.find((r) => r.id === editingId)?.status || 'pending').toLowerCase()
                 });
                 message.success(t('mentor_request.update_success'));
             } else {
-                await createMutation.mutateAsync(formData);
+                await http.post('/mentor-requests', formData);
                 message.success(t('mentor_request.create_success'));
             }
+            fetchRequests();
             setIsModalOpen(false);
             form.resetFields();
         } catch {
             message.error(t('common.error'));
+        } finally {
+            setIsMutating(false);
         }
     };
 
@@ -142,7 +147,8 @@ export const MentorRequestList = () => {
             okButtonProps: { danger: true },
             onOk: async () => {
                 try {
-                    await deleteMutation.mutateAsync(id);
+                    await http.delete(`/mentor-requests/${id}`);
+                    fetchRequests();
                     message.success(t('mentor_request.delete_success'));
                 } catch {
                     message.error(t('common.error'));
@@ -152,14 +158,15 @@ export const MentorRequestList = () => {
     };
 
     const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'Pending':
+        const s = status?.toLowerCase();
+        switch (s) {
+            case 'pending':
                 return 'warning';
-            case 'Approved':
+            case 'approved':
                 return 'success';
-            case 'Rejected':
+            case 'rejected':
                 return 'error';
-            case 'In Progress':
+            case 'in_progress':
                 return 'processing';
             default:
                 return 'default';
@@ -167,12 +174,13 @@ export const MentorRequestList = () => {
     };
 
     const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'Pending':
+        const s = status?.toLowerCase();
+        switch (s) {
+            case 'pending':
                 return <ClockCircleOutlined />;
-            case 'Approved':
+            case 'approved':
                 return <CheckCircleOutlined />;
-            case 'Rejected':
+            case 'rejected':
                 return <CloseCircleOutlined />;
             default:
                 return <ClockCircleOutlined />;
@@ -180,14 +188,15 @@ export const MentorRequestList = () => {
     };
 
     const getStatusText = (status: string) => {
-        switch (status) {
-            case 'Pending':
+        const s = status?.toLowerCase();
+        switch (s) {
+            case 'pending':
                 return t('mentor_request.pending');
-            case 'Approved':
+            case 'approved':
                 return t('mentor_request.approved');
-            case 'Rejected':
+            case 'rejected':
                 return t('mentor_request.rejected');
-            case 'In Progress':
+            case 'in_progress':
                 return t('mentor_request.in_progress');
             default:
                 return status;
@@ -195,12 +204,13 @@ export const MentorRequestList = () => {
     };
 
     const getPriorityColor = (priority: string) => {
-        switch (priority) {
-            case 'High':
+        const p = priority?.toLowerCase();
+        switch (p) {
+            case 'high':
                 return 'red';
-            case 'Medium':
+            case 'medium':
                 return 'orange';
-            case 'Low':
+            case 'low':
                 return 'blue';
             default:
                 return 'default';
@@ -208,12 +218,13 @@ export const MentorRequestList = () => {
     };
 
     const getPriorityText = (priority: string) => {
-        switch (priority) {
-            case 'High':
+        const p = priority?.toLowerCase();
+        switch (p) {
+            case 'high':
                 return t('mentor_request.high');
-            case 'Medium':
+            case 'medium':
                 return t('mentor_request.medium');
-            case 'Low':
+            case 'low':
                 return t('mentor_request.low');
             default:
                 return priority;
@@ -222,13 +233,6 @@ export const MentorRequestList = () => {
 
     const columns: ColumnsType<MentorRequest> = [
         {
-            title: t('mentor_request.request_id'),
-            dataIndex: 'id',
-            key: 'id',
-            width: 120,
-            render: (text) => <Text strong>{text}</Text>
-        },
-        {
             title: t('mentor_request.request_title'),
             dataIndex: 'title',
             key: 'title',
@@ -236,7 +240,7 @@ export const MentorRequestList = () => {
                 <div>
                     <div style={{ fontWeight: 600, marginBottom: '4px' }}>{text}</div>
                     <Text type='secondary' style={{ fontSize: '12px' }}>
-                        {record.name}
+                        {record.mentor?.fullName}
                     </Text>
                 </div>
             )
@@ -253,11 +257,7 @@ export const MentorRequestList = () => {
             width: 250,
             render: (_, record) => (
                 <div>
-                    {record.positions?.map((pos, idx) => (
-                        <Tag key={idx} style={{ marginBottom: '4px' }}>
-                            {pos}
-                        </Tag>
-                    ))}
+                    <Tag style={{ marginBottom: '4px' }}>{record.position}</Tag>
                     {record.quantity && (
                         <div style={{ marginTop: '4px' }}>
                             <Text type='secondary' style={{ fontSize: '12px' }}>
@@ -299,47 +299,35 @@ export const MentorRequestList = () => {
             width: 100,
             align: 'center',
             render: (_, record) => (
-                <Dropdown
-                    menu={{
-                        items: [
-                            {
-                                key: 'edit',
-                                label: t('common.edit'),
-                                icon: <EditOutlined />,
-                                disabled: record.status !== 'Pending',
-                                onClick: () => handleOpenEdit(record)
-                            },
-                            {
-                                key: 'delete',
-                                label: t('common.delete'),
-                                icon: <DeleteOutlined />,
-                                danger: true,
-                                disabled: record.status === 'Approved',
-                                onClick: () => handleDelete(record.id)
-                            }
-                        ]
-                    }}
-                    trigger={['click']}
-                >
-                    <Button type='text' icon={<EditOutlined rotate={90} />} />
-                </Dropdown>
+                <Space>
+                    <Button
+                        type='text'
+                        icon={<EditOutlined />}
+                        disabled={record.status?.toLowerCase() !== 'pending'}
+                        onClick={() => handleOpenEdit(record)}
+                    />
+                    <Button
+                        type='text'
+                        danger
+                        icon={<DeleteOutlined />}
+                        disabled={record.status?.toLowerCase() === 'approved'}
+                        onClick={() => handleDelete(record.id)}
+                    />
+                </Space>
             )
         }
     ];
 
     // Stats Calculation
-    const pendingCount = requests.filter((r) => r.status === 'Pending').length;
-    const approvedCount = requests.filter((r) => r.status === 'Approved').length;
-    const processingCount = requests.filter((r) => r.status === 'In Progress').length;
+    const pendingCount = requests.filter((r) => r.status?.toLowerCase() === 'pending').length;
+    const approvedCount = requests.filter((r) => r.status?.toLowerCase() === 'approved').length;
+    const processingCount = requests.filter((r) => r.status?.toLowerCase() === 'in_progress').length;
 
     return (
         <div style={{ padding: isMobile ? '12px' : isLaptop ? '18px' : '24px' }}>
             <div style={{ marginBottom: '16px' }}>
                 <Breadcrumb
-                    items={[
-                        { title: t('menu.recruitment_management') },
-                        { title: t('mentor_request.title') }
-                    ]}
+                    items={[{ title: t('menu.recruitment_management') }, { title: t('mentor_request.title') }]}
                 />
             </div>
 
@@ -364,117 +352,6 @@ export const MentorRequestList = () => {
                 </Button>
             </div>
 
-            <Row gutter={16} style={{ marginBottom: '24px' }}>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div
-                                style={{
-                                    width: 48,
-                                    height: 48,
-                                    borderRadius: '50%',
-                                    background: '#e6f7ff',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#1890ff',
-                                    fontSize: '20px'
-                                }}
-                            >
-                                <CheckCircleOutlined />
-                            </div>
-                            <div>
-                                <Text type='secondary'>Total Requests</Text>
-                                <Title level={4} style={{ margin: 0 }}>
-                                    {requests.length}
-                                </Title>
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div
-                                style={{
-                                    width: 48,
-                                    height: 48,
-                                    borderRadius: '50%',
-                                    background: '#fff7e6',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#fa8c16',
-                                    fontSize: '20px'
-                                }}
-                            >
-                                <ClockCircleOutlined />
-                            </div>
-                            <div>
-                                <Text type='secondary'>{t('mentor_request.pending')}</Text>
-                                <Title level={4} style={{ margin: 0 }}>
-                                    {pendingCount}
-                                </Title>
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div
-                                style={{
-                                    width: 48,
-                                    height: 48,
-                                    borderRadius: '50%',
-                                    background: '#f6ffed',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#52c41a',
-                                    fontSize: '20px'
-                                }}
-                            >
-                                <CheckCircleOutlined />
-                            </div>
-                            <div>
-                                <Text type='secondary'>{t('mentor_request.approved')}</Text>
-                                <Title level={4} style={{ margin: 0 }}>
-                                    {approvedCount}
-                                </Title>
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div
-                                style={{
-                                    width: 48,
-                                    height: 48,
-                                    borderRadius: '50%',
-                                    background: '#e6f7ff',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#096dd9',
-                                    fontSize: '20px'
-                                }}
-                            >
-                                <ClockCircleOutlined />
-                            </div>
-                            <div>
-                                <Text type='secondary'>{t('mentor_request.in_progress')}</Text>
-                                <Title level={4} style={{ margin: 0 }}>
-                                    {processingCount}
-                                </Title>
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-            </Row>
-
             <Card bordered={false}>
                 <div
                     style={{
@@ -498,10 +375,10 @@ export const MentorRequestList = () => {
                             onChange={setStatusFilter}
                             options={[
                                 { value: 'all', label: 'All Status' },
-                                { value: 'Pending', label: t('mentor_request.pending') },
-                                { value: 'Approved', label: t('mentor_request.approved') },
-                                { value: 'Rejected', label: t('mentor_request.rejected') },
-                                { value: 'In Progress', label: t('mentor_request.in_progress') }
+                                { value: 'pending', label: t('mentor_request.pending') },
+                                { value: 'approved', label: t('mentor_request.approved') },
+                                { value: 'rejected', label: t('mentor_request.rejected') },
+                                { value: 'in_progress', label: t('mentor_request.in_progress') }
                             ]}
                         />
                     </Space>
@@ -523,46 +400,21 @@ export const MentorRequestList = () => {
                 open={isModalOpen}
                 onCancel={() => setIsModalOpen(false)}
                 onOk={() => form.submit()}
-                confirmLoading={createMutation.isPending || updateMutation.isPending}
+                confirmLoading={isMutating}
                 width={isMobile ? 'calc(100vw - 24px)' : isLaptop ? 620 : 700}
                 destroyOnClose
             >
-                <Form
-                    form={form}
-                    layout='vertical'
-                    onFinish={handleSubmit}
-                    initialValues={{ type: 'Recruitment', priority: 'Medium' }}
-                >
-                    <Row gutter={16}>
-                        <Col xs={24} md={12}>
-                            <Form.Item label={t('mentor_request.form.type')} name='type'>
-                                <Select>
-                                    <Select.Option value='Recruitment'>Recruitment</Select.Option>
-                                    <Select.Option value='Training'>Training</Select.Option>
-                                    <Select.Option value='Equipment'>Equipment</Select.Option>
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={24} md={12}>
-                            <Form.Item
-                                label={t('mentor_request.form.priority')}
-                                name='priority'
-                                rules={[{ required: true, message: t('common.required_field') }]}
-                            >
-                                <Select>
-                                    <Select.Option value='High'>{t('mentor_request.high')}</Select.Option>
-                                    <Select.Option value='Medium'>{t('mentor_request.medium')}</Select.Option>
-                                    <Select.Option value='Low'>{t('mentor_request.low')}</Select.Option>
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                    </Row>
+                <Form form={form} layout='vertical' onFinish={handleSubmit} initialValues={{ priority: 'medium' }}>
                     <Form.Item
-                        label={t('mentor_request.form.name')}
-                        name='name'
+                        label={t('mentor_request.form.priority')}
+                        name='priority'
                         rules={[{ required: true, message: t('common.required_field') }]}
                     >
-                        <Input placeholder='VD: Kế hoạch Tuyển dụng Hè 2025' />
+                        <Select>
+                            <Select.Option value='high'>{t('mentor_request.high')}</Select.Option>
+                            <Select.Option value='medium'>{t('mentor_request.medium')}</Select.Option>
+                            <Select.Option value='low'>{t('mentor_request.low')}</Select.Option>
+                        </Select>
                     </Form.Item>
                     <Form.Item
                         label={t('mentor_request.form.title')}
@@ -593,8 +445,8 @@ export const MentorRequestList = () => {
                             </Form.Item>
                         </Col>
                     </Row>
-                    <Form.Item label={t('mentor_request.form.positions')} name='positions'>
-                        <TextArea rows={2} placeholder={t('mentor_request.form.positions_placeholder')} />
+                    <Form.Item label={t('mentor_request.form.position')} name='position'>
+                        <TextArea rows={2} placeholder={t('mentor_request.form.position_placeholder')} />
                     </Form.Item>
                     <Form.Item label={t('mentor_request.form.skills')} name='requiredSkills'>
                         <TextArea rows={2} placeholder={t('mentor_request.form.skills_placeholder')} />

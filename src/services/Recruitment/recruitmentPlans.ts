@@ -11,11 +11,15 @@ export interface RecruitmentPlan {
     name: string;
     batch: string;
     department: string;
+    description: string;
     startDate: string;
     endDate: string;
-    description: string;
-    status: 'Active' | 'Pending' | 'Closed';
-    candidates: number;
+    status: 'pending_approval' | 'active' | 'on_hold' | 'closed';
+    createdBy: string;
+    approvedBy?: string;
+    approvedAt?: string;
+    rejectionReason?: string;
+    jobPositions?: any[];
     createdAt: string;
     updatedAt: string;
 }
@@ -28,35 +32,18 @@ export interface GetRecruitmentPlansParams {
 export const getRecruitmentPlans = async (
     params?: GetRecruitmentPlansParams
 ): Promise<ResponseListSuccess<RecruitmentPlan>> => {
-    const response = await http.get('/recruitmentPlans', {
-        params: {
-            q: params?.searcher?.keyword,
-            _page: params?.pagination?.page || 1,
-            _limit: params?.pagination?.pageSize || 10
-        }
-    });
-
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
-    const data = response.data;
+    const result = await http.get<any>('/recruitment-plans', { params });
 
     return {
-        code: 200,
-        data: {
-            hits: data,
-            pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
-            }
-        }
+        errorCode: result.errorCode,
+        data: result.data?.hits || [],
+        pagination: result.data?.pagination
     };
 };
 
 export const getRecruitmentPlan = async (id: string): Promise<ResponseDetailSuccess<RecruitmentPlan>> => {
-    const response = await http.get(`/recruitmentPlans/${id}`);
-    return {
-        code: 200,
-        data: response.data
-    };
+    const result = await http.get<ResponseDetailSuccess<RecruitmentPlan>>(`/recruitment-plans/${id}`);
+    return result;
 };
 
 export interface CreateRecruitmentPlanParams {
@@ -66,22 +53,14 @@ export interface CreateRecruitmentPlanParams {
     startDate: string;
     endDate: string;
     description?: string;
-    status: string;
+    status?: 'pending_approval' | 'active' | 'on_hold' | 'closed' | 'rejected';
 }
 
 export const createRecruitmentPlan = async (
     params: CreateRecruitmentPlanParams
 ): Promise<ResponseDetailSuccess<RecruitmentPlan>> => {
-    const response = await http.post('/recruitmentPlans', {
-        ...params,
-        candidates: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    });
-    return {
-        code: 201,
-        data: response.data
-    };
+    const result = await http.post<ResponseDetailSuccess<RecruitmentPlan>>('/recruitment-plans', params);
+    return result;
 };
 
 export interface UpdateRecruitmentPlanParams {
@@ -92,21 +71,15 @@ export interface UpdateRecruitmentPlanParams {
     startDate?: string;
     endDate?: string;
     description?: string;
-    status?: string;
+    status?: 'pending_approval' | 'active' | 'on_hold' | 'closed' | 'rejected';
 }
 
 export const updateRecruitmentPlan = async (
     params: UpdateRecruitmentPlanParams
 ): Promise<ResponseDetailSuccess<RecruitmentPlan>> => {
     const { id, ...data } = params;
-    const response = await http.patch(`/recruitmentPlans/${id}`, {
-        ...data,
-        updatedAt: new Date().toISOString()
-    });
-    return {
-        code: 200,
-        data: response.data
-    };
+    const result = await http.patch<ResponseDetailSuccess<RecruitmentPlan>>(`/recruitment-plans/${id}`, data);
+    return result;
 };
 
 export interface DeleteRecruitmentPlanParams {
@@ -116,9 +89,6 @@ export interface DeleteRecruitmentPlanParams {
 export const deleteRecruitmentPlan = async (
     params: DeleteRecruitmentPlanParams
 ): Promise<ResponseDetailSuccess<null>> => {
-    await http.delete(`/recruitmentPlans/${params.id}`);
-    return {
-        code: 200,
-        data: null
-    };
+    const result = await http.delete<ResponseDetailSuccess<null>>(`/recruitment-plans/${params.id}`);
+    return result;
 };

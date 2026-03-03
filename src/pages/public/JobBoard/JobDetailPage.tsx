@@ -16,6 +16,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useJobPosition } from '../../../hooks/Recruitment/useJobPositions';
+import { useCreateCandidate } from '../../../hooks/Recruitment/useCandidates';
 import { RouteConfig } from '../../../constants';
 
 const { Header, Content } = Layout;
@@ -26,31 +27,47 @@ export const JobDetailPage = () => {
     const navigate = useNavigate();
     useTranslation();
     const [form] = Form.useForm();
-    const [loading, setLoading] = useState(false);
+    const { mutate: applyJob, isLoading: isApplying } = useCreateCandidate();
 
     const { data: jobRes, isLoading } = useJobPosition(id || '');
     const job = jobRes?.data;
 
     const onFinish = async (values: any) => {
-        setLoading(true);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        setLoading(false);
+        if (!id) return;
 
-        console.log('Application Values: ', values);
+        try {
+            await applyJob({
+                fullName: values.fullName,
+                email: values.email,
+                phone: values.phone,
+                jobId: id,
+                // In real app, we handle file upload to get URL or use FormData
+                resumeUrl: 'https://example.com/cv.pdf'
+            });
 
-        Modal.success({
-            title: 'Nộp hồ sơ thành công!',
-            content: 'Cảm ơn bạn đã quan tâm. Chúng tôi đã nhận được hồ sơ và sẽ phản hồi trong vòng 3-5 ngày làm việc.',
-            okText: 'Quay lại danh sách',
-            onOk: () => navigate(RouteConfig.PublicJobBoard.path)
-        });
+            Modal.success({
+                title: 'Nộp hồ sơ thành công!',
+                content:
+                    'Cảm ơn bạn đã quan tâm. Chúng tôi đã nhận được hồ sơ và sẽ phản hồi trong vòng 3-5 ngày làm việc.',
+                okText: 'Quay lại danh sách',
+                onOk: () => navigate(RouteConfig.PublicJobBoard.path)
+            });
 
-        form.resetFields();
+            form.resetFields();
+        } catch (err) {
+            Modal.error({
+                title: 'Lỗi',
+                content: 'Đã có lỗi xảy ra khi nộp hồ sơ. Vui lòng thử lại sau.'
+            });
+        }
     };
 
     if (isLoading) {
-        return <div style={{ padding: '100px', textAlign: 'center' }}><Skeleton active /></div>;
+        return (
+            <div style={{ padding: '100px', textAlign: 'center' }}>
+                <Skeleton active />
+            </div>
+        );
     }
 
     if (!job) {
@@ -83,22 +100,26 @@ export const JobDetailPage = () => {
                     style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
                     onClick={() => navigate(RouteConfig.PublicJobBoard.path)}
                 >
-                    <div style={{
-                        width: 32,
-                        height: 32,
-                        background: '#136dec',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#fff'
-                    }}>
+                    <div
+                        style={{
+                            width: 32,
+                            height: 32,
+                            background: '#136dec',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#fff'
+                        }}
+                    >
                         <GlobalOutlined style={{ fontSize: '18px' }} />
                     </div>
-                    <Title level={4} style={{ margin: 0, fontSize: '18px' }}>TTS-Learning</Title>
+                    <Title level={4} style={{ margin: 0, fontSize: '18px' }}>
+                        TTS-Learning
+                    </Title>
                 </div>
                 <Button
-                    type="text"
+                    type='text'
                     icon={<ArrowLeftOutlined />}
                     onClick={() => navigate(RouteConfig.PublicJobBoard.path)}
                     style={{ fontWeight: 600, color: '#64748b' }}
@@ -113,15 +134,28 @@ export const JobDetailPage = () => {
                         <Col xs={24} lg={16}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                                 <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                                        <Tag color="blue" style={{ margin: 0, padding: '4px 12px', fontWeight: 700 }}>
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '12px',
+                                            marginBottom: '16px'
+                                        }}
+                                    >
+                                        <Tag color='blue' style={{ margin: 0, padding: '4px 12px', fontWeight: 700 }}>
                                             {job.department}
                                         </Tag>
-                                        <Text type="secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <Text
+                                            type='secondary'
+                                            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                        >
                                             <EnvironmentOutlined /> {job.location}
                                         </Text>
                                     </div>
-                                    <Title level={1} style={{ margin: 0, fontSize: '32px', fontWeight: 800, color: '#1e293b' }}>
+                                    <Title
+                                        level={1}
+                                        style={{ margin: 0, fontSize: '32px', fontWeight: 800, color: '#1e293b' }}
+                                    >
                                         {job.title}
                                     </Title>
                                 </div>
@@ -151,34 +185,76 @@ export const JobDetailPage = () => {
                                             {item.text}
                                         </div>
                                     ))}
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        padding: '8px 16px',
-                                        background: '#fff1f2',
-                                        borderRadius: '8px',
-                                        fontSize: '14px',
-                                        fontWeight: 700,
-                                        color: '#e11d48'
-                                    }}>
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            padding: '8px 16px',
+                                            background: '#fff1f2',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: 700,
+                                            color: '#e11d48'
+                                        }}
+                                    >
                                         <HourglassOutlined /> Hạn nộp: 30/10/2025
                                     </div>
                                 </div>
 
-                                <Card bordered={false} style={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                                <Card
+                                    bordered={false}
+                                    style={{
+                                        borderRadius: '12px',
+                                        border: '1px solid #e2e8f0',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                                    }}
+                                >
                                     <Row gutter={16}>
                                         <Col span={8}>
-                                            <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', fontWeight: 600 }}>Thời gian</Text>
-                                            <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px' }}>3 - 6 Tháng</div>
+                                            <Text
+                                                type='secondary'
+                                                style={{
+                                                    fontSize: '12px',
+                                                    textTransform: 'uppercase',
+                                                    fontWeight: 600
+                                                }}
+                                            >
+                                                Thời gian
+                                            </Text>
+                                            <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px' }}>
+                                                3 - 6 Tháng
+                                            </div>
                                         </Col>
                                         <Col span={8}>
-                                            <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', fontWeight: 600 }}>Lương</Text>
-                                            <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px' }}>{job.salary}</div>
+                                            <Text
+                                                type='secondary'
+                                                style={{
+                                                    fontSize: '12px',
+                                                    textTransform: 'uppercase',
+                                                    fontWeight: 600
+                                                }}
+                                            >
+                                                Lương
+                                            </Text>
+                                            <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px' }}>
+                                                {job.salary}
+                                            </div>
                                         </Col>
                                         <Col span={8}>
-                                            <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', fontWeight: 600 }}>Trình độ</Text>
-                                            <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px' }}>{job.level}</div>
+                                            <Text
+                                                type='secondary'
+                                                style={{
+                                                    fontSize: '12px',
+                                                    textTransform: 'uppercase',
+                                                    fontWeight: 600
+                                                }}
+                                            >
+                                                Trình độ
+                                            </Text>
+                                            <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px' }}>
+                                                {job.level}
+                                            </div>
                                         </Col>
                                     </Row>
                                 </Card>
@@ -187,10 +263,14 @@ export const JobDetailPage = () => {
                                     <Title level={3}>Mô tả công việc</Title>
                                     <Paragraph>{job.description}</Paragraph>
 
-                                    <Title level={3} style={{ marginTop: '32px' }}>Yêu cầu ứng viên</Title>
+                                    <Title level={3} style={{ marginTop: '32px' }}>
+                                        Yêu cầu ứng viên
+                                    </Title>
                                     <Paragraph>{job.requirements}</Paragraph>
 
-                                    <Title level={3} style={{ marginTop: '32px' }}>Quyền lợi</Title>
+                                    <Title level={3} style={{ marginTop: '32px' }}>
+                                        Quyền lợi
+                                    </Title>
                                     <ul style={{ listStyle: 'none', padding: 0 }}>
                                         {[
                                             'Được đào tạo bài bản bởi Mentor giàu kinh nghiệm.',
@@ -212,67 +292,102 @@ export const JobDetailPage = () => {
                             <div style={{ position: 'sticky', top: '100px' }}>
                                 <Card
                                     bordered={false}
-                                    style={{ borderRadius: '16px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)', border: '1px solid #e2e8f0' }}
+                                    style={{
+                                        borderRadius: '16px',
+                                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)',
+                                        border: '1px solid #e2e8f0'
+                                    }}
                                     bodyStyle={{ padding: '32px' }}
                                 >
                                     <div style={{ marginBottom: '24px' }}>
-                                        <Title level={3} style={{ margin: 0, fontSize: '24px' }}>Ứng tuyển ngay</Title>
-                                        <Text type="secondary">Gửi thông tin của bạn để bắt đầu hành trình.</Text>
+                                        <Title level={3} style={{ margin: 0, fontSize: '24px' }}>
+                                            Ứng tuyển ngay
+                                        </Title>
+                                        <Text type='secondary'>Gửi thông tin của bạn để bắt đầu hành trình.</Text>
                                     </div>
 
-                                    <Form form={form} layout="vertical" onFinish={onFinish}>
+                                    <Form form={form} layout='vertical' onFinish={onFinish}>
                                         <Form.Item
-                                            name="fullName"
-                                            label="Họ và tên"
+                                            name='fullName'
+                                            label='Họ và tên'
                                             rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
                                         >
-                                            <Input placeholder="Nguyễn Văn A" size="large" />
+                                            <Input placeholder='Nguyễn Văn A' size='large' />
                                         </Form.Item>
 
                                         <Form.Item
-                                            name="email"
-                                            label="Địa chỉ Email"
+                                            name='email'
+                                            label='Địa chỉ Email'
                                             rules={[{ required: true, type: 'email', message: 'Email không hợp lệ!' }]}
                                         >
-                                            <Input prefix={<MailOutlined style={{ color: '#94a3b8' }} />} placeholder="example@gmail.com" size="large" />
+                                            <Input
+                                                prefix={<MailOutlined style={{ color: '#94a3b8' }} />}
+                                                placeholder='example@gmail.com'
+                                                size='large'
+                                            />
                                         </Form.Item>
 
                                         <Form.Item
-                                            name="phone"
-                                            label="Số điện thoại"
+                                            name='phone'
+                                            label='Số điện thoại'
                                             rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
                                         >
-                                            <Input prefix={<PhoneOutlined style={{ color: '#94a3b8' }} />} placeholder="09xxxxxxxx" size="large" />
+                                            <Input
+                                                prefix={<PhoneOutlined style={{ color: '#94a3b8' }} />}
+                                                placeholder='09xxxxxxxx'
+                                                size='large'
+                                            />
                                         </Form.Item>
 
                                         <Form.Item
-                                            label="Tải lên CV (PDF/DOCX)"
-                                            name="resume"
+                                            label='Tải lên CV (PDF/DOCX)'
+                                            name='resume'
                                             rules={[{ required: true, message: 'Vui lòng tải lên CV!' }]}
                                         >
                                             <Upload.Dragger
-                                                style={{ padding: '24px', background: '#f8fafc', border: '2px dashed #e2e8f0' }}
+                                                style={{
+                                                    padding: '24px',
+                                                    background: '#f8fafc',
+                                                    border: '2px dashed #e2e8f0'
+                                                }}
                                                 maxCount={1}
                                             >
-                                                <p><CloudUploadOutlined style={{ fontSize: '32px', color: '#136dec' }} /></p>
-                                                <p style={{ fontSize: '14px', fontWeight: 500 }}>Bấm để chọn hoặc kéo thả file</p>
-                                                <p style={{ fontSize: '12px', color: '#64748b' }}>Dung lượng tối đa 5MB</p>
+                                                <p>
+                                                    <CloudUploadOutlined
+                                                        style={{ fontSize: '32px', color: '#136dec' }}
+                                                    />
+                                                </p>
+                                                <p style={{ fontSize: '14px', fontWeight: 500 }}>
+                                                    Bấm để chọn hoặc kéo thả file
+                                                </p>
+                                                <p style={{ fontSize: '12px', color: '#64748b' }}>
+                                                    Dung lượng tối đa 5MB
+                                                </p>
                                             </Upload.Dragger>
                                         </Form.Item>
 
                                         <Button
-                                            type="primary"
-                                            htmlType="submit"
-                                            size="large"
+                                            type='primary'
+                                            htmlType='submit'
+                                            size='large'
                                             block
-                                            loading={loading}
-                                            style={{ height: '52px', fontWeight: 700, fontSize: '16px', marginTop: '12px', borderRadius: '8px' }}
+                                            loading={isApplying}
+                                            style={{
+                                                height: '52px',
+                                                fontWeight: 700,
+                                                fontSize: '16px',
+                                                marginTop: '12px',
+                                                borderRadius: '8px'
+                                            }}
                                         >
                                             Gửi hồ sơ ngay
                                         </Button>
 
                                         <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px' }}>
-                                            <Text type="secondary">Bằng cách nộp đơn, bạn đồng ý với <a href="#">Điều khoản của chúng tôi</a>.</Text>
+                                            <Text type='secondary'>
+                                                Bằng cách nộp đơn, bạn đồng ý với{' '}
+                                                <a href='#'>Điều khoản của chúng tôi</a>.
+                                            </Text>
                                         </div>
                                     </Form>
                                 </Card>
