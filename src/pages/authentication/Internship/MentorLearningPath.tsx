@@ -14,7 +14,7 @@ import {
 import { Button, Card, Col, Input, Layout, Row, Space, Tag, Typography, Spin } from 'antd';
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLearningPath, useUpdateLearningPath } from '../../../hooks/Internship/useLearningPath';
+import { http } from '../../../utils/http';
 import { useResponsive } from '../../../hooks/useResponsive';
 
 const { Content, Sider } = Layout;
@@ -25,13 +25,46 @@ export const MentorLearningPath = () => {
     const { t } = useTranslation();
     const { isMobile, isLaptop } = useResponsive();
     const track = 'Frontend Development';
-    const { data: learningPathData, isLoading } = useLearningPath(track);
-    const updateMutation = useUpdateLearningPath();
+    const [learningPathData, setLearningPathData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const fetchLearningPath = async () => {
+        setIsLoading(true);
+        try {
+            const res = await http.get(`/learning-paths/${track}`);
+            setLearningPathData(res);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchLearningPath();
+    }, [track]);
+
+    const handleUpdate = async (id: string, data: any) => {
+        try {
+            await http.patch(`/learning-paths/${id}`, data);
+            fetchLearningPath();
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
 
     const learningPath = learningPathData?.data;
-    const modules = useMemo(() => learningPath?.modules || [], [learningPath?.modules]);
+    const modules = useMemo(() => {
+        if (!learningPath?.modules) return [];
+        return (learningPath.modules as any[]).map((m: any) => ({
+            ...m,
+            items: [...(m.contents || []), ...(m.quizzes || [])].sort(
+                (a, b) => (a.orderIndex || 0) - (b.orderIndex || 0)
+            )
+        }));
+    }, [learningPath?.modules]);
     const selectedModule = modules.find((m) => m.id === (selectedModuleId || modules[0]?.id));
 
     useEffect(() => {
@@ -45,10 +78,7 @@ export const MentorLearningPath = () => {
 
         const updatedModules = modules.map((m) => (m.id === moduleId ? { ...m, title: newTitle } : m));
 
-        updateMutation.mutate({
-            id: learningPath.id,
-            data: { modules: updatedModules }
-        });
+        handleUpdate(learningPath.id, { modules: updatedModules });
     };
 
     if (isLoading) {
@@ -82,10 +112,7 @@ export const MentorLearningPath = () => {
                             value={learningPath?.track}
                             onChange={(e) => {
                                 if (!learningPath) return;
-                                updateMutation.mutate({
-                                    id: learningPath.id,
-                                    data: { track: e.target.value }
-                                });
+                                handleUpdate(learningPath.id, { track: e.target.value });
                             }}
                             style={{ marginTop: '8px', fontWeight: 500 }}
                         />
@@ -147,7 +174,7 @@ export const MentorLearningPath = () => {
                                     </Tag>
                                 </div>
                                 <div style={{ paddingLeft: '24px', fontSize: '12px', color: '#6b7280' }}>
-                                    {module.items.length > 0 ? (
+                                    {module.items?.length > 0 ? (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                             {module.items.slice(0, 2).map((item) => (
                                                 <span
@@ -265,7 +292,7 @@ export const MentorLearningPath = () => {
                             {t('learning_path.module_content')}
                         </Text>
                         <Space direction='vertical' style={{ width: '100%' }}>
-                            {selectedModule?.items.map((item) => (
+                            {selectedModule?.items?.map((item: any) => (
                                 <Card key={item.id} style={{ borderRadius: '12px' }} bodyStyle={{ padding: '16px' }}>
                                     <div style={{ display: 'flex', gap: '16px' }}>
                                         <div

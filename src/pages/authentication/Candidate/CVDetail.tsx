@@ -31,7 +31,12 @@ import {
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useCandidate, useShortlistCandidate, useRejectCandidate, usePassInterviewCandidate } from '../../../hooks/Recruitment/useCandidates';
+import {
+    useCandidate,
+    useShortlistCandidate,
+    useRejectCandidate,
+    usePassInterviewCandidate
+} from '../../../hooks/Recruitment/useCandidates';
 import { ConvertToInternModal } from './components/ConvertToInternModal';
 
 const { Content } = Layout;
@@ -53,7 +58,7 @@ export const CVDetail = () => {
     const handleApprove = async () => {
         if (!id) return;
         try {
-            await shortlistMutation.mutateAsync({ id });
+            await shortlistMutation.mutate({ id });
             message.success(t('common.success'));
         } catch {
             message.error(t('common.error'));
@@ -63,7 +68,7 @@ export const CVDetail = () => {
     const handlePassInterview = async () => {
         if (!id) return;
         try {
-            await passInterviewMutation.mutateAsync({ id });
+            await passInterviewMutation.mutate({ id });
             message.success(t('candidate.passed_interview_success'));
         } catch {
             message.error(t('common.error'));
@@ -73,7 +78,7 @@ export const CVDetail = () => {
     const handleReject = async () => {
         if (!id) return;
         try {
-            await rejectMutation.mutateAsync({ id, reason: rejectReason });
+            await rejectMutation.mutate({ id, reason: rejectReason });
             setIsRejectModalOpen(false);
             message.success(t('common.success'));
         } catch {
@@ -134,10 +139,10 @@ export const CVDetail = () => {
                         }}
                     >
                         <div style={{ display: 'flex', gap: '24px' }}>
-                            <Avatar size={80} src={candidate.avatar} />
+                            <Avatar size={80} src={candidate.avatarUrl} />
                             <div>
                                 <Title level={2} style={{ margin: '0 0 8px 0' }}>
-                                    {candidate.name}
+                                    {candidate.fullName}
                                 </Title>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                     <Text type='secondary' style={{ fontSize: '16px' }}>
@@ -169,30 +174,34 @@ export const CVDetail = () => {
                             <div style={{ marginBottom: '16px' }}>
                                 <Tag
                                     color={
-                                        status === 'Passed Interview'
+                                        status === 'passed_interview'
                                             ? 'success'
-                                            : status === 'Shortlisted' || status === 'Interview Scheduled'
-                                                ? 'processing'
-                                                : status === 'Rejected'
-                                                    ? 'error'
-                                                    : 'warning'
+                                            : status === 'shortlisted' || status === 'interview_scheduled'
+                                              ? 'processing'
+                                              : status === 'rejected'
+                                                ? 'error'
+                                                : status === 'converted_to_intern'
+                                                  ? 'purple'
+                                                  : 'warning'
                                     }
                                     style={{ fontSize: '14px', padding: '4px 12px' }}
                                 >
-                                    {status === 'Passed Interview'
+                                    {status === 'passed_interview'
                                         ? t('candidate.passed_interview')
-                                        : status === 'Interview Scheduled'
-                                            ? t('candidate.interview_scheduled')
-                                            : status === 'Shortlisted'
-                                                ? t('candidate.shortlisted')
-                                                : status === 'Rejected'
-                                                    ? t('candidate.rejected')
-                                                    : t('candidate.pending_review')}
+                                        : status === 'interview_scheduled'
+                                          ? t('candidate.interview_scheduled')
+                                          : status === 'shortlisted'
+                                            ? t('candidate.shortlisted')
+                                            : status === 'rejected'
+                                              ? t('candidate.rejected')
+                                              : status === 'converted_to_intern'
+                                                ? t('candidate.converted_to_intern')
+                                                : t('candidate.pending_review')}
                                 </Tag>
                             </div>
                             <Space>
                                 <Button icon={<DownloadOutlined />}>{t('candidate.download_cv')}</Button>
-                                {status === 'Passed Interview' && (
+                                {status === 'passed_interview' && (
                                     <Button
                                         type='primary'
                                         onClick={() => setIsConvertModalOpen(true)}
@@ -201,38 +210,40 @@ export const CVDetail = () => {
                                         {t('onboarding.convert_to_intern')}
                                     </Button>
                                 )}
-                                {status !== 'Rejected' && status !== 'Passed Interview' && (
-                                    <>
-                                        <Button
-                                            danger
-                                            onClick={() => setIsRejectModalOpen(true)}
-                                            loading={rejectMutation.isPending}
-                                        >
-                                            {t('candidate.reject_candidate_btn')}
-                                        </Button>
-                                        {status === 'Interview Scheduled' ? (
+                                {status !== 'rejected' &&
+                                    status !== 'passed_interview' &&
+                                    status !== 'converted_to_intern' && (
+                                        <>
                                             <Button
-                                                type='primary'
-                                                onClick={handlePassInterview}
-                                                loading={passInterviewMutation.isPending}
-                                                style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                                                danger
+                                                onClick={() => setIsRejectModalOpen(true)}
+                                                loading={rejectMutation.isLoading}
                                             >
-                                                {t('candidate.pass_interview_btn')}
+                                                {t('candidate.reject_candidate_btn')}
                                             </Button>
-                                        ) : (
-                                            <Button
-                                                type='primary'
-                                                onClick={handleApprove}
-                                                disabled={status === 'Shortlisted'}
-                                                loading={shortlistMutation.isPending}
-                                            >
-                                                {status === 'Shortlisted'
-                                                    ? t('candidate.shortlisted')
-                                                    : t('candidate.shortlist_candidate_btn')}
-                                            </Button>
-                                        )}
-                                    </>
-                                )}
+                                            {status === 'interview_scheduled' ? (
+                                                <Button
+                                                    type='primary'
+                                                    onClick={handlePassInterview}
+                                                    loading={passInterviewMutation.isLoading}
+                                                    style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                                                >
+                                                    {t('candidate.pass_interview_btn')}
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    type='primary'
+                                                    onClick={handleApprove}
+                                                    disabled={status === 'shortlisted'}
+                                                    loading={shortlistMutation.isLoading}
+                                                >
+                                                    {status === 'shortlisted'
+                                                        ? t('candidate.shortlisted')
+                                                        : t('candidate.shortlist_candidate_btn')}
+                                                </Button>
+                                            )}
+                                        </>
+                                    )}
                             </Space>
                         </div>
                     </div>
@@ -260,7 +271,7 @@ export const CVDetail = () => {
                                 <Descriptions.Item label='LinkedIn'>
                                     <a href='#' style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                         <LinkedinOutlined /> linkedin.com/in/
-                                        {candidate.name.toLowerCase().replace(' ', '')}
+                                        {candidate.fullName.toLowerCase().replace(' ', '')}
                                     </a>
                                 </Descriptions.Item>
                             </Descriptions>
@@ -291,7 +302,7 @@ export const CVDetail = () => {
                                         style={{ fontSize: '48px', color: '#ff4d4f', marginBottom: '16px' }}
                                     />
                                     <Text type='secondary' style={{ display: 'block' }}>
-                                        {candidate.name.replace(' ', '_')}_Resume.pdf
+                                        {candidate.fullName.replace(' ', '_')}_Resume.pdf
                                     </Text>
                                     <Button type='link'>{t('candidate.click_to_preview')}</Button>
                                 </div>
@@ -401,7 +412,7 @@ export const CVDetail = () => {
                     onOk={handleReject}
                     onCancel={() => setIsRejectModalOpen(false)}
                     okText={t('candidate.reject_candidate_btn')}
-                    okButtonProps={{ danger: true, loading: rejectMutation.isPending }}
+                    okButtonProps={{ danger: true, loading: rejectMutation.isLoading }}
                 >
                     <p>{t('candidate.reject_confirm_msg')}</p>
                     <Input.TextArea
@@ -417,8 +428,8 @@ export const CVDetail = () => {
                     open={isConvertModalOpen}
                     onCancel={() => setIsConvertModalOpen(false)}
                     candidateId={candidate.id}
-                    candidateName={candidate.name}
-                    candidateAvatar={candidate.avatar}
+                    candidateName={candidate.fullName}
+                    candidateAvatar={candidate.avatarUrl}
                     candidateEmail={candidate.email}
                     candidatePhone={candidate.phone}
                 />

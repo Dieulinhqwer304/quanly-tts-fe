@@ -1,18 +1,9 @@
-import {
-    Button,
-    Col,
-    Form,
-    Input,
-    Row,
-    Select,
-    message,
-    Modal,
-    DatePicker
-} from 'antd';
-import { useState, useEffect } from 'react';
+import { Button, Col, Form, Input, Row, Select, message, Modal, DatePicker } from 'antd';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { useResponsive } from '../../../../hooks/useResponsive';
+import { useUpdateIntern, useCreateIntern } from '../../../../hooks/Internship/useInterns';
 
 interface InternFormValues {
     [key: string]: unknown;
@@ -25,7 +16,7 @@ interface InternModalProps {
     open: boolean;
     onCancel: () => void;
     onSuccess: () => void;
-    initialValues?: InternFormValues;
+    initialValues?: any;
     viewOnly?: boolean;
 }
 
@@ -33,16 +24,22 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
     const { t } = useTranslation();
     const { isMobile, isLaptop } = useResponsive();
     const [form] = Form.useForm();
-    const [loading, setLoading] = useState(false);
+    const updateMutation = useUpdateIntern();
+    const createMutation = useCreateIntern();
 
     useEffect(() => {
         if (open) {
             if (initialValues) {
                 form.setFieldsValue({
                     ...initialValues,
-                    dates: initialValues.startDate && initialValues.endDate
-                        ? [dayjs(initialValues.startDate), dayjs(initialValues.endDate)]
-                        : undefined
+                    name: initialValues.user?.fullName,
+                    email: initialValues.user?.email,
+                    phone: initialValues.user?.phone,
+                    mentor: initialValues.mentor?.fullName,
+                    dates:
+                        initialValues.startDate && initialValues.endDate
+                            ? [dayjs(initialValues.startDate), dayjs(initialValues.endDate)]
+                            : undefined
                 });
             } else {
                 form.resetFields();
@@ -50,15 +47,29 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
         }
     }, [open, initialValues, form]);
 
-    const onFinish = (values: InternFormValues) => {
-        setLoading(true);
-        console.log('Form values:', values);
+    const onFinish = async (values: InternFormValues) => {
+        try {
+            const [startDate, endDate] = values.dates || [];
+            const payload = {
+                ...values,
+                startDate: startDate?.format('YYYY-MM-DD'),
+                endDate: endDate?.format('YYYY-MM-DD')
+            };
 
-        setTimeout(() => {
-            setLoading(false);
-            message.success(t('common.success'));
+            if (initialValues?.id) {
+                await updateMutation.mutate({
+                    ...payload,
+                    id: initialValues.id
+                } as any);
+                message.success(t('common.success'));
+            } else {
+                await createMutation.mutate(payload);
+                message.success(t('common.success'));
+            }
             onSuccess();
-        }, 1500);
+        } catch (error) {
+            message.error(t('common.error'));
+        }
     };
 
     const getTitle = () => {
@@ -72,18 +83,22 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
             open={open}
             onCancel={onCancel}
             onOk={() => form.submit()}
-            confirmLoading={loading}
+            confirmLoading={updateMutation.isLoading || createMutation.isLoading}
             width={isMobile ? 'calc(100vw - 24px)' : isLaptop ? 620 : 700}
             destroyOnClose
-            footer={viewOnly ? [
-                <Button key="close" onClick={onCancel}>
-                    {t('common.close')}
-                </Button>
-            ] : undefined}
+            footer={
+                viewOnly
+                    ? [
+                          <Button key='close' onClick={onCancel}>
+                              {t('common.close')}
+                          </Button>
+                      ]
+                    : undefined
+            }
         >
             <Form
                 form={form}
-                layout="vertical"
+                layout='vertical'
                 onFinish={onFinish}
                 disabled={viewOnly}
                 initialValues={{
@@ -95,7 +110,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
                     <Col xs={24} md={12}>
                         <Form.Item
                             label={t('internship.intern_name')}
-                            name="name"
+                            name='name'
                             rules={[{ required: true, message: t('common.required_field') }]}
                         >
                             <Input placeholder={t('internship.intern_name')} />
@@ -104,7 +119,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
                     <Col xs={24} md={12}>
                         <Form.Item
                             label={t('common.email')}
-                            name="email"
+                            name='email'
                             rules={[
                                 { required: true, message: t('common.required_field') },
                                 { type: 'email', message: t('common.invalid_email') }
@@ -119,7 +134,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
                     <Col xs={24} md={12}>
                         <Form.Item
                             label={t('common.phone')}
-                            name="phone"
+                            name='phone'
                             rules={[{ required: true, message: t('common.required_field') }]}
                         >
                             <Input placeholder={t('common.phone')} />
@@ -128,7 +143,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
                     <Col xs={24} md={12}>
                         <Form.Item
                             label={t('internship.track')}
-                            name="track"
+                            name='track'
                             rules={[{ required: true, message: t('common.required_field') }]}
                         >
                             <Select
@@ -147,17 +162,14 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
                     <Col xs={24} md={12}>
                         <Form.Item
                             label={t('internship.mentor')}
-                            name="mentor"
+                            name='mentor'
                             rules={[{ required: true, message: t('common.required_field') }]}
                         >
                             <Input placeholder={t('internship.mentor')} />
                         </Form.Item>
                     </Col>
                     <Col xs={24} md={12}>
-                        <Form.Item
-                            label={t('common.status')}
-                            name="status"
-                        >
+                        <Form.Item label={t('common.status')} name='status'>
                             <Select
                                 options={[
                                     { value: 'Active', label: t('internship.active') },
@@ -171,7 +183,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
 
                 <Form.Item
                     label={t('internship.internship_period')}
-                    name="dates"
+                    name='dates'
                     rules={[{ required: true, message: t('common.required_field') }]}
                 >
                     <DatePicker.RangePicker style={{ width: '100%' }} />

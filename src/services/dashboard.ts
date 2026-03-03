@@ -14,9 +14,6 @@ export interface DashboardStats {
 }
 
 export const getDashboardStats = async (): Promise<ResponseDetailSuccess<DashboardStats>> => {
-    const response = await http.get('/dashboardStats');
-    return {
-        code: 200,
-        data: response.data
-    };
+    const result = await http.get<ResponseDetailSuccess<DashboardStats>>('/dashboardStats');
+    return result;
 };

@@ -12,7 +12,7 @@ import RootLayout from './layouts/RootLayout/RootLayout';
 import { ProtectRoute } from './components/ProtectRoute/ProtectRoute';
 
 import { DashboardPage } from './pages/authentication/DashboardPage/DashboardPage';
-import SettingPage from './pages/authentication/SettingPage/SettingPage';
+import { ModuleSelectionPage } from './pages/authentication/DashboardPage/ModuleSelectionPage';
 import { ForbiddenPage } from './pages/unauthentication/ForbiddenPage/ForbiddenPage';
 import { FormLogout } from './pages/unauthentication/FormLogout/FormLogout';
 import { InternalErrorPage } from './pages/unauthentication/InternalErrorPage/InternalErrorPage';
@@ -21,6 +21,7 @@ import { NotFoundPage } from './pages/unauthentication/NotFoundPage/NotFoundPage
 
 import { JobBoardPage } from './pages/public/JobBoard/JobBoardPage';
 import { JobDetailPage } from './pages/public/JobBoard/JobDetailPage';
+import { RecruitmentDashboard } from './pages/authentication/Recruitment/RecruitmentDashboard';
 import { RecruitmentPlanList } from './pages/authentication/Recruitment/RecruitmentPlanList';
 import { RecruitmentJobList } from './pages/authentication/Recruitment/RecruitmentJobList';
 import { CVList } from './pages/authentication/Candidate/CVList';
@@ -38,21 +39,41 @@ import { InternDashboard } from './pages/authentication/Internship/InternDashboa
 import { InternTest } from './pages/authentication/Internship/InternTest';
 import { InternTaskBoard } from './pages/authentication/Internship/InternTaskBoard';
 import { DirectorApprovals } from './pages/authentication/Director/DirectorApprovals';
+import { UserManagement } from './pages/authentication/Admin/UserManagement';
+import { PermissionManagement } from './pages/authentication/Admin/PermissionManagement';
+import { MentorEvaluation } from './pages/authentication/Internship/MentorEvaluation';
+import SettingPage from './pages/authentication/SettingPage/SettingPage';
 
 const dashboardRoutes: RouteObject[] = [
     {
-        path: '/',
+        path: RouteConfig.ModuleSelection.path,
         element: (
             <ProtectRoute>
-                <DashboardPage />
+                <ModuleSelectionPage />
             </ProtectRoute>
         )
     },
     {
-        path: RouteConfig.SettingPage.path,
+        path: RouteConfig.UserManagement.path,
         element: (
             <ProtectRoute>
-                <SettingPage />
+                <UserManagement />
+            </ProtectRoute>
+        )
+    },
+    {
+        path: RouteConfig.PermissionManagement.path,
+        element: (
+            <ProtectRoute>
+                <PermissionManagement />
+            </ProtectRoute>
+        )
+    },
+    {
+        path: RouteConfig.RecruitmentDashboard.path,
+        element: (
+            <ProtectRoute>
+                <RecruitmentDashboard />
             </ProtectRoute>
         )
     },
@@ -122,10 +143,26 @@ const dashboardRoutes: RouteObject[] = [
         )
     },
     {
+        path: RouteConfig.MentorInternList.path,
+        element: (
+            <ProtectRoute>
+                <InternList />
+            </ProtectRoute>
+        )
+    },
+    {
         path: RouteConfig.MentorLearningPath.path,
         element: (
             <ProtectRoute>
                 <MentorLearningPath />
+            </ProtectRoute>
+        )
+    },
+    {
+        path: RouteConfig.MentorEvaluation.path,
+        element: (
+            <ProtectRoute>
+                <MentorEvaluation />
             </ProtectRoute>
         )
     },
@@ -194,6 +231,14 @@ const dashboardRoutes: RouteObject[] = [
                 <DirectorApprovals />
             </ProtectRoute>
         )
+    },
+    {
+        path: RouteConfig.SettingPage.path,
+        element: (
+            <ProtectRoute>
+                <SettingPage />
+            </ProtectRoute>
+        )
     }
 ];
 
@@ -214,10 +259,21 @@ export const App: FC = () => {
                                         <Route path={RouteConfig.Logout.path} element={<FormLogout />} />
                                     </Route>
 
+                                    <Route
+                                        path={RouteConfig.ModuleSelection.path}
+                                        element={
+                                            <ProtectRoute>
+                                                <ModuleSelectionPage />
+                                            </ProtectRoute>
+                                        }
+                                    />
+
                                     <Route element={<DashboardLayout />}>
-                                        {dashboardRoutes.map((route) => (
-                                            <Route key={route.path} path={route.path} element={route.element} />
-                                        ))}
+                                        {dashboardRoutes
+                                            .filter((r) => r.path !== RouteConfig.ModuleSelection.path)
+                                            .map((route) => (
+                                                <Route key={route.path} path={route.path} element={route.element} />
+                                            ))}
                                     </Route>
 
                                     <Route path={RouteConfig.InternalErrorPage.path} element={<InternalErrorPage />} />

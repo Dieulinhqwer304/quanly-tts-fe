@@ -9,13 +9,33 @@ import {
 export interface Task {
     id: string;
     title: string;
-    intern: string;
-    internId: string;
-    internAvatar: string;
+    description: string;
+    status: 'to_do' | 'in_progress' | 'under_review' | 'completed' | 'need_rework';
     priority: 'High' | 'Medium' | 'Low';
     dueDate: string;
-    status: 'To Do' | 'In Progress' | 'Under Review' | 'Completed';
-    description: string;
+    internId: string;
+    intern?: {
+        id: string;
+        fullName: string;
+        avatarUrl: string;
+    };
+    internAvatar?: string;
+    internName?: string;
+    mentorId: string;
+    mentor?: {
+        id: string;
+        fullName: string;
+    };
+    comments?: Array<{
+        id: string;
+        userId: string;
+        comment: string;
+        createdAt: string;
+        user?: {
+            fullName: string;
+            avatarUrl: string;
+        };
+    }>;
     createdAt: string;
     updatedAt: string;
 }
@@ -28,65 +48,26 @@ export interface GetTasksParams {
 }
 
 export const getTasks = async (params?: GetTasksParams): Promise<ResponseListSuccess<Task>> => {
-    const queryParams: any = {
-        q: params?.searcher?.keyword,
-        _page: params?.pagination?.page || 1,
-        _limit: params?.pagination?.pageSize || 10
-    };
-
-    if (params?.internId) {
-        queryParams.internId = params.internId;
-    }
-
-    if (params?.status && params.status !== 'All') {
-        queryParams.status = params.status;
-    }
-
-    const response = await http.get('/tasks', { params: queryParams });
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
-    const data = response.data;
-
-    return {
-        code: 200,
-        data: {
-            hits: data,
-            pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
-            }
-        }
-    };
+    return http.get<ResponseListSuccess<Task>>('/tasks', { params });
 };
 
 export const getTask = async (id: string): Promise<ResponseDetailSuccess<Task>> => {
-    const response = await http.get(`/tasks/${id}`);
-    return {
-        code: 200,
-        data: response.data
-    };
+    const result = await http.get<ResponseDetailSuccess<Task>>(`/tasks/${id}`);
+    return result;
 };
 
 export interface CreateTaskParams {
     title: string;
-    intern: string;
     internId: string;
-    internAvatar: string;
-    priority: string;
+    mentorId: string;
+    priority: 'high' | 'medium' | 'low';
     dueDate: string;
-    description: string;
+    description?: string;
 }
 
 export const createTask = async (params: CreateTaskParams): Promise<ResponseDetailSuccess<Task>> => {
-    const response = await http.post('/tasks', {
-        ...params,
-        status: 'To Do',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    });
-    return {
-        code: 201,
-        data: response.data
-    };
+    const result = await http.post<ResponseDetailSuccess<Task>>('/tasks', params);
+    return result;
 };
 
 export interface UpdateTaskParams {
@@ -98,22 +79,23 @@ export interface UpdateTaskParams {
     description?: string;
 }
 
+export const updateStatus = async (id: string, status: string): Promise<ResponseDetailSuccess<Task>> => {
+    const result = await http.patch<ResponseDetailSuccess<Task>>(`/tasks/${id}/status`, { status });
+    return result;
+};
+
 export const updateTask = async (params: UpdateTaskParams): Promise<ResponseDetailSuccess<Task>> => {
     const { id, ...data } = params;
-    const response = await http.patch(`/tasks/${id}`, {
-        ...data,
-        updatedAt: new Date().toISOString()
-    });
-    return {
-        code: 200,
-        data: response.data
-    };
+    const result = await http.patch<ResponseDetailSuccess<Task>>(`/tasks/${id}`, data);
+    return result;
 };
 
 export const deleteTask = async (id: string): Promise<ResponseDetailSuccess<null>> => {
-    await http.delete(`/tasks/${id}`);
-    return {
-        code: 200,
-        data: null
-    };
+    const result = await http.delete<ResponseDetailSuccess<null>>(`/tasks/${id}`);
+    return result;
+};
+
+export const addTaskComment = async (taskId: string, content: string): Promise<ResponseDetailSuccess<any>> => {
+    const result = await http.post<ResponseDetailSuccess<any>>(`/tasks/${taskId}/comments`, { content });
+    return result;
 };

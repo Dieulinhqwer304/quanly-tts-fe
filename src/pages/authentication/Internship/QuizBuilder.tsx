@@ -118,10 +118,10 @@ export const QuizBuilder = () => {
 
         try {
             if (id) {
-                await updateMutation.mutateAsync({ id, ...quizPayload });
+                await updateMutation.mutate({ id, ...quizPayload });
                 message.success(t('quiz.update_success'));
             } else {
-                await createMutation.mutateAsync(quizPayload);
+                await createMutation.mutate(quizPayload);
                 message.success(t('quiz.create_success'));
             }
             navigate('/mentor/learning-path');
@@ -191,7 +191,7 @@ export const QuizBuilder = () => {
                             icon={<SaveOutlined />}
                             block
                             size='large'
-                            loading={createMutation.isPending || updateMutation.isPending}
+                            loading={createMutation.isLoading || updateMutation.isLoading}
                         >
                             {t('quiz.save_quiz')}
                         </Button>

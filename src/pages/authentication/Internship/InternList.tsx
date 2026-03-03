@@ -23,11 +23,11 @@ import {
     Progress,
     Tooltip
 } from 'antd';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useInterns } from '../../../hooks/Internship/useInterns';
 import { RouteConfig } from '../../../constants';
+import { http } from '../../../utils/http';
 
 import { InternModal } from './components/InternModal';
 import { PlusOutlined } from '@ant-design/icons';
@@ -38,16 +38,38 @@ export const InternList = () => {
     // ... (rest of the component)
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const location = useLocation();
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingIntern, setEditingIntern] = useState<any>(null);
     const [isViewOnly, setIsViewOnly] = useState(false);
 
-    const { data: internsData, isLoading, refetch } = useInterns({
-        searcher: searchText ? { keyword: searchText, field: 'name' } : undefined,
-        status: statusFilter
-    });
+    const [internsData, setInternsData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const fetchInterns = async () => {
+        setIsLoading(true);
+        try {
+            const params: any = {};
+            if (searchText) {
+                params.searcher = JSON.stringify({ keyword: searchText, field: 'fullName' });
+            }
+            if (statusFilter !== 'All') {
+                params.status = statusFilter;
+            }
+            const res = await http.get('/interns', { params });
+            setInternsData(res);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchInterns();
+    }, [searchText, statusFilter]);
 
     const handleCreate = () => {
         setEditingIntern(null);
@@ -67,13 +89,17 @@ export const InternList = () => {
         setIsModalOpen(true);
     };
 
+    const isTrainingModule = location.pathname.startsWith('/training');
     const dataSource = internsData?.data?.hits || [];
 
     return (
         <div style={{ padding: '24px' }}>
             <div style={{ marginBottom: '24px' }}>
                 <Breadcrumb
-                    items={[{ title: t('menu.recruitment_management') }, { title: t('internship.intern_list') }]}
+                    items={[
+                        { title: isTrainingModule ? t('menu.training_module') : t('menu.recruitment_management') },
+                        { title: isTrainingModule ? t('menu.evaluations') : t('internship.intern_list') }
+                    ]}
                 />
             </div>
 
@@ -87,14 +113,18 @@ export const InternList = () => {
             >
                 <div>
                     <Title level={3} style={{ margin: 0 }}>
-                        {t('internship.management')}
+                        {isTrainingModule ? t('menu.evaluations') : t('internship.management')}
                     </Title>
-                    <Text type='secondary'>{t('internship.management_desc')}</Text>
+                    <Text type='secondary'>
+                        {isTrainingModule ? t('internship.eval_desc') : t('internship.management_desc')}
+                    </Text>
                 </div>
                 <Space>
-                    <Button icon={<PlusOutlined />} type='primary' onClick={handleCreate}>
-                        {t('internship.add_intern')}
-                    </Button>
+                    {!isTrainingModule && (
+                        <Button icon={<PlusOutlined />} type='primary' onClick={handleCreate}>
+                            {t('internship.add_intern')}
+                        </Button>
+                    )}
                     <Button>{t('internship.export_list')}</Button>
                 </Space>
             </div>
@@ -113,9 +143,9 @@ export const InternList = () => {
                         onChange={setStatusFilter}
                         options={[
                             { value: 'All', label: t('internship.all_statuses') },
-                            { value: 'Active', label: t('internship.active') },
-                            { value: 'Completed', label: t('internship.completed') },
-                            { value: 'Dropped', label: t('internship.dropped') }
+                            { value: 'intern_active', label: t('internship.active') },
+                            { value: 'intern_completed', label: t('internship.completed') },
+                            { value: 'intern_dropped', label: t('internship.dropped') }
                         ]}
                     />
                 </div>
@@ -124,17 +154,17 @@ export const InternList = () => {
                     columns={[
                         {
                             title: t('internship.intern_info'),
-                            dataIndex: 'name',
-                            key: 'name',
-                            render: (text, record: any) => (
+                            dataIndex: 'user',
+                            key: 'user',
+                            render: (user, record: any) => (
                                 <Space size='middle'>
-                                    <Avatar size={40} src={record.avatar} icon={<UserOutlined />} />
+                                    <Avatar size={40} src={user?.avatarUrl} icon={<UserOutlined />} />
                                     <div>
                                         <Text strong style={{ display: 'block' }}>
-                                            {text}
+                                            {user?.fullName}
                                         </Text>
                                         <Text type='secondary' style={{ fontSize: '12px' }}>
-                                            {record.id}
+                                            {record.code || record.id}
                                         </Text>
                                     </div>
                                 </Space>
@@ -148,12 +178,14 @@ export const InternList = () => {
                                     <div
                                         style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}
                                     >
-                                        <MailOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} /> {record.email}
+                                        <MailOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} />{' '}
+                                        {record.user?.email}
                                     </div>
                                     <div
                                         style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}
                                     >
-                                        <PhoneOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} /> {record.phone}
+                                        <PhoneOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} />{' '}
+                                        {record.user?.phone}
                                     </div>
                                 </div>
                             )
@@ -166,7 +198,7 @@ export const InternList = () => {
                                     <Tag color='purple'>{record.track}</Tag>
                                     <div style={{ marginTop: '4px', fontSize: '12px' }}>
                                         <Text type='secondary'>Mentor: </Text>
-                                        <Text strong>{record.mentor}</Text>
+                                        <Text strong>{record.mentor?.fullName || 'TBD'}</Text>
                                     </div>
                                 </div>
                             )
@@ -187,7 +219,7 @@ export const InternList = () => {
                         },
                         {
                             title: t('internship.progress'),
-                            dataIndex: 'progress',
+                            dataIndex: 'overallProgress',
                             key: 'progress',
                             width: 180,
                             render: (progress) => (
@@ -202,11 +234,20 @@ export const InternList = () => {
                             key: 'status',
                             render: (status) => {
                                 let color = 'processing' as any;
-                                if (status === 'Completed') color = 'success';
-                                if (status === 'Dropped') color = 'error';
+                                let label = status;
+                                if (status === 'intern_active') {
+                                    color = 'processing';
+                                    label = t('internship.active');
+                                } else if (status === 'intern_completed') {
+                                    color = 'success';
+                                    label = t('internship.completed');
+                                } else if (status === 'intern_dropped') {
+                                    color = 'error';
+                                    label = t('internship.dropped');
+                                }
                                 return (
                                     <Tag color={color} style={{ borderRadius: '10px' }}>
-                                        {status}
+                                        {label}
                                     </Tag>
                                 );
                             }
@@ -217,17 +258,13 @@ export const InternList = () => {
                             render: (_, record: any) => (
                                 <Space>
                                     <Tooltip title={t('common.view')}>
-                                        <Button
-                                            type='text'
-                                            icon={<EyeOutlined />}
-                                            onClick={() => handleView(record)}
-                                        />
+                                        <Button type='text' icon={<EyeOutlined />} onClick={() => handleView(record)} />
                                     </Tooltip>
-                                    <Tooltip title={t('menu.eval_phase_1')}>
+                                    <Tooltip title={t('menu.evaluations')}>
                                         <Button
                                             type='text'
                                             icon={<StarOutlined style={{ color: '#faad14' }} />}
-                                            onClick={() => navigate(RouteConfig.MentorEvalPhase1.getPath(record.id))}
+                                            onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}
                                         />
                                     </Tooltip>
                                     <Tooltip title={t('common.edit')}>
@@ -244,7 +281,7 @@ export const InternList = () => {
                     dataSource={dataSource}
                     loading={isLoading}
                     pagination={{
-                        total: internsData?.data?.pagination?.totalRows || 0,
+                        total: internsData?.pagination?.totalRows || 0,
                         showTotal: (total, range) =>
                             `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('internship.interns')}`,
                         pageSize: 10
@@ -258,7 +295,7 @@ export const InternList = () => {
                 onCancel={() => setIsModalOpen(false)}
                 onSuccess={() => {
                     setIsModalOpen(false);
-                    refetch();
+                    fetchInterns();
                 }}
                 initialValues={editingIntern}
                 viewOnly={isViewOnly}

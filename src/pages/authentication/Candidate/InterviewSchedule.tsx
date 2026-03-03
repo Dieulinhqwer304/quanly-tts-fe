@@ -5,6 +5,7 @@ import {
     EditOutlined,
     FilterOutlined,
     MailOutlined,
+    SaveOutlined,
     SearchOutlined,
     SendOutlined,
     VideoCameraOutlined
@@ -30,10 +31,9 @@ import {
     Modal,
     Skeleton
 } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useCandidates, useDeleteCandidate } from '../../../hooks/Recruitment/useCandidates';
-import { useCreateInterview } from '../../../hooks/Recruitment/useInterviews';
+import { http } from '../../../utils/http';
 
 const { Title, Text } = Typography;
 const { Content } = Layout;
@@ -43,17 +43,97 @@ export const InterviewSchedule = () => {
     const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
     const [date, setDate] = useState<any>(null);
     const [timeRange, setTimeRange] = useState<any>(null);
-    const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
     const [searchText, setSearchText] = useState('');
+    const [isEditing, setIsEditing] = useState(false);
+    const [emailHtml, setEmailHtml] = useState<string>(`
+        <p>Dear {Candidate_Name},</p>
+        <p>Thank you so much for your interest in the <strong>{Role}</strong> position at <strong>SV Technologies JSC</strong> and welcome you to become members of our family!</p>
+        <p>We would like to send you the <strong>Offer for Trainee Period</strong> in detail:</p>
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #f0f0f0;">
+            <p style="margin-bottom: 8px;">1. Position: <strong>{Role}</strong></p>
+            <p style="margin-bottom: 8px;">2. Department: <strong>DnA</strong></p>
+            <p style="margin-bottom: 8px;">3. Report to: <strong>Ms. Duong Thi Thuy Hong</strong></p>
+            <div style="margin-top: 16px;">
+                <p>4. Apprenticeship period:</p>
+                <p style="padding-left: 20px; margin-top: 8px;">Start date: <strong>{Start_Date}</strong></p>
+                <p style="padding-left: 20px;">Working time: <strong>Part-time. From Monday to Friday, and the first Saturday of the month.</strong></p>
+            </div>
+        </div>
+        <p>Please have a look and give us feedback as soon as possible.</p>
+        <p>If you have any questions, please contact me via the information below.</p>
+        <hr style="border: none; border-top: 1px solid #f0f0f0; margin: 24px 0 16px;">
+        <p style="color: #8c8c8c;">Best regards,</p>
+        <p><strong>SV Technologies Recruitment Team</strong></p>
+    `);
 
-    const { data: candidatesData, isLoading } = useCandidates({
-        status: 'Shortlisted',
-        searcher: { keyword: searchText, field: 'name' }
-    });
-    const createInterview = useCreateInterview();
-    const deleteCandidate = useDeleteCandidate();
+    const defaultTemplate = `
+        <p>Dear {Candidate_Name},</p>
+        <p>Thank you so much for your interest in the <strong>{Role}</strong> position at <strong>SV Technologies JSC</strong> and welcome you to become members of our family!</p>
+        <p>We would like to send you the <strong>Offer for Trainee Period</strong> in detail:</p>
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #f0f0f0;">
+            <p style="margin-bottom: 8px;">1. Position: <strong>{Role}</strong></p>
+            <p style="margin-bottom: 8px;">2. Department: <strong>DnA</strong></p>
+            <p style="margin-bottom: 8px;">3. Report to: <strong>Ms. Duong Thi Thuy Hong</strong></p>
+            <div style="margin-top: 16px;">
+                <p>4. Apprenticeship period:</p>
+                <p style="padding-left: 20px; margin-top: 8px;">Start date: <strong>{Start_Date}</strong></p>
+                <p style="padding-left: 20px;">Working time: <strong>Part-time. From Monday to Friday, and the first Saturday of the month.</strong></p>
+            </div>
+        </div>
+        <p>Please have a look and give us feedback as soon as possible.</p>
+        <p>If you have any questions, please contact me via the information below.</p>
+        <hr style="border: none; border-top: 1px solid #f0f0f0; margin: 24px 0 16px;">
+        <p style="color: #8c8c8c;">Best regards,</p>
+        <p><strong>SV Technologies Recruitment Team</strong></p>
+    `;
 
-    const candidates = candidatesData?.data.hits || [];
+    const formattedDate = date ? date.format('dddd, DD/MM/YYYY') : 'Monday, 03/11/2025';
+
+    const [candidatesData, setCandidatesData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const fetchCandidates = async () => {
+        setIsLoading(true);
+        try {
+            const params: any = {
+                status: 'Shortlisted'
+            };
+            if (searchText) {
+                params.searcher = JSON.stringify({ keyword: searchText, field: 'name' });
+            }
+            const res = await http.get('/candidates', { params });
+            setCandidatesData(res);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchCandidates();
+    }, [searchText]);
+
+    const candidateNames =
+        selectedCandidates
+            .map((id) => candidatesData?.data?.hits?.find((c: any) => c.id === id)?.name)
+            .filter(Boolean)
+            .join(', ') || '{Candidate_Name}';
+
+    const getProcessedHtml = () => {
+        return emailHtml
+            .replace(/{Candidate_Name}/g, candidateNames)
+            .replace(/{Start_Date}/g, formattedDate)
+            .replace(/{Role}/g, 'Business Analyst Trainee');
+    };
+
+    const handleResetTemplate = () => {
+        setEmailHtml(defaultTemplate);
+        setIsEditing(false);
+    };
+
+    const candidates = candidatesData?.data?.hits || [];
 
     const toggleCandidate = (id: string) => {
         setSelectedCandidates((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
@@ -72,17 +152,18 @@ export const InterviewSchedule = () => {
         const selectedCandsInfo = candidates.filter((c) => selectedCandidates.includes(c.id));
 
         try {
+            setIsProcessing(true);
             message.loading({ content: 'Sending invites...', key: 'inviting' });
 
             await Promise.all(
                 selectedCandsInfo.map((cand) =>
-                    createInterview.mutateAsync({
+                    http.post('/interviews', {
                         candidateId: cand.id,
                         candidateName: cand.name,
-                        jobId: cand.appliedFor,
+                        jobId: cand.jobId || cand.job?.id,
                         jobTitle: cand.appliedForTitle,
                         date: date.format('YYYY-MM-DD'),
-                        time: `${timeRange[0].format('HH:mm')} - ${timeRange[1].format('HH:mm')}`,
+                        time: timeRange[0].format('HH:mm'),
                         duration: '60 min',
                         format: 'Online',
                         location: 'https://meet.google.com/abc-defg-hij',
@@ -99,8 +180,11 @@ export const InterviewSchedule = () => {
             setSelectedCandidates([]);
             setDate(null);
             setTimeRange(null);
+            fetchCandidates();
         } catch (error) {
             message.error({ content: 'Failed to send some invites.', key: 'inviting' });
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -113,9 +197,10 @@ export const InterviewSchedule = () => {
             okButtonProps: { danger: true },
             onOk: async () => {
                 try {
-                    await Promise.all(selectedCandidates.map((id) => deleteCandidate.mutateAsync(id)));
+                    await Promise.all(selectedCandidates.map((id) => http.delete(`/candidates/${id}`)));
                     message.success(t('common.success'));
                     setSelectedCandidates([]);
+                    fetchCandidates();
                 } catch (error) {
                     message.error('Failed to delete some candidates.');
                 }
@@ -177,7 +262,7 @@ export const InterviewSchedule = () => {
                             ) : (
                                 <List
                                     dataSource={candidates}
-                                    renderItem={(item) => (
+                                    renderItem={(item: any) => (
                                         <List.Item
                                             style={{
                                                 padding: '12px 16px',
@@ -238,7 +323,7 @@ export const InterviewSchedule = () => {
                                         type='primary'
                                         onClick={handleSendInvites}
                                         disabled={selectedCandidates.length === 0}
-                                        loading={createInterview.isPending}
+                                        loading={isProcessing}
                                     >
                                         {t('interview.invite')}
                                     </Button>
@@ -347,31 +432,13 @@ export const InterviewSchedule = () => {
                                     >
                                         <MailOutlined style={{ marginRight: '8px' }} /> {t('interview.email_comm')}
                                     </Title>
-                                    <Button type='link' size='small' onClick={() => setIsTemplateModalOpen(true)}>
-                                        {t('interview.manage_templates')}
-                                    </Button>
                                 </div>
 
                                 <Row gutter={16} style={{ marginBottom: '16px' }}>
-                                    <Col span={8}>
-                                        <Text strong>{t('interview.template')}</Text>
-                                        <Select
-                                            defaultValue='Standard Interview Invite'
-                                            style={{ width: '100%', marginTop: '8px' }}
-                                        >
-                                            <Select.Option value='Standard Interview Invite'>
-                                                Standard Interview Invite
-                                            </Select.Option>
-                                            <Select.Option value='Technical Round Invite'>
-                                                Technical Round Invite
-                                            </Select.Option>
-                                            <Select.Option value='Rejection Email'>Rejection Email</Select.Option>
-                                        </Select>
-                                    </Col>
-                                    <Col span={16}>
+                                    <Col span={24}>
                                         <Text strong>{t('interview.subject')}</Text>
                                         <Input
-                                            defaultValue='Invitation to Interview at InternOS - {Role}'
+                                            defaultValue='Offer for Trainee Period - {Role}'
                                             style={{ marginTop: '8px' }}
                                         />
                                     </Col>
@@ -379,96 +446,67 @@ export const InterviewSchedule = () => {
 
                                 <div
                                     style={{
-                                        background: '#f8f9fa',
+                                        background: '#fff',
                                         border: '1px solid #dbe0e6',
                                         borderRadius: '8px',
-                                        padding: '20px'
+                                        padding: '24px',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
                                     }}
                                 >
                                     <div
                                         style={{
-                                            borderBottom: '1px solid #dbe0e6',
+                                            borderBottom: '1px solid #f0f0f0',
                                             paddingBottom: '12px',
-                                            marginBottom: '16px',
+                                            marginBottom: '20px',
                                             display: 'flex',
-                                            gap: '8px'
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center'
                                         }}
                                     >
-                                        <Text
-                                            type='secondary'
-                                            style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}
-                                        >
-                                            {t('interview.preview')}
-                                        </Text>
-                                        <Text type='secondary' style={{ fontSize: '12px' }}>
-                                            •
-                                        </Text>
-                                        <Text type='secondary' style={{ fontSize: '12px' }}>
-                                            HTML Format
-                                        </Text>
+                                        <Space>
+                                            <Text
+                                                style={{
+                                                    fontSize: '11px',
+                                                    fontWeight: 700,
+                                                    color: '#8c8c8c',
+                                                    textTransform: 'uppercase'
+                                                }}
+                                            >
+                                                {t('interview.preview')}
+                                            </Text>
+                                            <Tag color='processing'>HTML Format</Tag>
+                                        </Space>
+                                        <Space>
+                                            <Button size='small' onClick={handleResetTemplate}>
+                                                {t('common.reset')}
+                                            </Button>
+                                            <Button
+                                                type={isEditing ? 'primary' : 'default'}
+                                                size='small'
+                                                icon={isEditing ? <SaveOutlined /> : <EditOutlined />}
+                                                onClick={() => setIsEditing(!isEditing)}
+                                            >
+                                                {isEditing ? t('common.save') : t('common.edit')}
+                                            </Button>
+                                        </Space>
                                     </div>
-                                    <div style={{ fontSize: '14px', lineHeight: '1.6', color: '#374151' }}>
-                                        <p>
-                                            Dear <Tag color='blue'>{`{Candidate_Name}`}</Tag>,
-                                        </p>
-                                        <p>
-                                            We reviewed your application for the <Tag color='blue'>{`{Role}`}</Tag>{' '}
-                                            position and were impressed by your background. We would like to invite you
-                                            to an interview to discuss your experience and how you can contribute to the
-                                            InternOS team.
-                                        </p>
-
-                                        <div
-                                            style={{
-                                                background: '#fff',
-                                                padding: '16px',
-                                                border: '1px solid #e5e7eb',
-                                                borderRadius: '8px',
-                                                margin: '16px 0',
-                                                display: 'inline-block'
-                                            }}
-                                        >
-                                            <div style={{ marginBottom: '8px' }}>
-                                                <CalendarOutlined style={{ color: '#136dec', marginRight: '8px' }} />{' '}
-                                                <Text strong>
-                                                    <Tag color='blue'>
-                                                        {date ? date.format('YYYY-MM-DD') : `{Date}`}
-                                                    </Tag>
-                                                </Text>
-                                            </div>
-                                            <div style={{ marginBottom: '8px' }}>
-                                                <ClockCircleOutlined style={{ color: '#136dec', marginRight: '8px' }} />{' '}
-                                                <Text strong>
-                                                    <Tag color='blue'>
-                                                        {timeRange
-                                                            ? `${timeRange[0].format('HH:mm')} - ${timeRange[1].format('HH:mm')}`
-                                                            : `{Time}`}
-                                                    </Tag>
-                                                </Text>
-                                            </div>
-                                            <div>
-                                                <VideoCameraOutlined style={{ color: '#136dec', marginRight: '8px' }} />{' '}
-                                                <a href='#'>
-                                                    <Tag color='blue'>{`{Meeting_Link}`}</Tag>
-                                                </a>
-                                            </div>
-                                        </div>
-
-                                        <p>
-                                            Please let us know if this time works for you. We look forward to speaking
-                                            with you soon.
-                                        </p>
-                                        <p>
-                                            Best regards,
-                                            <br />
-                                            <strong>InternOS HR Team</strong>
-                                        </p>
-                                    </div>
-                                </div>
-                                <div style={{ textAlign: 'right', marginTop: '8px' }}>
-                                    <Button type='link' icon={<EditOutlined />} size='small'>
-                                        Edit Template Body
-                                    </Button>
+                                    <div
+                                        contentEditable={isEditing}
+                                        onBlur={(e) => setEmailHtml(e.currentTarget.innerHTML)}
+                                        dangerouslySetInnerHTML={{ __html: isEditing ? emailHtml : getProcessedHtml() }}
+                                        style={{
+                                            fontSize: '14px',
+                                            lineHeight: '1.8',
+                                            color: '#262626',
+                                            padding: isEditing ? '12px' : 0,
+                                            border: isEditing ? '1px solid #136dec' : 'none',
+                                            borderRadius: '8px',
+                                            minHeight: '200px',
+                                            outline: 'none',
+                                            background: isEditing ? '#fff' : 'transparent',
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                    />
                                 </div>
                             </div>
 
@@ -490,7 +528,7 @@ export const InterviewSchedule = () => {
                                     icon={<SendOutlined />}
                                     onClick={handleSendInvites}
                                     disabled={selectedCandidates.length === 0}
-                                    loading={createInterview.isPending}
+                                    loading={isProcessing}
                                 >
                                     {t('interview.schedule_send')} ({selectedCandidates.length})
                                 </Button>
@@ -498,15 +536,6 @@ export const InterviewSchedule = () => {
                         </Card>
                     </Col>
                 </Row>
-
-                <Modal
-                    title={t('interview.manage_templates')}
-                    open={isTemplateModalOpen}
-                    onOk={() => setIsTemplateModalOpen(false)}
-                    onCancel={() => setIsTemplateModalOpen(false)}
-                >
-                    <p>Template management settings would go here.</p>
-                </Modal>
             </Content>
         </Layout>
     );
