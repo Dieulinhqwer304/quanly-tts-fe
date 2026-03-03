@@ -8,7 +8,8 @@
             "role_id": "admin",
             "status": "active",
             "createdAt": "2025-01-01T08:00:00",
-            "updatedAt": "2025-01-01T08:00:00"
+            "updatedAt": "2025-01-01T08:00:00",
+            "id": "8f71"
         },
         {
             "_id": "2",
@@ -18,7 +19,8 @@
             "role_id": "mentor",
             "status": "active",
             "createdAt": "2025-02-01T10:30:00",
-            "updatedAt": "2025-02-01T10:30:00"
+            "updatedAt": "2025-02-01T10:30:00",
+            "id": "1e5d"
         }
     ],
     "recruitmentPlans": [
@@ -72,7 +74,7 @@
             "level": "Intern",
             "required": 15,
             "filled": 6,
-            "status": "Open",
+            "status": "unpublished",
             "postedDate": "2025-02-15",
             "description": "Làm việc với ReactJS, Next.js, TailwindCSS. Tham gia phát triển các dashboard quản trị.",
             "requirements": "Ưu tiên sinh viên năm 3-4, biết HTML/CSS/JS cơ bản. Có tư duy logic tốt.",
@@ -123,21 +125,13 @@
             "id": "CAN-001",
             "name": "Nguyên Hoàng Nam",
             "email": "nam.nh@student.hust.edu.vn",
-            "phone": "0987654321",
+            "phone": "0987654331",
             "location": "Quận Hai Bà Trưng, Hà Nội",
             "avatar": "https://i.pravatar.cc/150?u=CAN-001",
             "role": "Backend (NodeJS) Intern",
             "education": "Đại học Bách Khoa Hà Nội - Chuyên ngành Khoa học Máy tính",
             "experience": "Làm project cá nhân về E-commerce sử dụng NestJS & Microservices. Có kinh nghiệm build CI/CD pipeline cơ bản với GitHub Actions.",
-            "skills": [
-                "JavaScript",
-                "NodeJS",
-                "NestJS",
-                "MongoDB",
-                "Redis",
-                "Docker",
-                "Kubernetes basic"
-            ],
+            "skills": ["JavaScript", "NodeJS", "NestJS", "MongoDB", "Redis", "Docker", "Kubernetes basic"],
             "resumeUrl": "#",
             "appliedDate": "2025-03-01",
             "appliedFor": "JOB-002",
@@ -159,14 +153,7 @@
             "role": "Frontend (ReactJS) Intern",
             "education": "Đại học Công nghệ Thông tin - ĐHQG TP.HCM (GPA 3.6/4.0)",
             "experience": "Làm leader team Frontend cho đồ án môn học SE104. Từng thực tập ngắn hạn tại startup X, thiết kế landing page tối ưu UI/UX.",
-            "skills": [
-                "React",
-                "TypeScript",
-                "Tailwind CSS",
-                "Ant Design",
-                "Redux Toolkit",
-                "Figma to Code"
-            ],
+            "skills": ["React", "TypeScript", "Tailwind CSS", "Ant Design", "Redux Toolkit", "Figma to Code"],
             "resumeUrl": "#",
             "appliedDate": "2025-03-05",
             "appliedFor": "JOB-001",
@@ -188,14 +175,7 @@
             "role": "Mobile App (Flutter) Intern",
             "education": "Đại học Bách Khoa Đà Nẵng",
             "experience": "Phát triển ứng dụng 'Food Delivery' bằng Flutter cho đồ án Mobile. Tích hợp tốt Google Maps API và Firebase Authentication.",
-            "skills": [
-                "Dart",
-                "Flutter",
-                "Firebase",
-                "BLoC Pattern",
-                "Dio",
-                "SQLite"
-            ],
+            "skills": ["Dart", "Flutter", "Firebase", "BLoC Pattern", "Dio", "SQLite"],
             "resumeUrl": "#",
             "appliedDate": "2025-03-04",
             "appliedFor": "JOB-003",
@@ -217,14 +197,7 @@
             "role": "UI/UX Design Intern",
             "education": "Đại học Kinh tế TP.HCM - Chuyên ngành Thiết kế Đồ họa",
             "experience": "Freelance Designer cho các shop thời trang. Đạt giải Ba cuộc thi 'Creative Front' năm 2024.",
-            "skills": [
-                "Figma",
-                "Adobe XD",
-                "Illustration",
-                "User Research",
-                "Prototyping",
-                "Design Systems"
-            ],
+            "skills": ["Figma", "Adobe XD", "Illustration", "User Research", "Prototyping", "Design Systems"],
             "resumeUrl": "#",
             "appliedDate": "2025-03-06",
             "appliedFor": "JOB-004",
@@ -246,14 +219,7 @@
             "role": "Data Science Intern",
             "education": "ĐH Khoa học Tự nhiên - ĐHQG Hà Nội (Năm 3)",
             "experience": "Nghiên cứu về Computer Vision tại Lab của trường. Có project về phân loại hình ảnh sử dụng CNN và PyTorch.",
-            "skills": [
-                "Python",
-                "PyTorch",
-                "Pandas",
-                "SQL",
-                "Data Visualization",
-                "Machine Learning"
-            ],
+            "skills": ["Python", "PyTorch", "Pandas", "SQL", "Data Visualization", "Machine Learning"],
             "resumeUrl": "#",
             "appliedDate": "2025-03-06",
             "appliedFor": "JOB-005",

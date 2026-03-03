@@ -123,7 +123,7 @@ export const StudentLearningPath = () => {
         setQuizResult(percentage);
 
         try {
-            await submitModuleQuiz.mutateAsync({
+            await submitModuleQuiz.mutate({
                 internId,
                 moduleId: selectedItem.moduleId,
                 quizId: String(quizData?.data?.id || selectedItem.id),

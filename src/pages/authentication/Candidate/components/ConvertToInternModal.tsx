@@ -1,6 +1,7 @@
 import { Modal, Form, Select, DatePicker, message } from 'antd';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useCreateOnboarding } from '../../../../hooks/Recruitment/useOnboarding';
+import { http } from '../../../../utils/http';
 import { useResponsive } from '../../../../hooks/useResponsive';
 
 const { RangePicker } = DatePicker;
@@ -15,47 +16,35 @@ interface ConvertToInternModalProps {
     candidatePhone?: string;
 }
 
-export const ConvertToInternModal = ({
-    open,
-    onCancel,
-    candidateId,
-    candidateName,
-    candidateAvatar,
-    candidateEmail,
-    candidatePhone
-}: ConvertToInternModalProps) => {
+export const ConvertToInternModal = ({ open, onCancel, candidateId, candidateName }: ConvertToInternModalProps) => {
     const { t } = useTranslation();
     const { isMobile, isLaptop } = useResponsive();
     const [form] = Form.useForm();
-    const createOnboarding = useCreateOnboarding();
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const handleSubmit = async () => {
+        setIsProcessing(true);
         try {
             const values = await form.validateFields();
-            const [startDate, endDate] = values.internshipPeriod || [];
 
-            await createOnboarding.mutateAsync({
-                candidateId,
-                name: candidateName,
-                avatar: candidateAvatar || '',
-                email: candidateEmail || '',
-                phone: candidatePhone || '',
+            await http.post(`/interns/from-candidate/${candidateId}`, {
                 track: values.track,
                 mentor: values.mentor,
                 department: values.department,
-                startDate: startDate ? startDate.format('YYYY-MM-DD') : '',
-                endDate: endDate ? endDate.format('YYYY-MM-DD') : ''
+                internshipPeriod: values.internshipPeriod
             });
 
             message.success(t('onboarding.convert_success', { name: candidateName }));
             form.resetFields();
             onCancel();
         } catch (error) {
-            if (error instanceof Error && 'errorFields' in error) {
+            if (error instanceof Error && 'errorFields' in (error as any)) {
                 // Validation error, do nothing
                 return;
             }
             message.error(t('common.error'));
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -70,7 +59,7 @@ export const ConvertToInternModal = ({
             }}
             okText={t('onboarding.create_intern_profile')}
             cancelText={t('common.cancel')}
-            confirmLoading={createOnboarding.isPending}
+            confirmLoading={isProcessing}
             width={isMobile ? 'calc(100vw - 24px)' : isLaptop ? 540 : 600}
         >
             <div style={{ marginBottom: '16px' }}>

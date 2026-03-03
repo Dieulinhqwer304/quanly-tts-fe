@@ -22,9 +22,9 @@ import {
     Breadcrumb
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useJobPositions } from '../../../hooks/Recruitment/useJobPositions';
+import { http } from '../../../utils/http';
 import { JobPosition } from '../../../services/Recruitment/jobPositions';
 import { RecruitmentJobModal } from './components/RecruitmentJobModal';
 import { Modal } from 'antd';
@@ -39,10 +39,50 @@ export const RecruitmentJobList = () => {
     const [editingJob, setEditingJob] = useState<JobPosition | null>(null);
     const [isViewOnly, setIsViewOnly] = useState(false);
 
-    const { data: jobPositionsData, isLoading, refetch } = useJobPositions({
-        searcher: searchText ? { keyword: searchText, field: 'title' } : undefined,
-        department: departmentFilter !== 'All' ? departmentFilter : undefined
-    });
+    const [jobPositionsData, setJobPositionsData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const fetchJobs = async () => {
+        setIsLoading(true);
+        try {
+            const params: any = {};
+            if (searchText) {
+                params.searcher = JSON.stringify({ keyword: searchText, field: 'title' });
+            }
+            if (departmentFilter !== 'All') {
+                params.department = departmentFilter;
+            }
+            const res = await http.get('/job-positions', { params });
+            setJobPositionsData(res);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchJobs();
+    }, [searchText, departmentFilter]);
+
+    const handleStatusChange = async (record: JobPosition) => {
+        const currentStatus = record.status?.toLowerCase();
+        const newStatus = currentStatus === 'open' ? 'closed' : 'open';
+
+        try {
+            await http.patch(`/job-positions/${record.id}`, { status: newStatus });
+            Modal.success({
+                title: t('common.success'),
+                content: `${t('recruitment.status_change_success')} (${record.title}: ${newStatus === 'open' ? t('recruitment.status_published') : t('recruitment.status_stopped')})`,
+                centered: true,
+                okText: t('common.ok')
+            });
+            fetchJobs();
+        } catch (error) {
+            console.error(error);
+            message.error(t('common.error'));
+        }
+    };
 
     const handleCreate = () => {
         setEditingJob(null);
@@ -153,22 +193,26 @@ export const RecruitmentJobList = () => {
             title: t('common.status'),
             dataIndex: 'status',
             key: 'status',
-            render: (status: any) => {
+            render: (status: any, record: JobPosition) => {
                 let color = 'default';
                 let label = status;
                 if (status === 'Open') {
                     color = 'success';
-                    label = t('common.open');
-                }
-                if (status === 'On Hold') {
-                    color = 'warning';
-                    label = t('recruitment.on_hold');
-                }
-                if (status === 'Closed') {
+                    label = t('recruitment.status_published');
+                } else {
                     color = 'error';
-                    label = t('common.closed');
+                    label = t('recruitment.status_stopped');
                 }
-                return <Tag color={color}>{label}</Tag>;
+
+                return (
+                    <Tag
+                        color={color}
+                        style={{ cursor: 'pointer', borderRadius: '4px', padding: '0 8px' }}
+                        onClick={() => handleStatusChange(record)}
+                    >
+                        {label}
+                    </Tag>
+                );
             }
         },
         {
@@ -212,11 +256,7 @@ export const RecruitmentJobList = () => {
                     </Title>
                     <Text type='secondary'>{t('recruitment.job_management_desc')}</Text>
                 </div>
-                <Button
-                    type='primary'
-                    icon={<PlusOutlined />}
-                    onClick={handleCreate}
-                >
+                <Button type='primary' icon={<PlusOutlined />} onClick={handleCreate}>
                     {t('recruitment.create_job_post')}
                 </Button>
             </div>
@@ -276,7 +316,7 @@ export const RecruitmentJobList = () => {
                 onCancel={() => setIsModalOpen(false)}
                 onSuccess={() => {
                     setIsModalOpen(false);
-                    refetch();
+                    fetchJobs();
                 }}
                 initialValues={editingJob}
                 viewOnly={isViewOnly}

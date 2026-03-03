@@ -1,94 +1,122 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from 'react';
 import * as jobPositionsService from '../../services/Recruitment/jobPositions';
 import {
     GetJobPositionsParams,
     CreateJobPositionParams,
     UpdateJobPositionParams
 } from '../../services/Recruitment/jobPositions';
-import { MOCK_DATA } from '../../constants/MockData';
-
 export const useJobPositions = (params?: GetJobPositionsParams) => {
-    // Filter job positions based on params
-    let filteredJobs = MOCK_DATA.jobPositions;
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
 
-    // Filter by status (for public job board, only show "Open" jobs)
-    if (params?.status) {
-        filteredJobs = filteredJobs.filter(j => j.status === params.status);
-    }
+    const paramsString = JSON.stringify(params);
 
-    // Filter by department
-    if (params?.department) {
-        filteredJobs = filteredJobs.filter(j => j.department === params.department);
-    }
-
-    // Search by keyword
-    if (params?.searcher?.keyword) {
-        const keyword = params.searcher.keyword.toLowerCase();
-        filteredJobs = filteredJobs.filter(j =>
-            j.title.toLowerCase().includes(keyword) ||
-            j.description.toLowerCase().includes(keyword) ||
-            j.department.toLowerCase().includes(keyword) ||
-            j.requirements.toLowerCase().includes(keyword)
-        );
-    }
-
-    return useQuery({
-        queryKey: ['jobPositions', params],
-        queryFn: () => jobPositionsService.getJobPositions(params),
-        initialData: {
-            code: 200,
-            data: {
-                hits: filteredJobs,
-                pagination: {
-                    totalPages: 1,
-                    totalRows: filteredJobs.length
-                }
-            }
+    const fetchData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const result = await jobPositionsService.getJobPositions(params);
+            setData(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setIsLoading(false);
         }
-    });
+    }, [paramsString]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return { data, isLoading, error, refetch: fetchData };
 };
 
 export const useJobPosition = (id: string) => {
-    const job = MOCK_DATA.jobPositions.find(j => j.id === id);
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
 
-    return useQuery({
-        queryKey: ['jobPosition', id],
-        queryFn: () => jobPositionsService.getJobPosition(id),
-        enabled: !!id,
-        initialData: job ? {
-            code: 200,
-            data: job
-        } : undefined
-    });
+    const fetchData = useCallback(async () => {
+        if (!id) return;
+        setIsLoading(true);
+        try {
+            const result = await jobPositionsService.getJobPosition(id);
+            setData(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [id]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return { data, isLoading, error, refetch: fetchData };
 };
 
 export const useCreateJobPosition = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (params: CreateJobPositionParams) => jobPositionsService.createJobPosition(params),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['jobPositions'] });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: CreateJobPositionParams) => {
+        setIsLoading(true);
+        try {
+            const result = await jobPositionsService.createJobPosition(params);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
 };
 
 export const useUpdateJobPosition = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (params: UpdateJobPositionParams) => jobPositionsService.updateJobPosition(params),
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ['jobPositions'] });
-            queryClient.invalidateQueries({ queryKey: ['jobPosition', data.data.id] });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: UpdateJobPositionParams) => {
+        setIsLoading(true);
+        try {
+            const result = await jobPositionsService.updateJobPosition(params);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
 };
 
 export const useDeleteJobPosition = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (id: string) => jobPositionsService.deleteJobPosition({ id }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['jobPositions'] });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (id: string) => {
+        setIsLoading(true);
+        try {
+            const result = await jobPositionsService.deleteJobPosition({ id });
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
 };

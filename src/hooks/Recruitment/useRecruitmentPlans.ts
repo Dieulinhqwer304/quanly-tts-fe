@@ -1,64 +1,126 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from 'react';
 import * as recruitmentPlansService from '../../services/Recruitment/recruitmentPlans';
 import {
     GetRecruitmentPlansParams,
     CreateRecruitmentPlanParams,
     UpdateRecruitmentPlanParams
 } from '../../services/Recruitment/recruitmentPlans';
-import { MOCK_DATA } from '../../constants/MockData';
 
 export const useRecruitmentPlans = (params?: GetRecruitmentPlansParams) => {
-    return useQuery({
-        queryKey: ['recruitmentPlans', params],
-        queryFn: () => recruitmentPlansService.getRecruitmentPlans(params),
-        initialData: {
-            code: 200,
-            data: {
-                hits: MOCK_DATA.recruitmentPlans,
-                pagination: {
-                    totalPages: 1,
-                    totalRows: MOCK_DATA.recruitmentPlans.length
-                }
-            }
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const paramsString = JSON.stringify(params);
+
+    const fetchData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const result = await recruitmentPlansService.getRecruitmentPlans(params);
+            setData(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setIsLoading(false);
         }
-    });
+    }, [paramsString]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return { data, isLoading, error, refetch: fetchData };
 };
 
 export const useRecruitmentPlan = (id: string) => {
-    return useQuery({
-        queryKey: ['recruitmentPlan', id],
-        queryFn: () => recruitmentPlansService.getRecruitmentPlan(id),
-        enabled: !!id
-    });
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const fetchData = useCallback(async () => {
+        if (!id) return;
+        setIsLoading(true);
+        try {
+            const result = await recruitmentPlansService.getRecruitmentPlan(id);
+            setData(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [id]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return { data, isLoading, error, refetch: fetchData };
 };
 
-export const useCreateRecruitmentPlan = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (params: CreateRecruitmentPlanParams) => recruitmentPlansService.createRecruitmentPlan(params),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['recruitmentPlans'] });
+export const useCreateRecruitmentPlan = (options?: { onSuccess?: () => void }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: CreateRecruitmentPlanParams) => {
+        setIsLoading(true);
+        try {
+            const result = await recruitmentPlansService.createRecruitmentPlan(params);
+            setError(null);
+            options?.onSuccess?.();
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
 };
 
-export const useUpdateRecruitmentPlan = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (params: UpdateRecruitmentPlanParams) => recruitmentPlansService.updateRecruitmentPlan(params),
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ['recruitmentPlans'] });
-            queryClient.invalidateQueries({ queryKey: ['recruitmentPlan', data.data.id] });
+export const useUpdateRecruitmentPlan = (options?: { onSuccess?: () => void }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: UpdateRecruitmentPlanParams) => {
+        setIsLoading(true);
+        try {
+            const result = await recruitmentPlansService.updateRecruitmentPlan(params);
+            setError(null);
+            options?.onSuccess?.();
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
 };
 
-export const useDeleteRecruitmentPlan = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (id: string) => recruitmentPlansService.deleteRecruitmentPlan({ id }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['recruitmentPlans'] });
+export const useDeleteRecruitmentPlan = (options?: { onSuccess?: () => void }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (id: string) => {
+        setIsLoading(true);
+        try {
+            const result = await recruitmentPlansService.deleteRecruitmentPlan({ id });
+            setError(null);
+            options?.onSuccess?.();
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, mutate: mutate, isLoading, isLoading: isLoading, error };
 };

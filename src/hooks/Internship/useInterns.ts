@@ -1,40 +1,123 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from 'react';
 import * as internsService from '../../services/Internship/interns';
 import { GetInternsParams, UpdateInternParams } from '../../services/Internship/interns';
-import { MOCK_DATA } from '../../constants/MockData';
 
 export const useInterns = (params?: GetInternsParams) => {
-    return useQuery({
-        queryKey: ['interns', params],
-        queryFn: () => internsService.getInterns(params),
-        initialData: {
-            code: 200,
-            data: {
-                hits: MOCK_DATA.interns,
-                pagination: {
-                    totalPages: 1,
-                    totalRows: MOCK_DATA.interns.length
-                }
-            }
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const paramsString = JSON.stringify(params);
+
+    const fetchData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const result = await internsService.getInterns(params);
+            setData(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setIsLoading(false);
         }
-    });
+    }, [paramsString]); // Use serialized string for stability
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return { data, isLoading, error, refetch: fetchData };
 };
 
 export const useIntern = (id: string) => {
-    return useQuery({
-        queryKey: ['intern', id],
-        queryFn: () => internsService.getIntern(id),
-        enabled: !!id
-    });
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const fetchData = useCallback(async () => {
+        if (!id) return;
+        setIsLoading(true);
+        try {
+            const result = await internsService.getIntern(id);
+            setData(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [id]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return { data, isLoading, error, refetch: fetchData };
+};
+
+export const useMeIntern = () => {
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const fetchData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const result = await internsService.getMe();
+            setData(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return { data, isLoading, error, refetch: fetchData };
 };
 
 export const useUpdateIntern = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (params: UpdateInternParams) => internsService.updateIntern(params),
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ['interns'] });
-            queryClient.invalidateQueries({ queryKey: ['intern', data.data.id] });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: UpdateInternParams) => {
+        setIsLoading(true);
+        try {
+            const result = await internsService.updateIntern(params);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
+};
+
+export const useCreateIntern = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: any) => {
+        setIsLoading(true);
+        try {
+            const result = await internsService.createIntern(params); // Need to define this in service as well
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return { mutate, isLoading, error };
 };

@@ -8,22 +8,30 @@ import {
 
 export interface Candidate {
     id: string;
-    name: string;
+    fullName: string;
     email: string;
     phone: string;
     location: string;
-    avatar: string;
-    role: string;
+    avatarUrl: string;
     education: string;
     experience: string;
     skills: string[];
     resumeUrl: string;
     appliedDate: string;
-    appliedFor: string;
-    appliedForTitle: string;
-    status: 'Pending Review' | 'CV Screened' | 'Shortlisted' | 'Interview Scheduled' | 'Passed Interview' | 'Rejected';
+    job?: {
+        id: string;
+        title: string;
+        department: string;
+    };
+    status:
+        | 'pending_review'
+        | 'cv_screened'
+        | 'shortlisted'
+        | 'interview_scheduled'
+        | 'passed_interview'
+        | 'rejected'
+        | 'converted_to_intern';
     matchScore: number;
-    timeAgo: string;
     coverLetter: string;
     createdAt: string;
     updatedAt: string;
@@ -36,38 +44,22 @@ export interface GetCandidatesParams {
 }
 
 export const getCandidates = async (params?: GetCandidatesParams): Promise<ResponseListSuccess<Candidate>> => {
-    const queryParams: any = {
-        q: params?.searcher?.keyword,
-        _page: params?.pagination?.page || 1,
-        _limit: params?.pagination?.pageSize || 10
-    };
+    const queryParams: any = {};
+    if (params?.searcher) queryParams.searcher = params.searcher;
+    if (params?.status && params.status !== 'all') queryParams.status = params.status;
+    if (params?.pagination) queryParams.pagination = params.pagination;
 
-    if (params?.status && params.status !== 'all') {
-        queryParams.status = params.status;
-    }
-
-    const response = await http.get('/candidates', { params: queryParams });
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
-    const data = response.data;
+    const result = await http.get<ResponseListSuccess<Candidate>>('/candidates', { params: queryParams });
 
     return {
-        code: 200,
-        data: {
-            hits: data,
-            pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
-            }
-        }
+        errorCode: result.errorCode,
+        data: result.data || []
     };
 };
 
 export const getCandidate = async (id: string): Promise<ResponseDetailSuccess<Candidate>> => {
-    const response = await http.get(`/candidates/${id}`);
-    return {
-        code: 200,
-        data: response.data
-    };
+    const result = await http.get<ResponseDetailSuccess<Candidate>>(`/candidates/${id}`);
+    return result;
 };
 
 export interface UpdateCandidateParams {
@@ -79,14 +71,8 @@ export interface UpdateCandidateParams {
 
 export const updateCandidate = async (params: UpdateCandidateParams): Promise<ResponseDetailSuccess<Candidate>> => {
     const { id, ...data } = params;
-    const response = await http.patch(`/candidates/${id}`, {
-        ...data,
-        updatedAt: new Date().toISOString()
-    });
-    return {
-        code: 200,
-        data: response.data
-    };
+    const updateResult = await http.patch<ResponseDetailSuccess<Candidate>>(`/candidates/${id}`, data);
+    return updateResult;
 };
 
 export interface ShortlistCandidateParams {
@@ -98,7 +84,7 @@ export const shortlistCandidate = async (
 ): Promise<ResponseDetailSuccess<Candidate>> => {
     return updateCandidate({
         id: params.id,
-        status: 'Shortlisted'
+        status: 'shortlisted'
     });
 };
 
@@ -110,7 +96,7 @@ export interface RejectCandidateParams {
 export const rejectCandidate = async (params: RejectCandidateParams): Promise<ResponseDetailSuccess<Candidate>> => {
     return updateCandidate({
         id: params.id,
-        status: 'Rejected'
+        status: 'rejected'
     });
 };
 
@@ -123,39 +109,24 @@ export const passInterviewCandidate = async (
 ): Promise<ResponseDetailSuccess<Candidate>> => {
     return updateCandidate({
         id: params.id,
-        status: 'Passed Interview'
+        status: 'passed_interview'
     });
 };
 
 export interface CreateCandidateParams {
-    name: string;
+    fullName: string;
     email: string;
-    phone: string;
+    phone?: string;
     location?: string;
-    role: string;
+    jobId: string;
     education?: string;
-    experience?: string;
     skills?: string[];
-    appliedFor: string;
-    appliedForTitle: string;
-    coverLetter?: string;
+    resumeUrl?: string;
 }
 
 export const createCandidate = async (params: CreateCandidateParams): Promise<ResponseDetailSuccess<Candidate>> => {
-    const response = await http.post('/candidates', {
-        ...params,
-        avatar: `https://i.pravatar.cc/150?u=${Math.random()}`,
-        status: 'Pending Review',
-        matchScore: Math.floor(Math.random() * 40) + 60,
-        timeAgo: 'Just now',
-        appliedDate: new Date().toISOString().split('T')[0],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    });
-    return {
-        code: 201,
-        data: response.data
-    };
+    const result = await http.post<ResponseDetailSuccess<Candidate>>('/candidates', params);
+    return result;
 };
 
 export interface DeleteCandidateParams {
@@ -163,9 +134,18 @@ export interface DeleteCandidateParams {
 }
 
 export const deleteCandidate = async (params: DeleteCandidateParams): Promise<ResponseDetailSuccess<null>> => {
-    await http.delete(`/candidates/${params.id}`);
-    return {
-        code: 200,
-        data: null
-    };
+    const result = await http.delete<ResponseDetailSuccess<null>>(`/candidates/${params.id}`);
+    return result;
+};
+
+export const convertCandidateToIntern = async (
+    id: string,
+    track?: string,
+    mentorId?: string
+): Promise<ResponseDetailSuccess<any>> => {
+    const result = await http.post<ResponseDetailSuccess<any>>(`/candidates/${id}/convert-to-intern`, {
+        mentorId,
+        track // Track is used in Intern creation in BE service
+    });
+    return result;
 };

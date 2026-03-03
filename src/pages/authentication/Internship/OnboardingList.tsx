@@ -24,8 +24,8 @@ import {
     Breadcrumb,
     Skeleton
 } from 'antd';
-import { useState } from 'react';
-import { useOnboardingList, useUpdateOnboarding } from '../../../hooks/Recruitment/useOnboarding';
+import { useEffect, useState } from 'react';
+import { http } from '../../../utils/http';
 import { Onboarding, OnboardingStep } from '../../../services/Recruitment/onboarding';
 import { useTranslation } from 'react-i18next';
 
@@ -34,12 +34,30 @@ const { Title, Text } = Typography;
 export const OnboardingList = () => {
     const { t } = useTranslation();
     const [searchText, setSearchText] = useState('');
-    const { data: onboardingData, isLoading } = useOnboardingList({
-        searcher: { keyword: searchText, field: 'name' }
-    });
-    const updateOnboarding = useUpdateOnboarding();
+    const [onboardingData, setOnboardingData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleAction = async (key: string, item: Onboarding) => {
+    const fetchOnboarding = async () => {
+        setIsLoading(true);
+        try {
+            const params: any = {};
+            if (searchText) {
+                params.searcher = JSON.stringify({ keyword: searchText, field: 'fullName' });
+            }
+            const res = await http.get('/onboarding', { params });
+            setOnboardingData(res);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchOnboarding();
+    }, [searchText]);
+
+    const handleAction = async (key: string, item: any) => {
         if (key === 'next' || key === 'approve') {
             const nextStep = item.currentStep + 1;
             if (nextStep < item.steps.length) {
@@ -47,29 +65,29 @@ export const OnboardingList = () => {
                 newSteps[item.currentStep].status = 'finish';
                 newSteps[nextStep].status = 'process';
 
-                await updateOnboarding.mutateAsync({
-                    id: item.id,
+                await http.patch(`/onboarding/${item.id}`, {
                     currentStep: nextStep,
                     steps: newSteps
                 });
-                message.success(t('onboarding.advance_success', { name: item.name }));
+                message.success(t('onboarding.advance_success', { name: item.fullName }));
+                fetchOnboarding();
             } else if (nextStep === item.steps.length) {
                 const newSteps = [...item.steps];
                 newSteps[item.currentStep].status = 'finish';
-                await updateOnboarding.mutateAsync({
-                    id: item.id,
+                await http.patch(`/onboarding/${item.id}`, {
                     currentStep: nextStep,
                     steps: newSteps,
-                    status: 'Completed'
+                    status: 'completed'
                 });
-                message.success(t('onboarding.complete_success', { name: item.name }));
+                message.success(t('onboarding.complete_success', { name: item.fullName }));
+                fetchOnboarding();
             }
         } else {
-            message.info(`${key} for ${item.name}`);
+            message.info(`${key} for ${item.fullName}`);
         }
     };
 
-    const getActionMenu = (item: Onboarding): MenuProps => ({
+    const getActionMenu = (item: any): MenuProps => ({
         items: [
             { key: 'reminder', label: t('onboarding.send_reminder') },
             { key: 'approve', label: t('onboarding.approve_step') },
@@ -115,10 +133,10 @@ export const OnboardingList = () => {
                     {isLoading ? (
                         <Skeleton active paragraph={{ rows: 10 }} />
                     ) : (
-                        <List<Onboarding>
+                        <List<any>
                             grid={{ gutter: 16, column: 1 }}
                             dataSource={data}
-                            renderItem={(item: Onboarding) => (
+                            renderItem={(item: any) => (
                                 <List.Item>
                                     <Card
                                         bordered={false}
@@ -128,27 +146,29 @@ export const OnboardingList = () => {
                                         <Row gutter={24} align='middle'>
                                             <Col xs={24} md={6}>
                                                 <Space size='middle'>
-                                                    <Avatar size={54} src={item.avatar} icon={<UserOutlined />} />
+                                                    <Avatar size={54} src={item.avatarUrl} icon={<UserOutlined />} />
                                                     <div>
                                                         <Text strong style={{ display: 'block', fontSize: '16px' }}>
-                                                            {item.name}
+                                                            {item.fullName}
                                                         </Text>
                                                         <Text type='secondary' style={{ fontSize: '12px' }}>
                                                             {item.track}
                                                         </Text>
                                                         <Tag
                                                             color={
-                                                                item.status === 'Delayed'
+                                                                item.status === 'delayed'
                                                                     ? 'red'
-                                                                    : item.status === 'Completed'
-                                                                        ? 'success'
-                                                                        : 'processing'
+                                                                    : item.status === 'completed'
+                                                                      ? 'success'
+                                                                      : 'processing'
                                                             }
                                                             style={{ marginTop: '4px' }}
                                                         >
-                                                            {item.status === 'Delayed' ? t('onboarding.delayed') :
-                                                                item.status === 'Completed' ? t('onboarding.completed') :
-                                                                    t('onboarding.in_onboarding')}
+                                                            {item.status === 'delayed'
+                                                                ? t('onboarding.delayed')
+                                                                : item.status === 'completed'
+                                                                  ? t('onboarding.completed')
+                                                                  : t('onboarding.in_onboarding')}
                                                         </Tag>
                                                     </div>
                                                 </Space>
@@ -158,7 +178,7 @@ export const OnboardingList = () => {
                                                     <Steps
                                                         size='small'
                                                         current={item.currentStep}
-                                                        items={item.steps.map((s: OnboardingStep) => ({
+                                                        items={item.steps.map((s: any) => ({
                                                             title: s.title,
                                                             status: s.status
                                                         }))}
@@ -171,9 +191,11 @@ export const OnboardingList = () => {
                                                         type='primary'
                                                         size='small'
                                                         onClick={() => handleAction('next', item)}
-                                                        disabled={item.status === 'Completed'}
+                                                        disabled={item.status === 'completed'}
                                                     >
-                                                        {item.status === 'Completed' ? t('onboarding.completed') : t('onboarding.advance')}
+                                                        {item.status === 'completed'
+                                                            ? t('onboarding.completed')
+                                                            : t('onboarding.advance')}
                                                     </Button>
                                                     <Dropdown menu={getActionMenu(item)} trigger={['click']}>
                                                         <Button size='small' icon={<MoreOutlined />}>
@@ -192,25 +214,6 @@ export const OnboardingList = () => {
 
                 <Col xs={24} lg={6}>
                     <Space direction='vertical' size='large' style={{ width: '100%' }}>
-                        <Card title={t('onboarding.quick_stats')} bordered={false} style={{ borderRadius: '12px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                                <Text type='secondary'>{t('onboarding.in_onboarding')}</Text>
-                                <Text strong>{data.filter((i: Onboarding) => i.status === 'In Progress').length}</Text>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                                <Text type='secondary'>{t('onboarding.delayed')}</Text>
-                                <Text strong style={{ color: '#ff4d4f' }}>
-                                    {data.filter((i: Onboarding) => i.status === 'Delayed').length}
-                                </Text>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Text type='secondary'>{t('onboarding.ready_for_work')}</Text>
-                                <Text strong style={{ color: '#52c41a' }}>
-                                    {data.filter((i: Onboarding) => i.status === 'Completed').length}
-                                </Text>
-                            </div>
-                        </Card>
-
                         <Card title={t('onboarding.next_steps')} bordered={false} style={{ borderRadius: '12px' }}>
                             <List
                                 size='small'

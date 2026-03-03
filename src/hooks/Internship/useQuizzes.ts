@@ -1,60 +1,135 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from 'react';
 import * as quizzesService from '../../services/Internship/quizzes';
-import { Quiz } from '../../services/Internship/quizzes';
 import { MOCK_DATA } from '../../constants/MockData';
 
 export const useQuizzes = () => {
-    return useQuery({
-        queryKey: ['quizzes'],
-        queryFn: quizzesService.getQuizzes,
-        initialData: {
-            code: 200,
-            data: {
-                hits: MOCK_DATA.quizzes,
-                pagination: {
-                    totalPages: 1,
-                    totalRows: MOCK_DATA.quizzes.length
-                }
+    const [data, setData] = useState<any>({
+        code: 200,
+        data: {
+            hits: MOCK_DATA.quizzes,
+            pagination: {
+                totalPages: 1,
+                totalRows: MOCK_DATA.quizzes.length
             }
         }
     });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const fetchData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const result = await quizzesService.getQuizzes();
+            setData(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return { data, isLoading, error, refetch: fetchData };
 };
 
 export const useQuiz = (id: string) => {
-    return useQuery({
-        queryKey: ['quiz', id],
-        queryFn: () => quizzesService.getQuiz(id),
-        enabled: !!id,
-        initialData: () => {
-            const quiz = MOCK_DATA.quizzes.find((q) => q.id === id);
-            if (quiz) {
-                return {
-                    code: 200,
-                    data: quiz
-                };
-            }
-            return undefined;
+    const [data, setData] = useState<any>(() => {
+        const quiz = MOCK_DATA.quizzes.find((q) => q.id === id);
+        if (quiz) {
+            return {
+                code: 200,
+                data: quiz
+            };
         }
+        return null;
     });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const fetchData = useCallback(async () => {
+        if (!id) return;
+        setIsLoading(true);
+        try {
+            const result = await quizzesService.getQuiz(id);
+            setData(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [id]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return { data, isLoading, error, refetch: fetchData };
 };
 
 export const useCreateQuiz = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: quizzesService.createQuiz,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: any) => {
+        setIsLoading(true);
+        try {
+            const result = await quizzesService.createQuiz(params);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
 };
 
 export const useUpdateQuiz = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: quizzesService.updateQuiz,
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ['quizzes'] });
-            queryClient.invalidateQueries({ queryKey: ['quiz', data.data.id] });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async ({ id, data }: { id: string; data: any }) => {
+        setIsLoading(true);
+        try {
+            const result = await quizzesService.updateQuiz(id, data);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
+};
+
+export const useSubmitQuiz = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (quizId: string, answers: Record<string, string>) => {
+        setIsLoading(true);
+        try {
+            const result = await quizzesService.submitQuiz(quizId, answers);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return { mutate, isLoading, error };
 };

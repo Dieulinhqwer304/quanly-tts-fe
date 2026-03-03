@@ -14,11 +14,12 @@ import {
     RightOutlined,
     TrophyOutlined
 } from '@ant-design/icons';
-import { Avatar, Button, Card, Col, Progress, Row, Tag, Timeline, Typography, message, Skeleton } from 'antd';
+import { Avatar, Button, Card, Col, Progress, Row, Tag, Timeline, Typography, Skeleton, App } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { useIntern } from '../../../hooks/Internship/useInterns';
-import { useTasks } from '../../../hooks/Internship/useTasks';
-import { useLearningPath } from '../../../hooks/Internship/useLearningPath';
+import { useTranslation } from 'react-i18next';
+import { useState, useEffect, useMemo } from 'react';
+import { RouteConfig } from '../../../constants';
+import { http } from '../../../utils/http';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -27,30 +28,76 @@ dayjs.extend(relativeTime);
 const { Title, Text } = Typography;
 
 export const InternDashboard = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
-    const internId = 'ITS-001'; // Default for now, ideally from auth context
+    const { message: messageApi } = App.useApp();
 
-    const { data: internData, isLoading: isLoadingIntern } = useIntern(internId);
-    const { data: tasksData, isLoading: isLoadingTasks } = useTasks({ internId });
+    const [internData, setInternData] = useState<any>(null);
+    const [tasksData, setTasksData] = useState<any>(null);
+    const [learningPathData, setLearningPathData] = useState<any>(null);
+    const [isLoadingIntern, setIsLoadingIntern] = useState(true);
+    const [isLoadingTasks, setIsLoadingTasks] = useState(false);
+    const [isLoadingLP, setIsLoadingLP] = useState(false);
+
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            setIsLoadingIntern(true);
+            try {
+                const res = await http.get('/interns/me');
+                setInternData(res);
+                const internObj = res?.data;
+
+                if (internObj) {
+                    setIsLoadingTasks(true);
+                    setIsLoadingLP(true);
+
+                    // Fetch tasks and learning path in parallel
+                    const [tasksRes, lpRes] = await Promise.all([
+                        http.get(`/tasks`, { params: { internId: internObj.id } }),
+                        http.get(`/learning-paths/${internObj.track || ''}`)
+                    ]);
+
+                    setTasksData(tasksRes);
+                    setLearningPathData(lpRes);
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setIsLoadingIntern(false);
+                setIsLoadingTasks(false);
+                setIsLoadingLP(false);
+            }
+        };
+
+        fetchInitialData();
+    }, []);
 
     const intern = internData?.data;
-    const { data: learningPathData, isLoading: isLoadingLP } = useLearningPath(intern?.track || '');
 
-    const tasks = tasksData?.data.hits || [];
+    const tasks = tasksData?.data?.hits || [];
     const learningPath = learningPathData?.data;
-    const modules = learningPath?.modules || [];
+    const modules = useMemo(() => {
+        if (!learningPath?.modules) return [];
+        return (learningPath.modules as any[]).map((m: any) => ({
+            ...m,
+            items: [...(m.contents || []), ...(m.quizzes || [])],
+            progress: m.progress || 0
+        }));
+    }, [learningPath?.modules]);
 
     // Find the nearest upcoming deadline
-    const upcomingTask = tasks
-        .filter((t) => t.status !== 'Completed' && dayjs(t.dueDate).isAfter(dayjs()))
-        .sort((a, b) => dayjs(a.dueDate).diff(dayjs(b.dueDate)))[0];
+    const upcomingTask = useMemo(() => {
+        return tasks
+            .filter((t) => t.status?.toLowerCase() !== 'completed' && dayjs(t.dueDate).isAfter(dayjs()))
+            .sort((a, b) => dayjs(a.dueDate).diff(dayjs(b.dueDate)))[0];
+    }, [tasks]);
 
     const handleNavigation = (path: string) => {
-        message.info(`Navigating to: ${path}`);
+        navigate(path);
     };
 
     const handleDownload = (file: string) => {
-        message.success(`Downloading ${file}...`);
+        messageApi.success(t('intern_dashboard.download_msg', { file }));
     };
 
     if (isLoadingIntern || isLoadingTasks || isLoadingLP) {
@@ -74,10 +121,10 @@ export const InternDashboard = () => {
                 }}
             >
                 <span style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-                    Home
+                    {t('menu.dashboard')}
                 </span>
                 <RightOutlined style={{ fontSize: '10px' }} />
-                <span style={{ cursor: 'pointer' }}>Internship Program</span>
+                <span style={{ cursor: 'pointer' }}>{t('intern_dashboard.breadcrumb_program')}</span>
                 <RightOutlined style={{ fontSize: '10px' }} />
                 <span style={{ color: '#136dec', fontWeight: 600 }}>Phase 1: Foundations</span>
             </div>
@@ -114,7 +161,7 @@ export const InternDashboard = () => {
                                 marginRight: '8px'
                             }}
                         ></span>
-                        Current Track
+                        {t('intern_dashboard.current_track')}
                     </Tag>
                     <Title level={1} style={{ margin: '0 0 8px 0' }}>
                         {intern?.track || 'Software Development Track'}
@@ -123,23 +170,39 @@ export const InternDashboard = () => {
                         Master the core principles of software engineering. Phase 1 focuses on database design, backend
                         logic, and system architecture.
                     </Text>
+                    <div style={{ marginTop: '24px', maxWidth: '300px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                            <Text strong>{t('intern_dashboard.overall_progress')}</Text>
+                            <Text strong color='#136dec'>
+                                {intern?.progress || 0}%
+                            </Text>
+                        </div>
+                        <Progress
+                            percent={intern?.progress || 0}
+                            showInfo={false}
+                            strokeColor={{
+                                '0%': '#108ee9',
+                                '100%': '#87d068'
+                            }}
+                        />
+                    </div>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                     <Button
                         icon={<DownloadOutlined />}
                         size='large'
                         onClick={() => handleDownload('Syllabus_Q3_2024.pdf')}
                     >
-                        Syllabus
+                        {t('intern_dashboard.syllabus')}
                     </Button>
                     <Button
                         icon={<CalendarOutlined />}
                         size='large'
                         type='primary'
                         style={{ background: '#101822' }}
-                        onClick={() => message.info('Opening Calendar...')}
+                        onClick={() => messageApi.info(t('intern_dashboard.calendar_msg'))}
                     >
-                        Schedule
+                        {t('intern_dashboard.schedule')}
                     </Button>
                 </div>
             </div>
@@ -186,7 +249,7 @@ export const InternDashboard = () => {
                                 ),
                                 children: (
                                     <Card
-                                        bordered={false}
+                                        variant='borderless'
                                         style={{
                                             borderRadius: '12px',
                                             border:
@@ -251,7 +314,11 @@ export const InternDashboard = () => {
                                                             marginBottom: '8px'
                                                         }}
                                                     >
-                                                        {module.status === 'Ready' ? 'Completed' : module.status}
+                                                        {module.status === 'Ready'
+                                                            ? t('common.completed')
+                                                            : module.status === 'In Progress'
+                                                              ? t('task_mgmt.in_progress')
+                                                              : t('common.locked')}
                                                     </Tag>
                                                     <Title
                                                         level={module.status === 'In Progress' ? 3 : 4}
@@ -266,9 +333,9 @@ export const InternDashboard = () => {
                                                         type='primary'
                                                         icon={<ArrowRightOutlined />}
                                                         style={{ background: '#136dec' }}
-                                                        onClick={() => navigate('/internship/tasks')}
+                                                        onClick={() => navigate(RouteConfig.InternTaskBoard.path)}
                                                     >
-                                                        Go to Tasks
+                                                        {t('intern_dashboard.go_to_tasks')}
                                                     </Button>
                                                 )}
                                             </div>
@@ -289,14 +356,14 @@ export const InternDashboard = () => {
                                                                     task.status === 'In Progress' ? '#e6f7ff' : '#fff',
                                                                 cursor: 'pointer'
                                                             }}
-                                                            onClick={() => navigate('/internship/tasks')}
+                                                            onClick={() => navigate(RouteConfig.InternTaskBoard.path)}
                                                         >
                                                             <div
                                                                 style={{
                                                                     width: 40,
                                                                     height: 40,
                                                                     background:
-                                                                        task.status === 'Completed'
+                                                                        task.status?.toLowerCase() === 'completed'
                                                                             ? '#f6ffed'
                                                                             : '#f5f5f5',
                                                                     borderRadius: '8px',
@@ -304,12 +371,12 @@ export const InternDashboard = () => {
                                                                     alignItems: 'center',
                                                                     justifyContent: 'center',
                                                                     color:
-                                                                        task.status === 'Completed'
+                                                                        task.status?.toLowerCase() === 'completed'
                                                                             ? '#52c41a'
                                                                             : '#bfbfbf'
                                                                 }}
                                                             >
-                                                                {task.status === 'Completed' ? (
+                                                                {task.status?.toLowerCase() === 'completed' ? (
                                                                     <CheckCircleFilled />
                                                                 ) : (
                                                                     <FileTextOutlined />
@@ -335,14 +402,19 @@ export const InternDashboard = () => {
                                                                     </Text>
                                                                     <Tag
                                                                         color={
-                                                                            task.status === 'Completed'
+                                                                            task.status?.toLowerCase() === 'completed'
                                                                                 ? 'success'
-                                                                                : task.status === 'In Progress'
+                                                                                : task.status?.toLowerCase() ===
+                                                                                    'in_progress'
                                                                                   ? 'blue'
                                                                                   : 'default'
                                                                         }
                                                                     >
-                                                                        {task.status}
+                                                                        {t(
+                                                                            `task_mgmt.${task.status
+                                                                                ?.toLowerCase()
+                                                                                .replace(' ', '_')}`
+                                                                        )}
                                                                     </Tag>
                                                                 </div>
                                                                 <div
@@ -355,11 +427,14 @@ export const InternDashboard = () => {
                                                                     }}
                                                                 >
                                                                     <span>
-                                                                        <CalendarOutlined /> Due{' '}
+                                                                        <CalendarOutlined /> {t('intern_dashboard.due')}{' '}
                                                                         {dayjs(task.dueDate).format('MMM DD, YYYY')}
                                                                     </span>
                                                                     <span>•</span>
-                                                                    <span>{task.priority} Priority</span>
+                                                                    <span>
+                                                                        {t(`task_mgmt.${task.priority.toLowerCase()}`)}{' '}
+                                                                        {t('task_mgmt.priority')}
+                                                                    </span>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -373,13 +448,13 @@ export const InternDashboard = () => {
                                                     style={{ padding: 0 }}
                                                     onClick={() => handleNavigation(`Module ${module.id} Review`)}
                                                 >
-                                                    Review Materials
+                                                    {t('intern_dashboard.review_materials')}
                                                 </Button>
                                             )}
 
                                             {module.status === 'Locked' && (
                                                 <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                    <InfoCircleOutlined /> Complete previous module to unlock
+                                                    <InfoCircleOutlined /> {t('intern_dashboard.unlock_info')}
                                                 </Text>
                                             )}
                                         </div>
@@ -407,13 +482,13 @@ export const InternDashboard = () => {
                                 ),
                                 children: (
                                     <Card
-                                        bordered={false}
+                                        variant='borderless'
                                         style={{ borderRadius: '12px', border: '1px dashed #d9d9d9', opacity: 0.5 }}
                                     >
                                         <Title level={4} style={{ margin: '0 0 4px 0' }}>
-                                            Phase 1 Capstone Exam
+                                            {t('intern_dashboard.capstone_title')}
                                         </Title>
-                                        <Text type='secondary'>Final assessment covering all modules in Phase 1.</Text>
+                                        <Text type='secondary'>{t('intern_dashboard.capstone_desc')}</Text>
                                     </Card>
                                 )
                             }
@@ -431,116 +506,9 @@ export const InternDashboard = () => {
                             top: '24px'
                         }}
                     >
-                        <Card bordered={false} style={{ borderRadius: '12px', border: '1px solid #f0f0f0' }}>
-                            <Title
-                                level={4}
-                                style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}
-                            >
-                                <CheckCircleOutlined style={{ color: '#136dec' }} /> Phase Progress
-                            </Title>
-                            <div style={{ marginBottom: '16px' }}>
-                                <span style={{ fontSize: '36px', fontWeight: 900, color: '#1f2937' }}>
-                                    {intern?.progress || 0}%
-                                </span>
-                                <Text type='secondary' style={{ marginLeft: '8px', fontWeight: 500 }}>
-                                    completed
-                                </Text>
-                            </div>
-                            <Progress
-                                percent={intern?.progress || 0}
-                                showInfo={false}
-                                strokeColor='#136dec'
-                                trailColor='#f0f0f0'
-                                strokeWidth={12}
-                            />
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    marginTop: '16px',
-                                    paddingTop: '16px',
-                                    borderTop: '1px solid #f0f0f0'
-                                }}
-                            >
-                                <div>
-                                    <Text type='secondary' style={{ fontSize: '12px', display: 'block' }}>
-                                        Track Status
-                                    </Text>
-                                    <Text strong>{intern?.status || 'Active'}</Text>
-                                </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <Text type='secondary' style={{ fontSize: '12px', display: 'block' }}>
-                                        End Date
-                                    </Text>
-                                    <Text strong>
-                                        {intern?.endDate ? dayjs(intern.endDate).format('MMM DD, YYYY') : 'N/A'}
-                                    </Text>
-                                </div>
-                            </div>
-                        </Card>
-
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Card
-                                    bordered={false}
-                                    style={{ borderRadius: '12px', border: '1px solid #f0f0f0', textAlign: 'center' }}
-                                >
-                                    <div
-                                        style={{
-                                            width: 40,
-                                            height: 40,
-                                            background: '#fff7e6',
-                                            borderRadius: '50%',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            color: '#fa8c16',
-                                            margin: '0 auto 8px auto'
-                                        }}
-                                    >
-                                        <FireOutlined style={{ fontSize: '20px' }} />
-                                    </div>
-                                    <Title level={3} style={{ margin: 0 }}>
-                                        7
-                                    </Title>
-                                    <Text type='secondary' style={{ fontSize: '12px' }}>
-                                        Day Streak
-                                    </Text>
-                                </Card>
-                            </Col>
-                            <Col span={12}>
-                                <Card
-                                    bordered={false}
-                                    style={{ borderRadius: '12px', border: '1px solid #f0f0f0', textAlign: 'center' }}
-                                >
-                                    <div
-                                        style={{
-                                            width: 40,
-                                            height: 40,
-                                            background: '#f9f0ff',
-                                            borderRadius: '50%',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            color: '#722ed1',
-                                            margin: '0 auto 8px auto'
-                                        }}
-                                    >
-                                        <TrophyOutlined style={{ fontSize: '20px' }} />
-                                    </div>
-                                    <Title level={3} style={{ margin: 0 }}>
-                                        Top 5%
-                                    </Title>
-                                    <Text type='secondary' style={{ fontSize: '12px' }}>
-                                        Cohort Rank
-                                    </Text>
-                                </Card>
-                            </Col>
-                        </Row>
-
                         {upcomingTask && (
                             <Card
-                                bordered={false}
+                                variant='borderless'
                                 style={{
                                     borderRadius: '12px',
                                     background: 'linear-gradient(135deg, #101822 0%, #1a222d 100%)',
@@ -562,7 +530,7 @@ export const InternDashboard = () => {
                                             textTransform: 'uppercase'
                                         }}
                                     >
-                                        <ClockCircleOutlined /> Upcoming Deadline
+                                        <ClockCircleOutlined /> {t('intern_dashboard.upcoming_deadline')}
                                     </div>
                                     <Title level={4} style={{ color: 'white', margin: '0 0 4px 0' }}>
                                         {upcomingTask.title}
@@ -607,7 +575,7 @@ export const InternDashboard = () => {
                                                 {dayjs(upcomingTask.dueDate).format('h:mm A')}
                                             </div>
                                             <div style={{ fontSize: '12px', color: '#fca5a5' }}>
-                                                Due {dayjs(upcomingTask.dueDate).fromNow()}
+                                                {t('intern_dashboard.due')} {dayjs(upcomingTask.dueDate).fromNow()}
                                             </div>
                                         </div>
                                     </div>
@@ -615,21 +583,24 @@ export const InternDashboard = () => {
                             </Card>
                         )}
 
-                        <Card bordered={false} style={{ borderRadius: '12px', border: '1px solid #f0f0f0' }}>
+                        <Card variant='borderless' style={{ borderRadius: '12px', border: '1px solid #f0f0f0' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <Avatar size={48} src={`https://i.pravatar.cc/150?u=${intern?.mentor}`} />
+                                <Avatar
+                                    size={48}
+                                    src={intern?.mentorAvatar || `https://i.pravatar.cc/150?u=${intern?.mentorId}`}
+                                />
                                 <div style={{ flex: 1 }}>
                                     <Text strong style={{ display: 'block' }}>
-                                        {intern?.mentor || 'Assigned Mentor'}
+                                        {intern?.mentor?.fullName || intern?.mentor || t('internship.mentor')}
                                     </Text>
                                     <Text type='secondary' style={{ fontSize: '12px' }}>
-                                        Senior Engineer • Mentor
+                                        {intern?.track} Senior • {t('internship.mentor')}
                                     </Text>
                                 </div>
                                 <Button
                                     shape='circle'
                                     icon={<MessageOutlined />}
-                                    onClick={() => message.info(`Opening chat with ${intern?.mentor}...`)}
+                                    onClick={() => messageApi.info(`Opening chat with ${intern?.mentor}...`)}
                                 />
                             </div>
                         </Card>

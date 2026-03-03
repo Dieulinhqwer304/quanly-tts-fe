@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from 'react';
 import * as candidatesService from '../../services/Recruitment/candidates';
 import {
     GetCandidatesParams,
@@ -7,118 +7,203 @@ import {
     ShortlistCandidateParams,
     RejectCandidateParams
 } from '../../services/Recruitment/candidates';
-import { MOCK_DATA } from '../../constants/MockData';
 
 export const useCandidates = (params?: GetCandidatesParams) => {
-    // Filter candidates based on params
-    let filteredCandidates = MOCK_DATA.candidates;
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
 
-    // Filter by status
-    if (params?.status && params.status !== 'all') {
-        filteredCandidates = filteredCandidates.filter(c => c.status === params.status);
-    }
+    const paramsString = JSON.stringify(params);
 
-    // Search by keyword
-    if (params?.searcher?.keyword) {
-        const keyword = params.searcher.keyword.toLowerCase();
-        filteredCandidates = filteredCandidates.filter(c =>
-            c.name.toLowerCase().includes(keyword) ||
-            c.email.toLowerCase().includes(keyword) ||
-            c.appliedForTitle.toLowerCase().includes(keyword)
-        );
-    }
-
-    return useQuery({
-        queryKey: ['candidates', params],
-        queryFn: () => candidatesService.getCandidates(params),
-        initialData: {
-            code: 200,
-            data: {
-                hits: filteredCandidates,
-                pagination: {
-                    totalPages: 1,
-                    totalRows: filteredCandidates.length
-                }
-            }
+    const fetchData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const result = await candidatesService.getCandidates(params);
+            setData(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setIsLoading(false);
         }
-    });
+    }, [paramsString]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return { data, isLoading, error, refetch: fetchData };
 };
 
 export const useCandidate = (id: string) => {
-    const candidate = MOCK_DATA.candidates.find(c => c.id === id);
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
 
-    return useQuery({
-        queryKey: ['candidate', id],
-        queryFn: () => candidatesService.getCandidate(id),
-        enabled: !!id,
-        initialData: candidate ? {
-            code: 200,
-            data: candidate
-        } : undefined
-    });
+    const fetchData = useCallback(async () => {
+        if (!id) return;
+        setIsLoading(true);
+        try {
+            const result = await candidatesService.getCandidate(id);
+            setData(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [id]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return { data, isLoading, error, refetch: fetchData };
 };
 
 export const useCreateCandidate = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (params: CreateCandidateParams) => candidatesService.createCandidate(params),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['candidates'] });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: CreateCandidateParams) => {
+        setIsLoading(true);
+        try {
+            const result = await candidatesService.createCandidate(params);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
 };
 
 export const useUpdateCandidate = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (params: UpdateCandidateParams) => candidatesService.updateCandidate(params),
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ['candidates'] });
-            queryClient.invalidateQueries({ queryKey: ['candidate', data.data.id] });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: UpdateCandidateParams) => {
+        setIsLoading(true);
+        try {
+            const result = await candidatesService.updateCandidate(params);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
 };
 
 export const useShortlistCandidate = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (params: ShortlistCandidateParams) => candidatesService.shortlistCandidate(params),
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ['candidates'] });
-            queryClient.invalidateQueries({ queryKey: ['candidate', data.data.id] });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: ShortlistCandidateParams) => {
+        setIsLoading(true);
+        try {
+            const result = await candidatesService.shortlistCandidate(params);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
 };
 
 export const useRejectCandidate = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (params: RejectCandidateParams) => candidatesService.rejectCandidate(params),
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ['candidates'] });
-            queryClient.invalidateQueries({ queryKey: ['candidate', data.data.id] });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: RejectCandidateParams) => {
+        setIsLoading(true);
+        try {
+            const result = await candidatesService.rejectCandidate(params);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
 };
 
 export const usePassInterviewCandidate = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (params: candidatesService.PassInterviewCandidateParams) =>
-            candidatesService.passInterviewCandidate(params),
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ['candidates'] });
-            queryClient.invalidateQueries({ queryKey: ['candidate', data.data.id] });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: candidatesService.PassInterviewCandidateParams) => {
+        setIsLoading(true);
+        try {
+            const result = await candidatesService.passInterviewCandidate(params);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
 };
 
 export const useDeleteCandidate = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (id: string) => candidatesService.deleteCandidate({ id }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['candidates'] });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (id: string) => {
+        setIsLoading(true);
+        try {
+            const result = await candidatesService.deleteCandidate({ id });
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
+};
+
+export const useConvertCandidateToIntern = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (id: string, track: string, mentorId: string) => {
+        setIsLoading(true);
+        try {
+            const result = await candidatesService.convertCandidateToIntern(id, track, mentorId);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return { mutate, isLoading, error };
 };

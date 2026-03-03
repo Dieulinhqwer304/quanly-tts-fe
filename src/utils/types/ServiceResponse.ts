@@ -1,16 +1,14 @@
 export interface ResponseListSuccess<T> {
-    code: number;
-    data: {
-        hits: T[];
-        pagination: {
-            totalRows: number;
-            totalPages: number;
-        };
+    errorCode: number;
+    data: T[];
+    pagination?: {
+        totalRows: number;
+        totalPages: number;
     };
 }
 
 export interface ResponseDetailSuccess<T> {
-    code: number;
+    errorCode: number;
     data: T;
 }
 

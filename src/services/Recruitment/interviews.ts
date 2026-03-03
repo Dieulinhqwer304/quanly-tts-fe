@@ -9,17 +9,29 @@ import {
 export interface Interview {
     id: string;
     candidateId: string;
-    candidateName: string;
+    candidate?: {
+        id: string;
+        fullName: string;
+    };
     jobId: string;
-    jobTitle: string;
-    date: string;
-    time: string;
-    duration: string;
-    format: 'Online' | 'In Person';
+    job?: {
+        id: string;
+        title: string;
+    };
+    interviewDate: string;
+    interviewTime: string;
+    durationMinutes: number;
+    format: 'online' | 'in_person';
     location: string;
-    interviewer: string;
-    status: 'Scheduled' | 'Completed' | 'Cancelled';
+    interviewerId: string;
+    interviewer?: {
+        id: string;
+        fullName: string;
+    };
+    status: 'scheduled' | 'completed' | 'cancelled' | 'rescheduled';
     notes: string;
+    result?: string;
+    feedback?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -31,38 +43,18 @@ export interface GetInterviewsParams {
 }
 
 export const getInterviews = async (params?: GetInterviewsParams): Promise<ResponseListSuccess<Interview>> => {
-    const queryParams: any = {
-        q: params?.searcher?.keyword,
-        _page: params?.pagination?.page || 1,
-        _limit: params?.pagination?.pageSize || 10
-    };
+    const queryParams: any = {};
+    if (params?.status) queryParams.status = params.status;
 
-    if (params?.status && params.status !== 'all') {
-        queryParams.status = params.status;
-    }
+    // In searcher is provided, we can add it too
 
-    const response = await http.get('/interviews', { params: queryParams });
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
-    const data = response.data;
-
-    return {
-        code: 200,
-        data: {
-            hits: data,
-            pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
-            }
-        }
-    };
+    const result = await http.get<ResponseListSuccess<Interview>>('/interviews', { params: queryParams });
+    return result;
 };
 
 export const getInterview = async (id: string): Promise<ResponseDetailSuccess<Interview>> => {
-    const response = await http.get(`/interviews/${id}`);
-    return {
-        code: 200,
-        data: response.data
-    };
+    const result = await http.get<ResponseDetailSuccess<Interview>>(`/interviews/${id}`);
+    return result;
 };
 
 export interface CreateInterviewParams {
@@ -80,16 +72,13 @@ export interface CreateInterviewParams {
 }
 
 export const createInterview = async (params: CreateInterviewParams): Promise<ResponseDetailSuccess<Interview>> => {
-    const response = await http.post('/interviews', {
+    const result = await http.post<ResponseDetailSuccess<Interview>>('/interviews', {
         ...params,
-        status: 'Scheduled',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        interviewDate: params.date,
+        interviewTime: params.time,
+        durationMinutes: parseInt(params.duration) || 45
     });
-    return {
-        code: 201,
-        data: response.data
-    };
+    return result;
 };
 
 export interface UpdateInterviewParams {
@@ -106,20 +95,16 @@ export interface UpdateInterviewParams {
 
 export const updateInterview = async (params: UpdateInterviewParams): Promise<ResponseDetailSuccess<Interview>> => {
     const { id, ...data } = params;
-    const response = await http.patch(`/interviews/${id}`, {
+    const result = await http.patch<ResponseDetailSuccess<Interview>>(`/interviews/${id}`, {
         ...data,
-        updatedAt: new Date().toISOString()
+        interviewDate: params.date,
+        interviewTime: params.time,
+        durationMinutes: params.duration ? parseInt(params.duration) : undefined
     });
-    return {
-        code: 200,
-        data: response.data
-    };
+    return result;
 };
 
 export const deleteInterview = async (id: string): Promise<ResponseDetailSuccess<null>> => {
-    await http.delete(`/interviews/${id}`);
-    return {
-        code: 200,
-        data: null
-    };
+    const result = await http.delete<ResponseDetailSuccess<null>>(`/interviews/${id}`);
+    return result;
 };

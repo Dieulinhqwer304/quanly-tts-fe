@@ -8,16 +8,22 @@ import {
 
 export interface Intern {
     id: string;
-    name: string;
-    avatar: string;
-    email: string;
-    phone: string;
+    code: string;
+    userId: string;
+    user?: {
+        email: string;
+        fullName: string;
+        avatarUrl?: string;
+    };
+    mentorId?: string;
+    mentor?: {
+        fullName: string;
+    };
     track: string;
-    mentor: string;
     startDate: string;
-    endDate: string;
+    endDate?: string;
     progress: number;
-    status: 'Active' | 'Completed' | 'Dropped';
+    status: 'active' | 'on_hold' | 'completed' | 'terminated';
     createdAt: string;
     updatedAt: string;
 }
@@ -30,59 +36,39 @@ export interface GetInternsParams {
 }
 
 export const getInterns = async (params?: GetInternsParams): Promise<ResponseListSuccess<Intern>> => {
-    const queryParams: any = {
-        q: params?.searcher?.keyword,
-        _page: params?.pagination?.page || 1,
-        _limit: params?.pagination?.pageSize || 10
-    };
-
-    if (params?.track && params.track !== 'All') {
-        queryParams.track = params.track;
-    }
-
-    if (params?.status && params.status !== 'All') {
-        queryParams.status = params.status;
-    }
-
-    const response = await http.get('/interns', { params: queryParams });
-    const totalCount = parseInt(response.headers['x-total-count'] || '0');
-    const data = response.data;
-
-    return {
-        code: 200,
-        data: {
-            hits: data,
-            pagination: {
-                totalPages: Math.ceil(totalCount / (params?.pagination?.pageSize || 10)),
-                totalRows: totalCount
-            }
-        }
-    };
+    return http.get<ResponseListSuccess<Intern>>('/interns', { params });
 };
 
 export const getIntern = async (id: string): Promise<ResponseDetailSuccess<Intern>> => {
-    const response = await http.get(`/interns/${id}`);
-    return {
-        code: 200,
-        data: response.data
-    };
+    const result = await http.get<ResponseDetailSuccess<Intern>>(`/interns/${id}`);
+    return result;
+};
+
+export const getMe = async (): Promise<ResponseDetailSuccess<Intern>> => {
+    const result = await http.get<ResponseDetailSuccess<Intern>>('/interns/me');
+    return result;
 };
 
 export interface UpdateInternParams {
     id: string;
     progress?: number;
     status?: string;
-    mentor?: string;
+    mentorId?: string;
+    track?: string;
 }
 
 export const updateIntern = async (params: UpdateInternParams): Promise<ResponseDetailSuccess<Intern>> => {
     const { id, ...data } = params;
-    const response = await http.patch(`/interns/${id}`, {
-        ...data,
-        updatedAt: new Date().toISOString()
-    });
-    return {
-        code: 200,
-        data: response.data
-    };
+    const result = await http.patch<ResponseDetailSuccess<Intern>>(`/interns/${id}`, data);
+    return result;
+};
+
+export const deleteIntern = async (id: string): Promise<ResponseDetailSuccess<null>> => {
+    const result = await http.delete<ResponseDetailSuccess<null>>(`/interns/${id}`);
+    return result;
+};
+
+export const createIntern = async (params: any): Promise<ResponseDetailSuccess<Intern>> => {
+    const result = await http.post<ResponseDetailSuccess<Intern>>('/interns', params);
+    return result;
 };

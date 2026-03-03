@@ -1,5 +1,6 @@
 import { message } from 'antd';
 import axios, { AxiosInstance } from 'axios';
+import Cookies from 'js-cookie';
 
 class Http {
     instance: AxiosInstance;
@@ -9,7 +10,7 @@ class Http {
         // Instance cho các API cần authentication
         this.instance = axios.create({
             // baseURL: 'https://book-tour-khaki.vercel.app/',
-            baseURL: 'http://localhost:3000/',
+            baseURL: 'http://localhost:3001/',
             timeout: 10000,
             headers: {
                 'Content-Type': 'application/json'
@@ -20,7 +21,7 @@ class Http {
         // Instance cho các API public không cần authentication
         this.instancePublic = axios.create({
             // baseURL: 'https://book-tour-khaki.vercel.app/',
-            baseURL: 'http://localhost:3000/',
+            baseURL: 'http://localhost:3001/',
             timeout: 10000,
             headers: {
                 'Content-Type': 'application/json'
@@ -28,9 +29,30 @@ class Http {
             withCredentials: false // Không gửi cookie trong request
         });
 
+        this.instancePublic.interceptors.response.use(
+            (response) => {
+                const res = response.data;
+                if (res.errorCode !== 0) {
+                    message.error(res.message || 'Có lỗi xảy ra');
+                    return Promise.reject(res);
+                }
+                return res;
+            },
+            (error) => {
+                if (error.response) {
+                    message.error(error.response.data?.message || 'Có lỗi xảy ra');
+                }
+                return Promise.reject(error);
+            }
+        );
+
         // Thêm interceptor để xử lý request cho instance có authentication
         this.instance.interceptors.request.use(
             (config) => {
+                const token = Cookies.get('accessToken');
+                if (token && config.headers) {
+                    config.headers.Authorization = `Bearer ${token}`;
+                }
                 return config;
             },
             (error) => {
@@ -41,25 +63,36 @@ class Http {
         // Thêm interceptor để xử lý response cho instance có authentication
         this.instance.interceptors.response.use(
             (response) => {
-                return response;
+                const res = response.data;
+                if (res.errorCode !== 0) {
+                    if (res.errorCode === 1003) {
+                        message.error(res.message || 'Phiên đăng nhập đã hết hạn');
+                        Cookies.remove('accessToken');
+                        // window.location.href = '/login';
+                    } else {
+                        message.error(res.message || 'Có lỗi xảy ra');
+                    }
+                    return Promise.reject(res);
+                }
+                return res;
             },
             (error) => {
-                // Xử lý các lỗi từ server
+                // Xử lý các lỗi HTTP status codes (nếu có)
                 if (error.response) {
-                    switch (error.response.status) {
+                    const { status, data } = error.response;
+                    switch (status) {
                         case 401:
-                            // Xử lý khi token hết hạn hoặc không hợp lệ
-                            // Có thể redirect về trang login
-                            // window.location.href = '/login';
-                            message.error('Phiên đăng nhập đã hết hạn');
+                            message.error(data?.message || 'Phiên đăng nhập đã hết hạn');
                             break;
                         case 403:
-                            // Xử lý khi không có quyền truy cập
                             message.error('Bạn không có quyền truy cập');
                             break;
                         default:
+                            message.error(data?.message || 'Có lỗi xảy ra');
                             break;
                     }
+                } else {
+                    message.error('Không thể kết nối đến server');
                 }
                 return Promise.reject(error);
             }
@@ -72,5 +105,15 @@ class Http {
     }
 }
 
-export const http = new Http().instance;
-export const httpPublic = new Http().public;
+export interface HttpClient {
+    get<T = any>(url: string, config?: any): Promise<T>;
+    post<T = any>(url: string, data?: any, config?: any): Promise<T>;
+    patch<T = any>(url: string, data?: any, config?: any): Promise<T>;
+    put<T = any>(url: string, data?: any, config?: any): Promise<T>;
+    delete<T = any>(url: string, config?: any): Promise<T>;
+    interceptors: any;
+}
+
+// Xử lý type cast cho axios instance để khớp với interceptor return value
+export const http = new Http().instance as unknown as HttpClient;
+export const httpPublic = new Http().public as unknown as HttpClient;

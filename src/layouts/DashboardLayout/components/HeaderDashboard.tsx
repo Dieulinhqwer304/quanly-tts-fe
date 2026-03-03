@@ -164,7 +164,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop
                 <Input
                     prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
                     placeholder='Search...'
-                    bordered={false}
+                    variant='borderless'
                     style={{
                         backgroundColor: '#f3f4f6',
                         borderRadius: '6px',

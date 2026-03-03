@@ -1,55 +1,48 @@
-import {
-    SaveOutlined
-} from '@ant-design/icons';
-import {
-    Button,
-    Col,
-    DatePicker,
-    Form,
-    Input,
-    InputNumber,
-    Row,
-    Select,
-    message,
-    Divider,
-    Modal
-} from 'antd';
+import { SaveOutlined } from '@ant-design/icons';
+import { Button, Col, DatePicker, Form, Input, InputNumber, Row, Select, message, Divider, Modal } from 'antd';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { useResponsive } from '../../../../hooks/useResponsive';
+import { http } from '../../../../utils/http';
+import { RecruitmentPlan } from '../../../../services/Recruitment/recruitmentPlans';
 
 const { RangePicker } = DatePicker;
-
-interface RecruitmentPlanFormValues {
-    [key: string]: unknown;
-    startDate?: string;
-    endDate?: string;
-    period?: [dayjs.Dayjs, dayjs.Dayjs];
-}
 
 interface RecruitmentPlanModalProps {
     open: boolean;
     onCancel: () => void;
     onSuccess: () => void;
-    initialValues?: RecruitmentPlanFormValues;
+    initialValues?: RecruitmentPlan | null;
     viewOnly?: boolean;
 }
 
-export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues, viewOnly }: RecruitmentPlanModalProps) => {
+export const RecruitmentPlanModal = ({
+    open,
+    onCancel,
+    onSuccess,
+    initialValues,
+    viewOnly
+}: RecruitmentPlanModalProps) => {
     const { t } = useTranslation();
     const { isMobile, isLaptop } = useResponsive();
     const [form] = Form.useForm();
-    const [loading, setLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (open) {
             if (initialValues) {
                 form.setFieldsValue({
                     ...initialValues,
-                    period: initialValues.startDate && initialValues.endDate
-                        ? [dayjs(initialValues.startDate), dayjs(initialValues.endDate)]
-                        : undefined
+                    positions: initialValues.jobPositions?.map((jp) => ({
+                        title: jp.title,
+                        count: jp.requiredQuantity,
+                        requirements: jp.requirements
+                    })),
+                    period:
+                        initialValues.startDate && initialValues.endDate
+                            ? [dayjs(initialValues.startDate), dayjs(initialValues.endDate)]
+                            : undefined
                 });
             } else {
                 form.resetFields();
@@ -57,16 +50,32 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
         }
     }, [open, initialValues, form]);
 
-    const onFinish = (values: RecruitmentPlanFormValues) => {
-        setLoading(true);
-        console.log('Form values:', values);
+    const onFinish = async (values: any) => {
+        setIsLoading(true);
+        try {
+            const formData = {
+                name: values.name,
+                batch: values.batch,
+                department: values.department,
+                description: values.description,
+                startDate: values.period ? values.period[0].format('YYYY-MM-DD') : '',
+                endDate: values.period ? values.period[1].format('YYYY-MM-DD') : '',
+                status: values.status?.toLowerCase() || 'pending_approval',
+                jobPositions: values.positions || []
+            };
 
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false);
+            if (initialValues?.id) {
+                await http.patch(`/recruitment-plans/${initialValues.id}`, formData);
+            } else {
+                await http.post('/recruitment-plans', formData);
+            }
             message.success(t('common.success'));
             onSuccess();
-        }, 1500);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const getTitle = () => {
@@ -80,22 +89,26 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
             open={open}
             onCancel={onCancel}
             onOk={() => form.submit()}
-            confirmLoading={loading}
+            confirmLoading={isLoading}
             width={isMobile ? 'calc(100vw - 24px)' : isLaptop ? 700 : 800}
             destroyOnClose
-            footer={viewOnly ? [
-                <Button key="close" onClick={onCancel}>
-                    {t('common.close')}
-                </Button>
-            ] : undefined}
+            footer={
+                viewOnly
+                    ? [
+                          <Button key='close' onClick={onCancel}>
+                              {t('common.close')}
+                          </Button>
+                      ]
+                    : undefined
+            }
         >
             <Form
                 form={form}
-                layout="vertical"
+                layout='vertical'
                 onFinish={onFinish}
                 disabled={viewOnly}
                 initialValues={{
-                    status: 'Active',
+                    status: 'active',
                     department: 'Engineering'
                 }}
             >
@@ -103,17 +116,17 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
                     <Col span={24}>
                         <Form.Item
                             label={t('recruitment.campaign_name')}
-                            name="name"
+                            name='name'
                             rules={[{ required: true, message: t('common.required_field') }]}
                         >
-                            <Input placeholder={t('recruitment.campaign_name')} size="large" />
+                            <Input placeholder={t('recruitment.campaign_name')} size='large' />
                         </Form.Item>
 
                         <Row gutter={16}>
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     label={t('recruitment.batch_name')}
-                                    name="batch"
+                                    name='batch'
                                     rules={[{ required: true, message: t('common.required_field') }]}
                                 >
                                     <Input placeholder={t('recruitment.batch_name')} />
@@ -122,7 +135,7 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     label={t('common.department')}
-                                    name="department"
+                                    name='department'
                                     rules={[{ required: true, message: t('common.required_field') }]}
                                 >
                                     <Select
@@ -138,29 +151,37 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
                             </Col>
                         </Row>
 
-                        <Form.Item
-                            label={t('recruitment.campaign_desc')}
-                            name="description"
-                        >
+                        <Form.Item label={t('recruitment.campaign_desc')} name='description'>
                             <Input.TextArea rows={3} placeholder={t('recruitment.campaign_desc')} />
                         </Form.Item>
 
-                        <Divider orientation="left">{t('recruitment.positions_reqs')}</Divider>
+                        <Divider orientation='left'>{t('recruitment.positions_reqs')}</Divider>
 
-                        <Form.List name="positions">
+                        <Form.List name='positions'>
                             {(fields, { add, remove }) => (
                                 <>
                                     {fields.map(({ key, name, ...restField }) => (
-                                        <div key={key} style={{ marginBottom: '16px', padding: '16px', background: '#fafafa', borderRadius: '8px', position: 'relative' }}>
+                                        <div
+                                            key={key}
+                                            style={{
+                                                marginBottom: '16px',
+                                                padding: '16px',
+                                                background: '#fafafa',
+                                                borderRadius: '8px',
+                                                position: 'relative'
+                                            }}
+                                        >
                                             <Row gutter={16}>
                                                 <Col xs={24} md={12}>
                                                     <Form.Item
                                                         {...restField}
                                                         name={[name, 'title']}
                                                         label={t('recruitment.job_title')}
-                                                        rules={[{ required: true, message: t('common.required_field') }]}
+                                                        rules={[
+                                                            { required: true, message: t('common.required_field') }
+                                                        ]}
                                                     >
-                                                        <Input placeholder="VD: Frontend Developer Intern" />
+                                                        <Input placeholder='VD: Frontend Developer Intern' />
                                                     </Form.Item>
                                                 </Col>
                                                 <Col xs={24} md={12}>
@@ -168,25 +189,14 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
                                                         {...restField}
                                                         name={[name, 'count']}
                                                         label={t('recruitment.quantity')}
-                                                        rules={[{ required: true, message: t('common.required_field') }]}
+                                                        rules={[
+                                                            { required: true, message: t('common.required_field') }
+                                                        ]}
                                                     >
-                                                        <InputNumber min={1} style={{ width: '100%' }} placeholder="5" />
-                                                    </Form.Item>
-                                                </Col>
-                                                <Col xs={24} md={12}>
-                                                    <Form.Item
-                                                        {...restField}
-                                                        name={[name, 'level']}
-                                                        label={t('recruitment.level')}
-                                                    >
-                                                        <Select
-                                                            placeholder="Cấp bậc"
-                                                            options={[
-                                                                { value: 'Intern', label: 'Intern' },
-                                                                { value: 'Junior', label: 'Junior' },
-                                                                { value: 'Mid', label: 'Mid' },
-                                                                { value: 'Senior', label: 'Senior' }
-                                                            ]}
+                                                        <InputNumber
+                                                            min={1}
+                                                            style={{ width: '100%' }}
+                                                            placeholder='5'
                                                         />
                                                     </Form.Item>
                                                 </Col>
@@ -197,18 +207,20 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
                                                         {...restField}
                                                         name={[name, 'requirements']}
                                                         label={t('recruitment.requirements')}
-                                                        rules={[{ required: true, message: 'Vui lòng nhập yêu cầu chính' }]}
+                                                        rules={[
+                                                            { required: true, message: 'Vui lòng nhập yêu cầu chính' }
+                                                        ]}
                                                     >
                                                         <Input.TextArea
                                                             rows={2}
-                                                            placeholder="VD: ReactJS, TypeScript, 6 tháng kinh nghiệm, có khả năng làm việc nhóm..."
+                                                            placeholder='VD: ReactJS, TypeScript, 6 tháng kinh nghiệm, có khả năng làm việc nhóm...'
                                                         />
                                                     </Form.Item>
                                                 </Col>
                                             </Row>
                                             {fields.length > 1 && (
                                                 <Button
-                                                    type="text"
+                                                    type='text'
                                                     danger
                                                     onClick={() => remove(name)}
                                                     style={{ position: 'absolute', top: 8, right: 8 }}
@@ -218,45 +230,39 @@ export const RecruitmentPlanModal = ({ open, onCancel, onSuccess, initialValues,
                                             )}
                                         </div>
                                     ))}
-                                    <Button type="dashed" onClick={() => add()} block icon={<SaveOutlined />}>
+                                    <Button type='dashed' onClick={() => add()} block icon={<SaveOutlined />}>
                                         {t('recruitment.add_position')}
                                     </Button>
                                 </>
                             )}
                         </Form.List>
 
-                        <Divider orientation="left">{t('recruitment.timeline_status')}</Divider>
+                        <Divider orientation='left'>{t('recruitment.timeline_status')}</Divider>
 
                         <Row gutter={16}>
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     label={t('recruitment.campaign_period')}
-                                    name="period"
+                                    name='period'
                                     rules={[{ required: true, message: t('common.required_field') }]}
                                 >
                                     <RangePicker style={{ width: '100%' }} />
                                 </Form.Item>
                             </Col>
                             <Col xs={24} md={12}>
-                                <Form.Item
-                                    label={t('common.status')}
-                                    name="status"
-                                >
+                                <Form.Item label={t('common.status')} name='status'>
                                     <Select
                                         options={[
-                                            { value: 'Active', label: t('recruitment.active_hiring') },
-                                            { value: 'Pending', label: t('recruitment.pending_approval') },
-                                            { value: 'Closed', label: t('recruitment.closed') }
+                                            { value: 'active', label: t('recruitment.active_hiring') },
+                                            { value: 'pending_approval', label: t('recruitment.pending_approval') },
+                                            { value: 'closed', label: t('recruitment.closed') }
                                         ]}
                                     />
                                 </Form.Item>
                             </Col>
                         </Row>
 
-                        <Form.Item
-                            label={t('recruitment.assign_approver')}
-                            name="approver"
-                        >
+                        <Form.Item label={t('recruitment.assign_approver')} name='approver'>
                             <Select
                                 placeholder={t('recruitment.assign_approver')}
                                 options={[

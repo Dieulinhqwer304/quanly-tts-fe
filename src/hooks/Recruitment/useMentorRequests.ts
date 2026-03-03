@@ -1,73 +1,126 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from 'react';
 import * as mentorRequestsService from '../../services/Recruitment/mentorRequests';
 import {
     GetMentorRequestsParams,
     CreateMentorRequestParams,
     UpdateMentorRequestParams
 } from '../../services/Recruitment/mentorRequests';
-import { MOCK_DATA } from '../../constants/MockData';
 
 export const useMentorRequests = (params?: GetMentorRequestsParams) => {
-    return useQuery({
-        queryKey: ['mentorRequests', params],
-        queryFn: () => mentorRequestsService.getMentorRequests(params),
-        initialData: {
-            code: 200,
-            data: {
-                hits: MOCK_DATA.mentorRequests as any,
-                pagination: {
-                    totalPages: 1,
-                    totalRows: MOCK_DATA.mentorRequests.length
-                }
-            }
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const paramsString = JSON.stringify(params);
+
+    const fetchData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const result = await mentorRequestsService.getMentorRequests(params);
+            setData(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setIsLoading(false);
         }
-    });
+    }, [paramsString]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return { data, isLoading, error, refetch: fetchData };
 };
 
 export const useMentorRequest = (id: string) => {
-    return useQuery({
-        queryKey: ['mentorRequest', id],
-        queryFn: () => mentorRequestsService.getMentorRequest(id),
-        enabled: !!id,
-        initialData: () => {
-            const request = MOCK_DATA.mentorRequests.find((r: any) => r.id === id);
-            return request
-                ? {
-                    code: 200,
-                    data: request as any
-                }
-                : undefined;
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const fetchData = useCallback(async () => {
+        if (!id) return;
+        setIsLoading(true);
+        try {
+            const result = await mentorRequestsService.getMentorRequest(id);
+            setData(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setIsLoading(false);
         }
-    });
+    }, [id]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return { data, isLoading, error, refetch: fetchData };
 };
 
-export const useCreateMentorRequest = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (params: CreateMentorRequestParams) => mentorRequestsService.createMentorRequest(params),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['mentorRequests'] });
+export const useCreateMentorRequest = (options?: { onSuccess?: () => void }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: CreateMentorRequestParams) => {
+        setIsLoading(true);
+        try {
+            const result = await mentorRequestsService.createMentorRequest(params);
+            setError(null);
+            options?.onSuccess?.();
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, mutate: mutate, isLoading, isLoading: isLoading, error };
 };
 
-export const useUpdateMentorRequest = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (params: UpdateMentorRequestParams) => mentorRequestsService.updateMentorRequest(params),
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ['mentorRequests'] });
-            queryClient.invalidateQueries({ queryKey: ['mentorRequest', data.data.id] });
+export const useUpdateMentorRequest = (options?: { onSuccess?: () => void }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: UpdateMentorRequestParams) => {
+        setIsLoading(true);
+        try {
+            const result = await mentorRequestsService.updateMentorRequest(params);
+            setError(null);
+            options?.onSuccess?.();
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
 };
 
-export const useDeleteMentorRequest = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (id: string) => mentorRequestsService.deleteMentorRequest(id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['mentorRequests'] });
+export const useDeleteMentorRequest = (options?: { onSuccess?: () => void }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (id: string) => {
+        setIsLoading(true);
+        try {
+            const result = await mentorRequestsService.deleteMentorRequest(id);
+            setError(null);
+            options?.onSuccess?.();
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
+    return { mutate, isLoading, error };
 };
