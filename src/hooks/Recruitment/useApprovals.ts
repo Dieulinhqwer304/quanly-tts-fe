@@ -61,20 +61,16 @@ export const useUpdateApproval = () => {
     const [error, setError] = useState<any>(null);
 
     const mutate = async (params: UpdateApprovalParams) => {
-        console.log('--- useUpdateApproval.mutate start ---', params);
         setIsLoading(true);
         try {
             const result = await approvalsService.updateApproval(params);
-            console.log('--- useUpdateApproval.mutate success ---', result);
             setError(null);
             return result;
         } catch (err) {
-            console.error('--- useUpdateApproval.mutate fail ---', err);
             setError(err);
             throw err;
         } finally {
             setIsLoading(false);
-            console.log('--- useUpdateApproval.mutate end ---');
         }
     };
 

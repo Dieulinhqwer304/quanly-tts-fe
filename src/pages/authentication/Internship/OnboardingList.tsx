@@ -146,10 +146,10 @@ export const OnboardingList = () => {
                                         <Row gutter={24} align='middle'>
                                             <Col xs={24} md={6}>
                                                 <Space size='middle'>
-                                                    <Avatar size={54} src={item.avatarUrl} icon={<UserOutlined />} />
+                                                    <Avatar size={54} src={item.candidate?.avatarUrl} icon={<UserOutlined />} />
                                                     <div>
                                                         <Text strong style={{ display: 'block', fontSize: '16px' }}>
-                                                            {item.fullName}
+                                                            {item.candidate?.fullName || 'N/A'}
                                                         </Text>
                                                         <Text type='secondary' style={{ fontSize: '12px' }}>
                                                             {item.track}
@@ -178,7 +178,7 @@ export const OnboardingList = () => {
                                                     <Steps
                                                         size='small'
                                                         current={item.currentStep}
-                                                        items={item.steps.map((s: any) => ({
+                                                        items={(item.steps || []).map((s: any) => ({
                                                             title: s.title,
                                                             status: s.status
                                                         }))}

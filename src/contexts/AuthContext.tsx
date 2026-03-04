@@ -13,11 +13,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!Cookies.get('accessToken'));
 
     const logout = () => {
-        console.log('Logging out...');
-        console.log('Before logout - accessToken:', Cookies.get('accessToken'));
-        console.log(`delete accessToken`);
         Cookies.remove('accessToken', { path: '/', domain: window.location.hostname });
-        console.log('After logout - accessToken:', Cookies.get('accessToken'));
         setIsAuthenticated(false);
     };
 
