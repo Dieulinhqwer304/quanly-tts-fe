@@ -73,10 +73,15 @@ export interface CreateInterviewParams {
 
 export const createInterview = async (params: CreateInterviewParams): Promise<ResponseDetailSuccess<Interview>> => {
     const result = await http.post<ResponseDetailSuccess<Interview>>('/interviews', {
-        ...params,
+        candidateId: params.candidateId,
+        jobId: params.jobId,
+        format: params.format,
+        location: params.location,
+        notes: params.notes,
         interviewDate: params.date,
         interviewTime: params.time,
-        durationMinutes: parseInt(params.duration) || 45
+        durationMinutes: parseInt(params.duration) || 45,
+        interviewerId: params.interviewer
     });
     return result;
 };
@@ -96,10 +101,14 @@ export interface UpdateInterviewParams {
 export const updateInterview = async (params: UpdateInterviewParams): Promise<ResponseDetailSuccess<Interview>> => {
     const { id, ...data } = params;
     const result = await http.patch<ResponseDetailSuccess<Interview>>(`/interviews/${id}`, {
-        ...data,
-        interviewDate: params.date,
-        interviewTime: params.time,
-        durationMinutes: params.duration ? parseInt(params.duration) : undefined
+        ...(params.format && { format: params.format }),
+        ...(params.location && { location: params.location }),
+        ...(params.status && { status: params.status }),
+        ...(params.notes && { notes: params.notes }),
+        ...(params.date && { interviewDate: params.date }),
+        ...(params.time && { interviewTime: params.time }),
+        ...(params.duration && { durationMinutes: parseInt(params.duration) }),
+        ...(params.interviewer && { interviewerId: params.interviewer })
     });
     return result;
 };
