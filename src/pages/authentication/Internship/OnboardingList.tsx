@@ -44,7 +44,7 @@ export const OnboardingList = () => {
             if (searchText) {
                 params.searcher = JSON.stringify({ keyword: searchText, field: 'fullName' });
             }
-            const res = await http.get('/onboarding', { params });
+            const res = await http.get('/onboardings', { params });
             setOnboardingData(res);
         } catch (error) {
             console.error(error);
@@ -65,7 +65,7 @@ export const OnboardingList = () => {
                 newSteps[item.currentStep].status = 'finish';
                 newSteps[nextStep].status = 'process';
 
-                await http.patch(`/onboarding/${item.id}`, {
+                await http.patch(`/onboardings/${item.id}`, {
                     currentStep: nextStep,
                     steps: newSteps
                 });
@@ -74,7 +74,7 @@ export const OnboardingList = () => {
             } else if (nextStep === item.steps.length) {
                 const newSteps = [...item.steps];
                 newSteps[item.currentStep].status = 'finish';
-                await http.patch(`/onboarding/${item.id}`, {
+                await http.patch(`/onboardings/${item.id}`, {
                     currentStep: nextStep,
                     steps: newSteps,
                     status: 'completed'
