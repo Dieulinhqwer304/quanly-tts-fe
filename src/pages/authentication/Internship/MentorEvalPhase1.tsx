@@ -132,11 +132,11 @@ export const MentorEvalPhase1 = () => {
             <Card bordered={false} style={{ borderRadius: '12px', marginBottom: '24px', background: '#e6f7ff' }}>
                 <Row align='middle' gutter={24}>
                     <Col>
-                        <Avatar size={64} src={intern?.avatar} />
+                        <Avatar size={64} src={intern?.user?.avatarUrl || intern?.avatar} />
                     </Col>
                     <Col flex='1'>
                         <Title level={4} style={{ margin: 0 }}>
-                            {intern?.name}
+                            {intern?.user?.fullName || intern?.name}
                         </Title>
                         <Text type='secondary'>
                             {intern?.track} • {intern?.id}
