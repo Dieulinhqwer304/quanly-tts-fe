@@ -159,15 +159,11 @@ export const InterviewSchedule = () => {
                 selectedCandsInfo.map((cand) =>
                     http.post('/interviews', {
                         candidateId: cand.id,
-                        candidateName: cand.name,
                         jobId: cand.jobId || cand.job?.id,
-                        jobTitle: cand.appliedForTitle,
-                        date: date.format('YYYY-MM-DD'),
-                        time: timeRange[0].format('HH:mm'),
-                        duration: '60 min',
-                        format: 'Online',
-                        location: 'https://meet.google.com/abc-defg-hij',
-                        interviewer: 'Michael Ross', // Should be selectable in real app
+                        interviewDate: date.format('YYYY-MM-DD'),
+                        interviewTime: timeRange[0].format('HH:mm'),
+                        durationMinutes: 60,
+                        format: 'online',
                         notes: 'Standard Technical Interview'
                     })
                 )

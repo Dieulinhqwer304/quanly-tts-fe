@@ -54,7 +54,7 @@ export const InternDashboard = () => {
                     // Fetch tasks and learning path in parallel
                     const [tasksRes, lpRes] = await Promise.all([
                         http.get(`/tasks`, { params: { internId: internObj.id } }),
-                        http.get(`/learning-paths/${internObj.track || ''}`)
+                        http.get(`/learning-paths/track/${internObj.track || ''}`)
                     ]);
 
                     setTasksData(tasksRes);
@@ -75,7 +75,7 @@ export const InternDashboard = () => {
     const intern = internData;
 
     const tasks = tasksData?.data || [];
-    const learningPath = learningPathData?.data;
+    const learningPath = learningPathData;
     const modules = useMemo(() => {
         if (!learningPath?.modules) return [];
         return (learningPath.modules as any[]).map((m: any) => ({
