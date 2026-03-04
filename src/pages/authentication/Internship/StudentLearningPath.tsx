@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLearningPath } from '../../../hooks/Internship/useLearningPath';
 import { useQuiz } from '../../../hooks/Internship/useQuizzes';
-import { useIntern } from '../../../hooks/Internship/useInterns';
+import { useMeIntern } from '../../../hooks/Internship/useInterns';
 import { useStudentProgress, useSubmitModuleQuiz } from '../../../hooks/Internship/useStudentProgress';
 import { useResponsive } from '../../../hooks/useResponsive';
 
@@ -51,10 +51,9 @@ export const StudentLearningPath = () => {
     const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
     const [quizResult, setQuizResult] = useState<number | null>(null);
 
-    const internId = 'ITS-001';
-
-    const { data: internRes } = useIntern(internId);
-    const intern = internRes?.data;
+    const { data: internRes } = useMeIntern();
+    const intern = internRes;
+    const internId = intern?.id || '';
 
     const { data: lpData } = useLearningPath(intern?.track || 'Frontend Development');
     const { data: studentProgressRes } = useStudentProgress(internId);
@@ -62,9 +61,9 @@ export const StudentLearningPath = () => {
 
     const { data: quizData } = useQuiz(selectedItem?.type === 'quiz' ? String(selectedItem.id) : '');
 
-    const learningPath = lpData?.data;
+    const learningPath = lpData;
     const baseModules = learningPath?.modules || [];
-    const studentProgress = studentProgressRes?.data;
+    const studentProgress = studentProgressRes;
 
     const completedModuleSet = new Set(studentProgress?.modulesCompleted || []);
     const currentModuleId = studentProgress?.currentModuleId ?? baseModules[0]?.id ?? null;

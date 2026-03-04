@@ -27,7 +27,7 @@ import {
     DatePicker
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import TextArea from 'antd/es/input/TextArea';
 import dayjs, { Dayjs } from 'dayjs';
@@ -82,9 +82,9 @@ export const MentorRequestList = () => {
         }
     };
 
-    useState(() => {
+    useEffect(() => {
         fetchRequests();
-    });
+    }, []);
 
     const requests: MentorRequest[] = requestsData?.data || [];
 
