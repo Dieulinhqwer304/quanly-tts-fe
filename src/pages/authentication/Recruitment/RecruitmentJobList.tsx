@@ -229,6 +229,7 @@ export const RecruitmentJobList = () => {
             title: t('common.actions'),
             key: 'action',
             width: 80,
+            fixed: 'right',
             render: (_: any, record: any) => (
                 <Dropdown menu={getActionMenu(record)} trigger={['click']}>
                     <Button type='text' icon={<MoreOutlined />} />
@@ -302,6 +303,7 @@ export const RecruitmentJobList = () => {
                 <Table
                     columns={columns as any}
                     dataSource={dataSource}
+                    scroll={{ x: 'max-content' }}
                     loading={isLoading}
                     pagination={{
                         total: jobPositionsData?.pagination?.totalRows || 0,

@@ -214,6 +214,8 @@ export const CVList = () => {
         {
             title: t('common.actions'),
             key: 'action',
+            width: 80,
+            fixed: 'right',
             align: 'right',
             render: (_: any, record: any) => {
                 const actionMenu: MenuProps = {
@@ -355,6 +357,7 @@ export const CVList = () => {
                 <Table
                     rowSelection={rowSelection}
                     columns={columns as any}
+                    scroll={{ x: 'max-content' }}
                     dataSource={dataSource}
                     loading={isLoading}
                     pagination={{
