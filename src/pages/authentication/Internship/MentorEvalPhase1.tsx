@@ -68,9 +68,10 @@ export const MentorEvalPhase1 = () => {
                 mentorId: mentorProfile?.id,
                 mentorName: mentorProfile?.fullName,
                 type: 'Probation', // Phase 1
-                score:
-                    ((values.learningSpeed + values.communication + values.punctuality + values.codeQuality) / 4) * 2, // Map 5 stars to 10 points
-                feedback: `${values.strengths}\n\nImprovements: ${values.improvements}`,
+                attitudeScore: Math.round(((values.learningSpeed + values.punctuality) / 2) * 2),
+                technicalScore: Math.round(values.codeQuality * 2),
+                teamworkScore: Math.round(values.communication * 2),
+                feedback: values.strengths ? `${values.strengths}\n\nImprovements: ${values.improvements}` : values.improvements,
                 date: new Date().toISOString()
             });
 
