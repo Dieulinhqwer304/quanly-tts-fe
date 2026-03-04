@@ -163,7 +163,7 @@ export const MentorEvalFinal = () => {
                             <div style={{ position: 'relative' }}>
                                 <Avatar
                                     size={96}
-                                    src={intern?.avatar || 'https://i.pravatar.cc/150'}
+                                    src={intern?.user?.avatarUrl || intern?.avatar || 'https://i.pravatar.cc/150'}
                                     shape='square'
                                     style={{ borderRadius: '12px' }}
                                 />
@@ -174,7 +174,7 @@ export const MentorEvalFinal = () => {
                                         right: -4,
                                         width: 16,
                                         height: 16,
-                                        background: intern?.status === 'Active' ? '#10B981' : '#E2E8F0',
+                                        background: intern?.status === 'active' ? '#10B981' : '#E2E8F0',
                                         borderRadius: '50%',
                                         border: '2px solid #fff'
                                     }}
@@ -182,7 +182,7 @@ export const MentorEvalFinal = () => {
                             </div>
                             <div>
                                 <Title level={2} style={{ margin: 0, marginBottom: '4px' }}>
-                                    {intern?.name}
+                                    {intern?.user?.fullName || intern?.name}
                                 </Title>
                                 <div
                                     style={{
@@ -221,9 +221,9 @@ export const MentorEvalFinal = () => {
                                 Overall Progress
                             </Text>
                             <Text strong style={{ fontSize: '18px' }}>
-                                {intern?.progress}% Completed
+                                {intern?.overallProgress ?? 0}% Completed
                             </Text>
-                            <Progress percent={intern?.progress} size='small' status='active' />
+                            <Progress percent={intern?.overallProgress ?? 0} size='small' status='active' />
                         </div>
                     </div>
                 </Card>
