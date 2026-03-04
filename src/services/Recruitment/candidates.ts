@@ -45,9 +45,10 @@ export interface GetCandidatesParams {
 
 export const getCandidates = async (params?: GetCandidatesParams): Promise<ResponseListSuccess<Candidate>> => {
     const queryParams: any = {};
-    if (params?.searcher) queryParams.searcher = params.searcher;
+    if (params?.searcher?.keyword) queryParams.q = params.searcher.keyword;
     if (params?.status && params.status !== 'all') queryParams.status = params.status;
-    if (params?.pagination) queryParams.pagination = params.pagination;
+    if (params?.pagination?.page) queryParams.page = params.pagination.page;
+    if (params?.pagination?.pageSize) queryParams.pageSize = params.pagination.pageSize;
 
     const result = await http.get<ResponseListSuccess<Candidate>>('/candidates', { params: queryParams });
 

@@ -35,6 +35,6 @@ export const getInternProgress = async (internId: string): Promise<ResponseDetai
 };
 
 export const updateInternProgress = async (id: string, data: any): Promise<ResponseDetailSuccess<StudentProgress>> => {
-    const result = await http.patch<ResponseDetailSuccess<StudentProgress>>(`/interns/progress/${id}`, data);
+    const result = await http.patch<ResponseDetailSuccess<StudentProgress>>(`/interns/${id}`, data);
     return result;
 };

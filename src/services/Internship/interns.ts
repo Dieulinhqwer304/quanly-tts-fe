@@ -23,7 +23,7 @@ export interface Intern {
     startDate: string;
     endDate?: string;
     progress: number;
-    status: 'active' | 'on_hold' | 'completed' | 'terminated';
+    status: 'active' | 'on_hold' | 'completed' | 'terminated' | 'Active' | 'On_hold' | 'Completed' | 'Terminated';
     createdAt: string;
     updatedAt: string;
 }
