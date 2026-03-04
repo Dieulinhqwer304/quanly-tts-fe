@@ -76,7 +76,7 @@ export const MentorEvaluation = () => {
     // Logic to determine initial step based on intern progress
     useEffect(() => {
         if (internData) {
-            const progress = internData.progress || 0;
+            const progress = internData.overallProgress || 0;
             if (progress >= 66) setCurrentStep(2);
             else if (progress >= 33) setCurrentStep(1);
             else setCurrentStep(0);
@@ -536,7 +536,7 @@ export const MentorEvaluation = () => {
                     items={[
                         { title: t('menu.mentor_portal') },
                         { title: t('menu.evaluations') },
-                        { title: intern?.name || 'Intern' }
+                        { title: intern?.user?.fullName || intern?.name || 'Intern' }
                     ]}
                 />
             </div>
@@ -547,18 +547,18 @@ export const MentorEvaluation = () => {
             >
                 <Row align='middle' gutter={24}>
                     <Col>
-                        <Avatar size={80} src={intern?.avatar} />
+                        <Avatar size={80} src={intern?.user?.avatarUrl || intern?.avatar} />
                     </Col>
                     <Col flex='1'>
                         <Title level={3} style={{ margin: 0 }}>
-                            {intern?.name}
+                            {intern?.user?.fullName || intern?.name}
                         </Title>
                         <Text type='secondary'>
                             {intern?.track} • {intern?.id}
                         </Text>
                         <div style={{ marginTop: '8px' }}>
                             <Tag color='blue'>{intern?.status}</Tag>
-                            <Tag color='purple'>{intern?.mentor}</Tag>
+                            <Tag color='purple'>{intern?.mentor?.fullName}</Tag>
                         </div>
                     </Col>
                     <Col style={{ textAlign: 'right' }}>
@@ -566,9 +566,9 @@ export const MentorEvaluation = () => {
                             {t('internship.progress').toUpperCase()}
                         </Text>
                         <Text strong style={{ fontSize: '20px' }}>
-                            {intern?.progress}%
+                            {intern?.overallProgress ?? 0}%
                         </Text>
-                        <Progress percent={intern?.progress} size='small' status='active' style={{ width: '120px' }} />
+                        <Progress percent={intern?.overallProgress ?? 0} size='small' status='active' style={{ width: '120px' }} />
                     </Col>
                 </Row>
             </Card>
