@@ -21,7 +21,7 @@ export interface JobPosition {
     salaryRange?: string;
     postedDate: string;
     deadline?: string;
-    status: 'draft' | 'open' | 'closed' | 'unpublished';
+    status: 'draft' | 'open' | 'closed' | 'on_hold' | 'Draft' | 'Open' | 'Closed' | 'On Hold';
     recruitmentPlanId: string;
     recruitmentPlan?: {
         id: string;
@@ -100,7 +100,13 @@ export const updateJobPosition = async (
     params: UpdateJobPositionParams
 ): Promise<ResponseDetailSuccess<JobPosition>> => {
     const { id, ...data } = params;
-    const result = await http.patch<ResponseDetailSuccess<JobPosition>>(`/job-positions/${id}`, data);
+    const { campaign, campaignId, required, filled, salary, ...rest } = data;
+    const mappedData: any = { ...rest };
+    if (required !== undefined) mappedData.requiredQuantity = required;
+    if (filled !== undefined) mappedData.filledQuantity = filled;
+    if (salary !== undefined) mappedData.salaryRange = salary;
+    if (campaignId !== undefined) mappedData.recruitmentPlanId = campaignId;
+    const result = await http.patch<ResponseDetailSuccess<JobPosition>>(`/job-positions/${id}`, mappedData);
     return result;
 };
 

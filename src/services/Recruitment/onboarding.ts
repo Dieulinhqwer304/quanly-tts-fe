@@ -73,8 +73,12 @@ export interface CreateOnboardingParams {
 
 export const createOnboarding = async (params: CreateOnboardingParams): Promise<ResponseDetailSuccess<Onboarding>> => {
     const result = await http.post<ResponseDetailSuccess<Onboarding>>('/onboardings', {
-        ...params,
-        mentorId: params.mentor || 'TBD'
+        candidateId: params.candidateId,
+        track: params.track,
+        department: params.department,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        mentorId: params.mentor
     });
     return result;
 };
