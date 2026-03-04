@@ -187,6 +187,7 @@ export const UserManagement: FC = () => {
             title: 'Thao tác',
             key: 'action',
             width: 120,
+            fixed: 'right',
             render: (record: UserRecord) => (
                 <Space size='small'>
                     <Tooltip title='Chỉnh sửa'>
@@ -270,6 +271,7 @@ export const UserManagement: FC = () => {
                 <Table
                     dataSource={filteredUsers}
                     columns={columns}
+                    scroll={{ x: 'max-content' }}
                     pagination={{ pageSize: 8, showSizeChanger: true }}
                     style={{ borderRadius: '8px' }}
                 />

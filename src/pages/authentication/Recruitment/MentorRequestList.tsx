@@ -297,6 +297,7 @@ export const MentorRequestList = () => {
             title: t('common.actions'),
             key: 'action',
             width: 100,
+            fixed: 'right',
             align: 'center',
             render: (_, record) => (
                 <Space>
