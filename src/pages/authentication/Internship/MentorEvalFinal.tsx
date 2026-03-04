@@ -33,6 +33,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
 import { RouteConfig } from '../../../constants';
+import { getProfile } from '../../../services/auth/profile';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -47,6 +48,7 @@ export const MentorEvalFinal = () => {
     const [internData, setInternData] = useState<any>(null);
     const [isInternLoading, setIsInternLoading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [mentorProfile, setMentorProfile] = useState<any>(null);
 
     const fetchIntern = async () => {
         if (!id) return;
@@ -65,6 +67,10 @@ export const MentorEvalFinal = () => {
         fetchIntern();
     }, [id]);
 
+    useEffect(() => {
+        getProfile().then((res) => setMentorProfile(res)).catch(() => {});
+    }, []);
+
     const onFinish = async (values: any) => {
         if (!id || !internData) return;
 
@@ -82,19 +88,14 @@ export const MentorEvalFinal = () => {
 
             await http.post('/evaluations', {
                 internId: id,
-                internName: internData.name,
-                mentorId: 'mentor-1', // Mock for now
-                mentorName: 'Harvey Specter', // Mock for now
+                internName: internData.user?.fullName || internData.name,
+                mentorId: mentorProfile?.id,
+                mentorName: mentorProfile?.fullName,
                 type: 'Final',
+                decision: values.recommendation,
                 score: parseFloat(avgScore.toFixed(1)),
                 feedback: `Recommendation: ${values.recommendation}\n\nHR Note: ${values.hrNote}`,
                 date: new Date().toISOString()
-            });
-
-            // Update intern progress to 100% and set status if hired
-            await http.patch(`/interns/${id}`, {
-                progress: 100,
-                status: values.recommendation === 'hire' ? 'Completed' : 'Active'
             });
 
             message.success(t('common.success'));
