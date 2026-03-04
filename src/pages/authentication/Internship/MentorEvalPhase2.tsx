@@ -21,6 +21,7 @@ import { RouteConfig } from '../../../constants';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
+import { getProfile } from '../../../services/auth/profile';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -34,6 +35,7 @@ export const MentorEvalPhase2 = () => {
     const [internData, setInternData] = useState<any>(null);
     const [isInternLoading, setIsInternLoading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [mentorProfile, setMentorProfile] = useState<any>(null);
 
     useEffect(() => {
         const fetchIntern = async () => {
@@ -51,6 +53,10 @@ export const MentorEvalPhase2 = () => {
         fetchIntern();
     }, [id]);
 
+    useEffect(() => {
+        getProfile().then((res) => setMentorProfile(res)).catch(() => {});
+    }, []);
+
     const onFinish = async (values: any) => {
         if (!id || !internData) return;
 
@@ -58,19 +64,14 @@ export const MentorEvalPhase2 = () => {
         try {
             await http.post('/evaluations', {
                 internId: id,
-                internName: internData.name,
-                mentorId: 'mentor-1',
-                mentorName: 'Harvey Specter',
+                internName: internData.user?.fullName || internData.name,
+                mentorId: mentorProfile?.id,
+                mentorName: mentorProfile?.fullName,
                 type: 'Mid-term', // Phase 2
                 score:
                     ((values.techContribution + values.problemSolving + values.reliability + values.teamwork) / 4) * 2,
                 feedback: `${values.accomplishments}\n\nFeedback: ${values.feedback}`,
                 date: new Date().toISOString()
-            });
-
-            // Update intern progress
-            await http.patch(`/interns/${id}`, {
-                progress: 66
             });
 
             message.success(t('common.success'));
