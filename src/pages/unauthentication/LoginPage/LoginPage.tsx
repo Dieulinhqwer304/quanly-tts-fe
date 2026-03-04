@@ -55,7 +55,7 @@ export const LoginPage = () => {
                 style={{
                     flex: '1',
                     display: 'none',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #1E40AF 0%, #0D9488 100%)',
                     position: 'relative',
                     overflow: 'hidden'
                 }}

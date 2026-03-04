@@ -136,7 +136,7 @@ export const RecruitmentJobList = () => {
             key: 'title',
             render: (text: any, record: any) => (
                 <div>
-                    <Text strong style={{ display: 'block', color: '#136dec' }}>
+                    <Text strong style={{ display: 'block', color: '#1E40AF' }}>
                         {text}
                     </Text>
                     <Text type='secondary' style={{ fontSize: '12px' }}>
@@ -172,7 +172,7 @@ export const RecruitmentJobList = () => {
                         style={{
                             width: '100%',
                             height: '4px',
-                            background: '#f0f0f0',
+                            background: '#E2E8F0',
                             marginTop: '4px',
                             borderRadius: '2px',
                             overflow: 'hidden'
@@ -182,7 +182,7 @@ export const RecruitmentJobList = () => {
                             style={{
                                 width: `${(record.filled / record.required) * 100}%`,
                                 height: '100%',
-                                background: record.filled >= record.required ? '#52c41a' : '#1890ff'
+                                background: record.filled >= record.required ? '#10B981' : '#1E40AF'
                             }}
                         />
                     </div>

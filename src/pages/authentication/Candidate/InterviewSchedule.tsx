@@ -49,7 +49,7 @@ export const InterviewSchedule = () => {
         <p>Dear {Candidate_Name},</p>
         <p>Thank you so much for your interest in the <strong>{Role}</strong> position at <strong>SV Technologies JSC</strong> and welcome you to become members of our family!</p>
         <p>We would like to send you the <strong>Offer for Trainee Period</strong> in detail:</p>
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #f0f0f0;">
+        <div style="background: #F8FAFC; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #E2E8F0;">
             <p style="margin-bottom: 8px;">1. Position: <strong>{Role}</strong></p>
             <p style="margin-bottom: 8px;">2. Department: <strong>DnA</strong></p>
             <p style="margin-bottom: 8px;">3. Report to: <strong>Ms. Duong Thi Thuy Hong</strong></p>
@@ -61,7 +61,7 @@ export const InterviewSchedule = () => {
         </div>
         <p>Please have a look and give us feedback as soon as possible.</p>
         <p>If you have any questions, please contact me via the information below.</p>
-        <hr style="border: none; border-top: 1px solid #f0f0f0; margin: 24px 0 16px;">
+        <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 24px 0 16px;">
         <p style="color: #8c8c8c;">Best regards,</p>
         <p><strong>SV Technologies Recruitment Team</strong></p>
     `);
@@ -70,7 +70,7 @@ export const InterviewSchedule = () => {
         <p>Dear {Candidate_Name},</p>
         <p>Thank you so much for your interest in the <strong>{Role}</strong> position at <strong>SV Technologies JSC</strong> and welcome you to become members of our family!</p>
         <p>We would like to send you the <strong>Offer for Trainee Period</strong> in detail:</p>
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #f0f0f0;">
+        <div style="background: #F8FAFC; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #E2E8F0;">
             <p style="margin-bottom: 8px;">1. Position: <strong>{Role}</strong></p>
             <p style="margin-bottom: 8px;">2. Department: <strong>DnA</strong></p>
             <p style="margin-bottom: 8px;">3. Report to: <strong>Ms. Duong Thi Thuy Hong</strong></p>
@@ -82,7 +82,7 @@ export const InterviewSchedule = () => {
         </div>
         <p>Please have a look and give us feedback as soon as possible.</p>
         <p>If you have any questions, please contact me via the information below.</p>
-        <hr style="border: none; border-top: 1px solid #f0f0f0; margin: 24px 0 16px;">
+        <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 24px 0 16px;">
         <p style="color: #8c8c8c;">Best regards,</p>
         <p><strong>SV Technologies Recruitment Team</strong></p>
     `;
@@ -244,7 +244,7 @@ export const InterviewSchedule = () => {
                             style={{ height: '100%', borderRadius: '12px' }}
                             bodyStyle={{ padding: 0, height: '600px', overflowY: 'auto' }}
                         >
-                            <div style={{ padding: '12px', background: '#f8f9fa', borderBottom: '1px solid #f0f0f0' }}>
+                            <div style={{ padding: '12px', background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
                                 <Input
                                     prefix={<SearchOutlined />}
                                     placeholder={t('candidate.search_placeholder')}
@@ -333,7 +333,7 @@ export const InterviewSchedule = () => {
                                         textTransform: 'uppercase',
                                         fontSize: '12px',
                                         letterSpacing: '1px',
-                                        color: '#136dec',
+                                        color: '#1E40AF',
                                         marginBottom: '16px'
                                     }}
                                 >
@@ -422,7 +422,7 @@ export const InterviewSchedule = () => {
                                             textTransform: 'uppercase',
                                             fontSize: '12px',
                                             letterSpacing: '1px',
-                                            color: '#136dec',
+                                            color: '#1E40AF',
                                             margin: 0
                                         }}
                                     >
@@ -451,7 +451,7 @@ export const InterviewSchedule = () => {
                                 >
                                     <div
                                         style={{
-                                            borderBottom: '1px solid #f0f0f0',
+                                            borderBottom: '1px solid #E2E8F0',
                                             paddingBottom: '12px',
                                             marginBottom: '20px',
                                             display: 'flex',
@@ -495,7 +495,7 @@ export const InterviewSchedule = () => {
                                             lineHeight: '1.8',
                                             color: '#262626',
                                             padding: isEditing ? '12px' : 0,
-                                            border: isEditing ? '1px solid #136dec' : 'none',
+                                            border: isEditing ? '1px solid #1E40AF' : 'none',
                                             borderRadius: '8px',
                                             minHeight: '200px',
                                             outline: 'none',
@@ -511,7 +511,7 @@ export const InterviewSchedule = () => {
                                     display: 'flex',
                                     justifyContent: 'flex-end',
                                     gap: '12px',
-                                    borderTop: '1px solid #f0f0f0',
+                                    borderTop: '1px solid #E2E8F0',
                                     paddingTop: '24px'
                                 }}
                             >

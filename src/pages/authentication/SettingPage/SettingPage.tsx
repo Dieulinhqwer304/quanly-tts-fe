@@ -54,7 +54,7 @@ export default function SettingPage() {
                                             style={{
                                                 height: '100%',
                                                 borderRadius: '12px',
-                                                border: '1px solid #e5e7eb',
+                                                border: '1px solid #E2E8F0',
                                                 display: 'flex',
                                                 flexDirection: 'column'
                                             }}
@@ -65,7 +65,7 @@ export default function SettingPage() {
                                                 flexDirection: 'column'
                                             }}
                                         >
-                                            <div style={{ padding: '16px', borderBottom: '1px solid #f0f0f0' }}>
+                                            <div style={{ padding: '16px', borderBottom: '1px solid #E2E8F0' }}>
                                                 <Input prefix={<SearchOutlined />} placeholder='Search templates...' />
                                             </div>
                                             <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
@@ -109,7 +109,7 @@ export default function SettingPage() {
                                                                 borderRadius: '8px',
                                                                 background: item.active ? '#e6f7ff' : 'transparent',
                                                                 border: item.active
-                                                                    ? '1px solid #1890ff'
+                                                                    ? '1px solid #1E40AF'
                                                                     : '1px solid transparent',
                                                                 cursor: 'pointer'
                                                             }}
@@ -125,7 +125,7 @@ export default function SettingPage() {
                                                                 <Text
                                                                     strong
                                                                     style={{
-                                                                        color: item.active ? '#1890ff' : '#1f2937'
+                                                                        color: item.active ? '#1E40AF' : '#1E293B'
                                                                     }}
                                                                 >
                                                                     {item.title}
@@ -137,8 +137,8 @@ export default function SettingPage() {
                                                                         borderRadius: '50%',
                                                                         background:
                                                                             item.color === 'green'
-                                                                                ? '#52c41a'
-                                                                                : '#d9d9d9'
+                                                                                ? '#10B981'
+                                                                                : '#E2E8F0'
                                                                     }}
                                                                 ></div>
                                                             </div>
@@ -158,7 +158,7 @@ export default function SettingPage() {
                                                     )}
                                                 />
                                             </div>
-                                            <div style={{ padding: '12px', borderTop: '1px solid #f0f0f0' }}>
+                                            <div style={{ padding: '12px', borderTop: '1px solid #E2E8F0' }}>
                                                 <Button type='dashed' block icon={<PlusOutlined />}>
                                                     New Template
                                                 </Button>
@@ -172,7 +172,7 @@ export default function SettingPage() {
                                             style={{
                                                 height: '100%',
                                                 borderRadius: '12px',
-                                                border: '1px solid #e5e7eb',
+                                                border: '1px solid #E2E8F0',
                                                 display: 'flex',
                                                 flexDirection: 'column'
                                             }}
@@ -183,7 +183,7 @@ export default function SettingPage() {
                                                 flexDirection: 'column'
                                             }}
                                         >
-                                            <div style={{ padding: '24px', borderBottom: '1px solid #f0f0f0' }}>
+                                            <div style={{ padding: '24px', borderBottom: '1px solid #E2E8F0' }}>
                                                 <div
                                                     style={{
                                                         display: 'flex',
@@ -204,7 +204,7 @@ export default function SettingPage() {
                                                         style={{
                                                             fontSize: '12px',
                                                             textTransform: 'uppercase',
-                                                            color: '#6b7280'
+                                                            color: '#64748B'
                                                         }}
                                                     >
                                                         Subject Line
@@ -220,7 +220,7 @@ export default function SettingPage() {
                                                 style={{
                                                     padding: '8px 16px',
                                                     background: '#fafafa',
-                                                    borderBottom: '1px solid #f0f0f0',
+                                                    borderBottom: '1px solid #E2E8F0',
                                                     display: 'flex',
                                                     gap: '8px',
                                                     alignItems: 'center'
@@ -266,7 +266,7 @@ export default function SettingPage() {
                                                 style={{
                                                     padding: '16px 24px',
                                                     background: '#fcfcfd',
-                                                    borderTop: '1px solid #f0f0f0',
+                                                    borderTop: '1px solid #E2E8F0',
                                                     display: 'flex',
                                                     justifyContent: 'space-between'
                                                 }}

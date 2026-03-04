@@ -168,7 +168,7 @@ export const StudentLearningPath = () => {
                                 <Text strong>{t('student_learning_path.progress')}</Text>
                                 <Text strong>{progressPercent}%</Text>
                             </div>
-                            <Progress percent={progressPercent} showInfo={false} strokeColor='#1890ff' />
+                            <Progress percent={progressPercent} showInfo={false} strokeColor='#1E40AF' />
                             <Text type='secondary' style={{ fontSize: 12 }}>
                                 {completedModules}/{totalModules} {t('student_learning_path.modules')}{' '}
                                 {t('student_learning_path.status_completed')}
@@ -188,15 +188,15 @@ export const StudentLearningPath = () => {
                                 header={
                                     <Space>
                                         {module.status === 'Locked' ? (
-                                            <LockOutlined style={{ color: '#d9d9d9' }} />
+                                            <LockOutlined style={{ color: '#E2E8F0' }} />
                                         ) : module.status === 'Ready' ? (
-                                            <CheckCircleFilled style={{ color: '#52c41a' }} />
+                                            <CheckCircleFilled style={{ color: '#10B981' }} />
                                         ) : (
-                                            <PlayCircleOutlined style={{ color: '#1890ff' }} />
+                                            <PlayCircleOutlined style={{ color: '#1E40AF' }} />
                                         )}
                                         <Text
                                             style={{
-                                                color: module.status === 'Locked' ? '#d9d9d9' : undefined,
+                                                color: module.status === 'Locked' ? '#E2E8F0' : undefined,
                                                 fontWeight: 500
                                             }}
                                         >
@@ -219,15 +219,15 @@ export const StudentLearningPath = () => {
                                                 marginBottom: 8,
                                                 border:
                                                     selectedItem?.id === item.id
-                                                        ? '1px solid #1890ff'
-                                                        : '1px solid #f0f0f0',
+                                                        ? '1px solid #1E40AF'
+                                                        : '1px solid #E2E8F0',
                                                 transition: 'all 0.3s'
                                             }}
                                             onClick={() => handleItemClick(item)}
                                         >
                                             <Space>
                                                 {String(item.type) === 'video' && (
-                                                    <PlayCircleOutlined style={{ color: '#ff4d4f' }} />
+                                                    <PlayCircleOutlined style={{ color: '#EF4444' }} />
                                                 )}
                                                 {(String(item.type) === 'document' || String(item.type) === 'file') && (
                                                     <FilePdfOutlined style={{ color: '#fa8c16' }} />
@@ -258,7 +258,7 @@ export const StudentLearningPath = () => {
                         style={{ height: '100%', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
                         bodyStyle={{ height: '100%', display: 'flex', flexDirection: 'column' }}
                     >
-                        <div style={{ marginBottom: 24, borderBottom: '1px solid #f0f0f0', paddingBottom: 16 }}>
+                        <div style={{ marginBottom: 24, borderBottom: '1px solid #E2E8F0', paddingBottom: 16 }}>
                             <Tag
                                 color={
                                     String(selectedItem.type) === 'video'
@@ -287,7 +287,7 @@ export const StudentLearningPath = () => {
                         >
                             {String(selectedItem.type) === 'video' ? (
                                 <div style={{ textAlign: 'center' }}>
-                                    <PlayCircleOutlined style={{ fontSize: 64, color: '#d9d9d9', marginBottom: 16 }} />
+                                    <PlayCircleOutlined style={{ fontSize: 64, color: '#E2E8F0', marginBottom: 16 }} />
                                     <Title level={4} style={{ color: '#8c8c8c' }}>
                                         {t('student_learning_path.view_content')}
                                     </Title>
@@ -296,7 +296,7 @@ export const StudentLearningPath = () => {
                             ) : String(selectedItem.type) === 'quiz' ? (
                                 <div style={{ textAlign: 'center' }}>
                                     <QuestionCircleOutlined
-                                        style={{ fontSize: 64, color: '#d9d9d9', marginBottom: 16 }}
+                                        style={{ fontSize: 64, color: '#E2E8F0', marginBottom: 16 }}
                                     />
                                     <Title level={4} style={{ color: '#8c8c8c' }}>
                                         {t('student_learning_path.start_quiz')}
@@ -307,7 +307,7 @@ export const StudentLearningPath = () => {
                                 </div>
                             ) : (
                                 <div style={{ textAlign: 'center' }}>
-                                    <FilePdfOutlined style={{ fontSize: 64, color: '#d9d9d9', marginBottom: 16 }} />
+                                    <FilePdfOutlined style={{ fontSize: 64, color: '#E2E8F0', marginBottom: 16 }} />
                                     <Title level={4} style={{ color: '#8c8c8c' }}>
                                         {t('student_learning_path.view_content')}
                                     </Title>

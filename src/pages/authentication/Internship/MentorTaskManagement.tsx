@@ -334,7 +334,7 @@ export const MentorTaskManagement = () => {
             <Modal
                 title={
                     <Space>
-                        <PlusOutlined style={{ color: '#136dec' }} /> {t('task_mgmt.assign_task')}
+                        <PlusOutlined style={{ color: '#1E40AF' }} /> {t('task_mgmt.assign_task')}
                     </Space>
                 }
                 open={isModalOpen}

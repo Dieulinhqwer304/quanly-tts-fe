@@ -109,7 +109,7 @@ export const RecruitmentPlanList = () => {
             key: 'name',
             render: (text, record) => (
                 <div style={{ cursor: 'pointer' }} onClick={() => handleView(record)}>
-                    <Text strong style={{ display: 'block', color: '#136dec' }}>
+                    <Text strong style={{ display: 'block', color: '#1E40AF' }}>
                         {text}
                     </Text>
                     <Text type='secondary' style={{ fontSize: '12px' }}>
