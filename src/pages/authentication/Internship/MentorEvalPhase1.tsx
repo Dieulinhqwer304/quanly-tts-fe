@@ -21,6 +21,7 @@ import { RouteConfig } from '../../../constants';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
+import { getProfile } from '../../../services/auth/profile';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -34,6 +35,7 @@ export const MentorEvalPhase1 = () => {
     const [internData, setInternData] = useState<any>(null);
     const [isInternLoading, setIsInternLoading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [mentorProfile, setMentorProfile] = useState<any>(null);
 
     useEffect(() => {
         const fetchIntern = async () => {
@@ -45,11 +47,15 @@ export const MentorEvalPhase1 = () => {
             } catch (error) {
                 console.error(error);
             } finally {
-                setIsInternLoading(true);
+                setIsInternLoading(false);
             }
         };
         fetchIntern();
     }, [id]);
+
+    useEffect(() => {
+        getProfile().then((res) => setMentorProfile(res)).catch(() => {});
+    }, []);
 
     const onFinish = async (values: any) => {
         if (!id || !internData) return;
@@ -58,19 +64,14 @@ export const MentorEvalPhase1 = () => {
         try {
             await http.post('/evaluations', {
                 internId: id,
-                internName: internData.name,
-                mentorId: 'mentor-1', // Mock for now, should come from auth
-                mentorName: 'Harvey Specter', // Mock for now
+                internName: internData.user?.fullName || internData.name,
+                mentorId: mentorProfile?.id,
+                mentorName: mentorProfile?.fullName,
                 type: 'Probation', // Phase 1
                 score:
                     ((values.learningSpeed + values.communication + values.punctuality + values.codeQuality) / 4) * 2, // Map 5 stars to 10 points
                 feedback: `${values.strengths}\n\nImprovements: ${values.improvements}`,
                 date: new Date().toISOString()
-            });
-
-            // Update intern progress
-            await http.patch(`/interns/${id}`, {
-                progress: 33
             });
 
             message.success(t('common.success'));

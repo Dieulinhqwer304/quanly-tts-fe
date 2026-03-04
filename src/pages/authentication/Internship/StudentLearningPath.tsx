@@ -70,7 +70,7 @@ export const StudentLearningPath = () => {
 
     const modules: ModuleView[] = baseModules.map((module) => {
         const status: ModuleView['status'] = completedModuleSet.has(module.id)
-            ? 'Ready'
+            ? 'Completed'
             : currentModuleId === module.id
               ? 'In Progress'
               : 'Locked';

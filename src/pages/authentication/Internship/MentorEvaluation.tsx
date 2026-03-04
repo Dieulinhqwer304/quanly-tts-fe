@@ -35,6 +35,7 @@ import { RouteConfig } from '../../../constants';
 import { http } from '../../../utils/http';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { getProfile } from '../../../services/auth/profile';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -49,6 +50,7 @@ export const MentorEvaluation = () => {
     const [internData, setInternData] = useState<any>(null);
     const [isInternLoading, setIsInternLoading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [mentorProfile, setMentorProfile] = useState<any>(null);
 
     const fetchIntern = async () => {
         if (!id) return;
@@ -66,6 +68,10 @@ export const MentorEvaluation = () => {
     useEffect(() => {
         fetchIntern();
     }, [id]);
+
+    useEffect(() => {
+        getProfile().then((res) => setMentorProfile(res)).catch(() => {});
+    }, []);
 
     // Logic to determine initial step based on intern progress
     useEffect(() => {
@@ -93,13 +99,11 @@ export const MentorEvaluation = () => {
                 score =
                     ((values.learningSpeed + values.communication + values.punctuality + values.codeQuality) / 4) * 2;
                 feedback = `${values.strengths}\n\nImprovements: ${values.improvements}`;
-                nextProgress = 33;
             } else if (currentStep === 1) {
                 evalType = 'Mid-term';
                 score =
                     ((values.techContribution + values.problemSolving + values.reliability + values.teamwork) / 4) * 2;
                 feedback = `${values.accomplishments}\n\nFeedback: ${values.feedback}`;
-                nextProgress = 66;
             } else {
                 evalType = 'Final';
                 const technicalScores = [values.codeQualityFinal, values.architectureFinal, values.toolingFinal];
@@ -107,24 +111,18 @@ export const MentorEvaluation = () => {
                 const allScores = [...technicalScores, ...softSkillScores].filter((s) => s !== undefined);
                 score = allScores.length > 0 ? (allScores.reduce((a, b) => a + b, 0) / allScores.length) * 2 : 0;
                 feedback = `Recommendation: ${values.recommendation}\n\nHR Note: ${values.hrNote}`;
-                nextProgress = 100;
-                if (values.recommendation === 'hire') status = 'Completed';
             }
 
             await http.post('/evaluations', {
                 internId: id,
-                internName: internData.name,
-                mentorId: 'mentor-1',
-                mentorName: 'Harvey Specter',
+            internName: internData.user?.fullName || internData.name,
+            mentorId: mentorProfile?.id,
+            mentorName: mentorProfile?.fullName,
                 type: evalType as any,
+            decision: currentStep === 2 ? values.recommendation : undefined,
                 score: parseFloat(score.toFixed(1)),
                 feedback,
                 date: new Date().toISOString()
-            });
-
-            await http.patch(`/interns/${id}`, {
-                progress: nextProgress,
-                status
             });
 
             message.success(t('common.success'));

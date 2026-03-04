@@ -143,9 +143,10 @@ export const InternList = () => {
                         onChange={setStatusFilter}
                         options={[
                             { value: 'All', label: t('internship.all_statuses') },
-                            { value: 'intern_active', label: t('internship.active') },
-                            { value: 'intern_completed', label: t('internship.completed') },
-                            { value: 'intern_dropped', label: t('internship.dropped') }
+                            { value: 'active', label: t('internship.active') },
+                            { value: 'completed', label: t('internship.completed') },
+                            { value: 'terminated', label: t('internship.dropped') },
+                            { value: 'on_hold', label: t('internship.on_hold') }
                         ]}
                     />
                 </div>
@@ -236,15 +237,18 @@ export const InternList = () => {
                             render: (status) => {
                                 let color = 'processing' as any;
                                 let label = status;
-                                if (status === 'intern_active') {
+                                if (status === 'active') {
                                     color = 'processing';
                                     label = t('internship.active');
-                                } else if (status === 'intern_completed') {
+                                } else if (status === 'completed') {
                                     color = 'success';
                                     label = t('internship.completed');
-                                } else if (status === 'intern_dropped') {
+                                } else if (status === 'terminated') {
                                     color = 'error';
                                     label = t('internship.dropped');
+                                } else if (status === 'on_hold') {
+                                    color = 'warning';
+                                    label = t('internship.on_hold');
                                 }
                                 return (
                                     <Tag color={color} style={{ borderRadius: '10px' }}>
