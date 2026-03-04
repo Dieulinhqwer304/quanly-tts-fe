@@ -134,7 +134,7 @@ export const PermissionManagement: FC = () => {
             key: 'role',
             width: 150,
             render: (text: string) => (
-                <Text strong style={{ color: '#136dec' }}>
+                <Text strong style={{ color: '#1E40AF' }}>
                     {text}
                 </Text>
             )
@@ -188,7 +188,7 @@ export const PermissionManagement: FC = () => {
                     type='text'
                     icon={<SettingOutlined />}
                     onClick={() => handleConfigPermissions(record)}
-                    style={{ color: '#136dec' }}
+                    style={{ color: '#1E40AF' }}
                 >
                     Cấu hình quyền
                 </Button>
@@ -248,13 +248,13 @@ export const PermissionManagement: FC = () => {
                     columns={columns}
                     scroll={{ x: 'max-content' }}
                     pagination={false}
-                    style={{ borderRadius: '12px', border: '1px solid #f0f0f0' }}
+                    style={{ borderRadius: '12px', border: '1px solid #E2E8F0' }}
                 />
 
                 <Modal
                     title={
                         <Space>
-                            <SafetyCertificateOutlined style={{ color: '#136dec' }} /> Cấu hình quyền hạn:{' '}
+                            <SafetyCertificateOutlined style={{ color: '#1E40AF' }} /> Cấu hình quyền hạn:{' '}
                             {selectedRole?.role}
                         </Space>
                     }
@@ -277,7 +277,7 @@ export const PermissionManagement: FC = () => {
                                         style={{
                                             width: '4px',
                                             height: '18px',
-                                            background: '#136dec',
+                                            background: '#1E40AF',
                                             marginRight: '8px',
                                             borderRadius: '2px',
                                             display: 'inline-block'

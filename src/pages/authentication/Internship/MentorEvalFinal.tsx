@@ -125,7 +125,7 @@ export const MentorEvalFinal = () => {
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
-                        color: '#6b7280',
+                        color: '#64748B',
                         fontSize: '14px'
                     }}
                 >
@@ -135,12 +135,12 @@ export const MentorEvalFinal = () => {
                     <RightOutlined style={{ fontSize: '10px' }} />
                     <span style={{ cursor: 'pointer' }}>Evaluations</span>
                     <RightOutlined style={{ fontSize: '10px' }} />
-                    <span style={{ color: '#136dec', fontWeight: 600 }}>Final Assessment</span>
+                    <span style={{ color: '#1E40AF', fontWeight: 600 }}>Final Assessment</span>
                 </div>
 
                 <Card
                     bordered={false}
-                    style={{ borderRadius: '12px', marginBottom: '24px', border: '1px solid #e5e7eb' }}
+                    style={{ borderRadius: '12px', marginBottom: '24px', border: '1px solid #E2E8F0' }}
                 >
                     <div
                         style={{
@@ -166,7 +166,7 @@ export const MentorEvalFinal = () => {
                                         right: -4,
                                         width: 16,
                                         height: 16,
-                                        background: intern?.status === 'Active' ? '#52c41a' : '#d9d9d9',
+                                        background: intern?.status === 'Active' ? '#10B981' : '#E2E8F0',
                                         borderRadius: '50%',
                                         border: '2px solid #fff'
                                     }}
@@ -181,7 +181,7 @@ export const MentorEvalFinal = () => {
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '12px',
-                                        color: '#6b7280',
+                                        color: '#64748B',
                                         fontSize: '14px',
                                         marginBottom: '8px'
                                     }}
@@ -199,7 +199,7 @@ export const MentorEvalFinal = () => {
                                 </Tag>
                             </div>
                         </div>
-                        <div style={{ textAlign: 'right', borderLeft: '1px solid #f0f0f0', paddingLeft: '24px' }}>
+                        <div style={{ textAlign: 'right', borderLeft: '1px solid #E2E8F0', paddingLeft: '24px' }}>
                             <Text
                                 type='secondary'
                                 style={{
@@ -226,7 +226,7 @@ export const MentorEvalFinal = () => {
                             bordered={false}
                             style={{
                                 borderRadius: '12px',
-                                border: '1px solid #e5e7eb',
+                                border: '1px solid #E2E8F0',
                                 position: 'relative',
                                 overflow: 'hidden'
                             }}
@@ -249,7 +249,7 @@ export const MentorEvalFinal = () => {
                                     >
                                         Mid-term Score
                                     </Text>
-                                    <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                                    <CheckCircleOutlined style={{ color: '#10B981' }} />
                                 </div>
                                 <div style={{ marginBottom: '4px' }}>
                                     <span style={{ fontSize: '32px', fontWeight: 700 }}>8.2</span>
@@ -266,7 +266,7 @@ export const MentorEvalFinal = () => {
                             bordered={false}
                             style={{
                                 borderRadius: '12px',
-                                border: '1px solid #e5e7eb',
+                                border: '1px solid #E2E8F0',
                                 position: 'relative',
                                 overflow: 'hidden'
                             }}
@@ -289,7 +289,7 @@ export const MentorEvalFinal = () => {
                                     >
                                         Project Phase
                                     </Text>
-                                    <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                                    <CheckCircleOutlined style={{ color: '#10B981' }} />
                                 </div>
                                 <div style={{ marginBottom: '4px' }}>
                                     <span style={{ fontSize: '32px', fontWeight: 700 }}>9.4</span>
@@ -349,7 +349,7 @@ export const MentorEvalFinal = () => {
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
-                                                    color: '#1890ff'
+                                                    color: '#1E40AF'
                                                 }}
                                             >
                                                 <TeamOutlined />
@@ -358,7 +358,7 @@ export const MentorEvalFinal = () => {
                                                 <div style={{ fontWeight: 600, fontSize: '16px' }}>
                                                     Attitude & Soft Skills
                                                 </div>
-                                                <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                                                <div style={{ fontSize: '14px', color: '#64748B' }}>
                                                     Punctuality, proactiveness, and cultural fit.
                                                 </div>
                                             </div>
@@ -367,7 +367,7 @@ export const MentorEvalFinal = () => {
                                     style: {
                                         background: '#fff',
                                         borderRadius: '12px',
-                                        border: '1px solid #e5e7eb',
+                                        border: '1px solid #E2E8F0',
                                         overflow: 'hidden',
                                         marginBottom: '16px'
                                     },
@@ -411,7 +411,7 @@ export const MentorEvalFinal = () => {
                                                 style={{
                                                     width: 40,
                                                     height: 40,
-                                                    background: '#136dec',
+                                                    background: '#1E40AF',
                                                     borderRadius: '8px',
                                                     display: 'flex',
                                                     alignItems: 'center',
@@ -425,7 +425,7 @@ export const MentorEvalFinal = () => {
                                                 <div style={{ fontWeight: 600, fontSize: '16px' }}>
                                                     Technical Proficiency
                                                 </div>
-                                                <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                                                <div style={{ fontSize: '14px', color: '#64748B' }}>
                                                     Code quality, tool mastery, and problem solving.
                                                 </div>
                                             </div>
@@ -434,7 +434,7 @@ export const MentorEvalFinal = () => {
                                     style: {
                                         background: '#fff',
                                         borderRadius: '12px',
-                                        border: '1px solid #e5e7eb',
+                                        border: '1px solid #E2E8F0',
                                         overflow: 'hidden',
                                         marginBottom: '16px'
                                     },
@@ -470,7 +470,7 @@ export const MentorEvalFinal = () => {
                                                         display: 'flex',
                                                         justifyContent: 'space-between',
                                                         alignItems: 'flex-start',
-                                                        borderBottom: i < 2 ? '1px solid #f0f0f0' : 'none',
+                                                        borderBottom: i < 2 ? '1px solid #E2E8F0' : 'none',
                                                         paddingBottom: i < 2 ? '24px' : 0
                                                     }}
                                                 >
@@ -478,7 +478,7 @@ export const MentorEvalFinal = () => {
                                                         <div style={{ fontWeight: 600, marginBottom: '4px' }}>
                                                             {item.title}
                                                         </div>
-                                                        <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                                                        <div style={{ fontSize: '12px', color: '#64748B' }}>
                                                             {item.desc}
                                                         </div>
                                                     </div>
@@ -500,7 +500,7 @@ export const MentorEvalFinal = () => {
                                                                             textAlign: 'center',
                                                                             borderRadius: '8px',
                                                                             margin: '0 4px',
-                                                                            border: '1px solid #d9d9d9'
+                                                                            border: '1px solid #E2E8F0'
                                                                         }}
                                                                     >
                                                                         {val}
@@ -524,9 +524,9 @@ export const MentorEvalFinal = () => {
                         />
                     </div>
 
-                    <Card bordered={false} style={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                    <Card bordered={false} style={{ borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                         <div style={{ display: 'flex', alignItems: 'start', gap: '16px', marginBottom: '24px' }}>
-                            <TrophyOutlined style={{ fontSize: '32px', color: '#136dec' }} />
+                            <TrophyOutlined style={{ fontSize: '32px', color: '#1E40AF' }} />
                             <div>
                                 <Title level={4} style={{ margin: 0 }}>
                                     Final Recommendation
@@ -575,7 +575,7 @@ export const MentorEvalFinal = () => {
                             padding: '16px 24px',
                             background: 'rgba(255,255,255,0.9)',
                             backdropFilter: 'blur(10px)',
-                            borderTop: '1px solid #e5e7eb',
+                            borderTop: '1px solid #E2E8F0',
                             zIndex: 100,
                             paddingLeft: 280
                         }}
@@ -597,7 +597,7 @@ export const MentorEvalFinal = () => {
                                     Form Status
                                 </Text>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Text strong style={{ fontSize: '14px', color: '#136dec' }}>
+                                    <Text strong style={{ fontSize: '14px', color: '#1E40AF' }}>
                                         Ready to Submit
                                     </Text>
                                 </div>

@@ -23,22 +23,22 @@ const StatCard = ({ title, value, prefix, color, subValue, loading }: any) => (
             height: '100%',
             borderRadius: '16px',
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
-            border: '1px solid #f0f0f0'
+            border: '1px solid #E2E8F0'
         }}
         bodyStyle={{ padding: '24px' }}
     >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-                <Text type='secondary' style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280' }}>
+                <Text type='secondary' style={{ fontSize: '14px', fontWeight: 600, color: '#64748B' }}>
                     {title}
                 </Text>
                 <div style={{ marginTop: '12px', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                    <span style={{ fontSize: '32px', fontWeight: 800, color: '#111827' }}>{value}</span>
+                    <span style={{ fontSize: '32px', fontWeight: 800, color: '#1E293B' }}>{value}</span>
                     {subValue && (
                         <span
                             style={{
                                 fontSize: '13px',
-                                color: '#10b981',
+                                color: '#10B981',
                                 display: 'flex',
                                 alignItems: 'center',
                                 fontWeight: 600
@@ -120,7 +120,7 @@ export const RecruitmentDashboard = () => {
                 </div>
                 <Space>
                     <Button icon={<CalendarOutlined />}>Lịch trình</Button>
-                    <Button type='primary' style={{ background: '#6366f1', height: '40px', borderRadius: '8px' }}>
+                    <Button type='primary' style={{ background: '#1E40AF', height: '40px', borderRadius: '8px' }}>
                         Tạo kế hoạch mới
                     </Button>
                 </Space>
@@ -132,7 +132,7 @@ export const RecruitmentDashboard = () => {
                         title='Số vị trí đang tuyển'
                         value={stats?.openPositions || '0'}
                         prefix={<TeamOutlined />}
-                        color='#6366f1'
+                        color='#1E40AF'
                         subValue={12}
                         loading={statsLoading}
                     />
@@ -142,7 +142,7 @@ export const RecruitmentDashboard = () => {
                         title='Tổng số hồ sơ ứng viên'
                         value={stats?.pendingApplications ? stats.pendingApplications + 120 : '145'}
                         prefix={<FileTextOutlined />}
-                        color='#10b981'
+                        color='#10B981'
                         subValue={8}
                         loading={statsLoading}
                     />
@@ -152,7 +152,7 @@ export const RecruitmentDashboard = () => {
                         title='Hồ sơ chờ duyệt'
                         value={stats?.pendingReviews || '10'}
                         prefix={<ClockCircleOutlined />}
-                        color='#f59e0b'
+                        color='#F59E0B'
                         subValue={5}
                         loading={statsLoading}
                     />
@@ -169,10 +169,10 @@ export const RecruitmentDashboard = () => {
                     >
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '16px 0' }}>
                             {[
-                                { dept: 'Engineering', filled: 12, target: 20, color: '#6366f1' },
-                                { dept: 'Product', filled: 8, target: 10, color: '#10b981' },
-                                { dept: 'Design', filled: 4, target: 5, color: '#f59e0b' },
-                                { dept: 'Marketing', filled: 2, target: 8, color: '#ec4899' }
+                                { dept: 'Engineering', filled: 12, target: 20, color: '#1E40AF' },
+                                { dept: 'Product', filled: 8, target: 10, color: '#10B981' },
+                                { dept: 'Design', filled: 4, target: 5, color: '#F59E0B' },
+                                { dept: 'Marketing', filled: 2, target: 8, color: '#0D9488' }
                             ].map((item) => (
                                 <div key={item.dept}>
                                     <div
@@ -212,12 +212,12 @@ export const RecruitmentDashboard = () => {
                                         display: 'flex',
                                         gap: '16px',
                                         padding: '12px',
-                                        border: '1px solid #f9fafb',
+                                        border: '1px solid #E2E8F0',
                                         borderRadius: '12px',
-                                        background: '#f9fafb'
+                                        background: '#F8FAFC'
                                     }}
                                 >
-                                    <Avatar size={40} style={{ background: '#6366f1' }}>
+                                    <Avatar size={40} style={{ background: '#1E40AF' }}>
                                         {interview.name[0]}
                                     </Avatar>
                                     <div style={{ flex: 1 }}>
@@ -247,7 +247,7 @@ export const RecruitmentDashboard = () => {
                 style={{
                     marginTop: '24px',
                     borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                    background: 'linear-gradient(135deg, #1E40AF 0%, #a855f7 100%)',
                     border: 'none'
                 }}
                 bodyStyle={{ padding: '32px' }}
@@ -267,7 +267,7 @@ export const RecruitmentDashboard = () => {
                         md={8}
                         style={{ textAlign: isMobile ? 'left' : 'right', marginTop: isMobile ? '24px' : 0 }}
                     >
-                        <Button size='large' style={{ borderRadius: '8px', fontWeight: 600, color: '#6366f1' }}>
+                        <Button size='large' style={{ borderRadius: '8px', fontWeight: 600, color: '#1E40AF' }}>
                             Khám phá ngay
                         </Button>
                     </Col>

@@ -116,7 +116,7 @@ export const InternDashboard = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    color: '#6b7280',
+                    color: '#64748B',
                     fontSize: '14px'
                 }}
             >
@@ -126,7 +126,7 @@ export const InternDashboard = () => {
                 <RightOutlined style={{ fontSize: '10px' }} />
                 <span style={{ cursor: 'pointer' }}>{t('intern_dashboard.breadcrumb_program')}</span>
                 <RightOutlined style={{ fontSize: '10px' }} />
-                <span style={{ color: '#136dec', fontWeight: 600 }}>Phase 1: Foundations</span>
+                <span style={{ color: '#1E40AF', fontWeight: 600 }}>Phase 1: Foundations</span>
             </div>
 
             <div
@@ -146,7 +146,7 @@ export const InternDashboard = () => {
                             marginBottom: '12px',
                             border: 0,
                             background: 'rgba(19, 109, 236, 0.1)',
-                            color: '#136dec',
+                            color: '#1E40AF',
                             fontWeight: 700,
                             textTransform: 'uppercase'
                         }}
@@ -156,7 +156,7 @@ export const InternDashboard = () => {
                                 display: 'inline-block',
                                 width: '8px',
                                 height: '8px',
-                                background: '#136dec',
+                                background: '#1E40AF',
                                 borderRadius: '50%',
                                 marginRight: '8px'
                             }}
@@ -173,7 +173,7 @@ export const InternDashboard = () => {
                     <div style={{ marginTop: '24px', maxWidth: '300px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                             <Text strong>{t('intern_dashboard.overall_progress')}</Text>
-                            <Text strong color='#136dec'>
+                            <Text strong color='#1E40AF'>
                                 {intern?.progress || 0}%
                             </Text>
                         </div>
@@ -181,8 +181,8 @@ export const InternDashboard = () => {
                             percent={intern?.progress || 0}
                             showInfo={false}
                             strokeColor={{
-                                '0%': '#108ee9',
-                                '100%': '#87d068'
+                                '0%': '#1E40AF',
+                                '100%': '#0D9488'
                             }}
                         />
                     </div>
@@ -199,7 +199,7 @@ export const InternDashboard = () => {
                         icon={<CalendarOutlined />}
                         size='large'
                         type='primary'
-                        style={{ background: '#101822' }}
+                        style={{ background: '#1E293B' }}
                         onClick={() => messageApi.info(t('intern_dashboard.calendar_msg'))}
                     >
                         {t('intern_dashboard.schedule')}
@@ -225,17 +225,17 @@ export const InternDashboard = () => {
                                             height: 40,
                                             background:
                                                 module.status === 'Ready'
-                                                    ? '#52c41a'
+                                                    ? '#10B981'
                                                     : module.status === 'In Progress'
-                                                      ? '#136dec'
-                                                      : '#f0f0f0',
+                                                      ? '#1E40AF'
+                                                      : '#E2E8F0',
                                             borderRadius: '50%',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             color: module.status === 'Locked' ? '#bfbfbf' : '#fff',
                                             boxShadow: module.status === 'In Progress' ? '0 0 0 4px #e6f7ff' : 'none',
-                                            border: module.status === 'Locked' ? '2px solid #d9d9d9' : 'none'
+                                            border: module.status === 'Locked' ? '2px solid #E2E8F0' : 'none'
                                         }}
                                     >
                                         {module.status === 'Ready' ? (
@@ -255,7 +255,7 @@ export const InternDashboard = () => {
                                             border:
                                                 module.status === 'In Progress'
                                                     ? '1px solid rgba(19, 109, 236, 0.3)'
-                                                    : '1px solid #f0f0f0',
+                                                    : '1px solid #E2E8F0',
                                             opacity:
                                                 module.status === 'Locked' ? 0.5 : module.status === 'Ready' ? 0.8 : 1,
                                             boxShadow:
@@ -267,11 +267,11 @@ export const InternDashboard = () => {
                                         bodyStyle={module.status === 'In Progress' ? { padding: 0 } : undefined}
                                     >
                                         {module.status === 'In Progress' && (
-                                            <div style={{ height: '4px', background: '#f0f0f0', width: '100%' }}>
+                                            <div style={{ height: '4px', background: '#E2E8F0', width: '100%' }}>
                                                 <div
                                                     style={{
                                                         height: '100%',
-                                                        background: '#136dec',
+                                                        background: '#1E40AF',
                                                         width: `${module.progress}%`
                                                     }}
                                                 ></div>
@@ -305,9 +305,9 @@ export const InternDashboard = () => {
                                                                       : '#f5f5f5',
                                                             color:
                                                                 module.status === 'Ready'
-                                                                    ? '#52c41a'
+                                                                    ? '#10B981'
                                                                     : module.status === 'In Progress'
-                                                                      ? '#136dec'
+                                                                      ? '#1E40AF'
                                                                       : '#8c8c8c',
                                                             fontWeight: 700,
                                                             textTransform: 'uppercase',
@@ -332,7 +332,7 @@ export const InternDashboard = () => {
                                                     <Button
                                                         type='primary'
                                                         icon={<ArrowRightOutlined />}
-                                                        style={{ background: '#136dec' }}
+                                                        style={{ background: '#1E40AF' }}
                                                         onClick={() => navigate(RouteConfig.InternTaskBoard.path)}
                                                     >
                                                         {t('intern_dashboard.go_to_tasks')}
@@ -351,7 +351,7 @@ export const InternDashboard = () => {
                                                                 gap: '16px',
                                                                 padding: '12px',
                                                                 borderRadius: '8px',
-                                                                border: '1px solid #f0f0f0',
+                                                                border: '1px solid #E2E8F0',
                                                                 background:
                                                                     task.status === 'In Progress' ? '#e6f7ff' : '#fff',
                                                                 cursor: 'pointer'
@@ -372,7 +372,7 @@ export const InternDashboard = () => {
                                                                     justifyContent: 'center',
                                                                     color:
                                                                         task.status?.toLowerCase() === 'completed'
-                                                                            ? '#52c41a'
+                                                                            ? '#10B981'
                                                                             : '#bfbfbf'
                                                                 }}
                                                             >
@@ -394,7 +394,7 @@ export const InternDashboard = () => {
                                                                         style={{
                                                                             color:
                                                                                 task.status === 'In Progress'
-                                                                                    ? '#136dec'
+                                                                                    ? '#1E40AF'
                                                                                     : 'inherit'
                                                                         }}
                                                                     >
@@ -468,13 +468,13 @@ export const InternDashboard = () => {
                                         style={{
                                             width: 40,
                                             height: 40,
-                                            background: '#f0f0f0',
+                                            background: '#E2E8F0',
                                             borderRadius: '50%',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             color: '#bfbfbf',
-                                            border: '2px solid #d9d9d9'
+                                            border: '2px solid #E2E8F0'
                                         }}
                                     >
                                         <TrophyOutlined style={{ fontSize: '20px' }} />
@@ -483,7 +483,7 @@ export const InternDashboard = () => {
                                 children: (
                                     <Card
                                         variant='borderless'
-                                        style={{ borderRadius: '12px', border: '1px dashed #d9d9d9', opacity: 0.5 }}
+                                        style={{ borderRadius: '12px', border: '1px dashed #E2E8F0', opacity: 0.5 }}
                                     >
                                         <Title level={4} style={{ margin: '0 0 4px 0' }}>
                                             {t('intern_dashboard.capstone_title')}
@@ -511,7 +511,7 @@ export const InternDashboard = () => {
                                 variant='borderless'
                                 style={{
                                     borderRadius: '12px',
-                                    background: 'linear-gradient(135deg, #101822 0%, #1a222d 100%)',
+                                    background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
                                     color: 'white',
                                     position: 'relative',
                                     overflow: 'hidden'
@@ -583,7 +583,7 @@ export const InternDashboard = () => {
                             </Card>
                         )}
 
-                        <Card variant='borderless' style={{ borderRadius: '12px', border: '1px solid #f0f0f0' }}>
+                        <Card variant='borderless' style={{ borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <Avatar
                                     size={48}

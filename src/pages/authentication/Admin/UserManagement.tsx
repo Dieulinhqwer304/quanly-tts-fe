@@ -131,7 +131,7 @@ export const UserManagement: FC = () => {
                 <Space>
                     <Avatar
                         icon={<UserOutlined />}
-                        style={{ backgroundColor: record.role === 'Admin' ? '#136dec' : '#f56a00' }}
+                        style={{ backgroundColor: record.role === 'Admin' ? '#1E40AF' : '#f56a00' }}
                     />
                     <div>
                         <Text strong style={{ display: 'block' }}>

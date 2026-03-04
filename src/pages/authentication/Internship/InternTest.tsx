@@ -193,7 +193,7 @@ export const InternTest = () => {
                                     <Text type='secondary' style={{ display: 'block' }}>
                                         Correct Answers
                                     </Text>
-                                    <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
+                                    <Title level={3} style={{ margin: 0, color: '#10B981' }}>
                                         {Math.round((score / 100) * questions.length)} / {questions.length}
                                     </Title>
                                 </div>
@@ -202,7 +202,7 @@ export const InternTest = () => {
                                     <Text type='secondary' style={{ display: 'block' }}>
                                         Percentage
                                     </Text>
-                                    <Title level={3} style={{ margin: 0, color: score >= 80 ? '#136dec' : '#f5222d' }}>
+                                    <Title level={3} style={{ margin: 0, color: score >= 80 ? '#1E40AF' : '#f5222d' }}>
                                         {score}%
                                     </Title>
                                 </div>
@@ -220,7 +220,7 @@ export const InternTest = () => {
                                     style={{
                                         marginBottom: '16px',
                                         borderRadius: '12px',
-                                        border: '1px solid #f0f0f0'
+                                        border: '1px solid #E2E8F0'
                                     }}
                                 >
                                     <Paragraph strong>
@@ -236,9 +236,9 @@ export const InternTest = () => {
                                                     gap: '8px',
                                                     color:
                                                         optIdx === q.correctAnswer
-                                                            ? '#52c41a'
+                                                            ? '#10B981'
                                                             : answers[index] === optIdx
-                                                              ? '#ff4d4f'
+                                                              ? '#EF4444'
                                                               : 'inherit'
                                                 }}
                                             >
@@ -296,7 +296,7 @@ export const InternTest = () => {
                             type='circle'
                             percent={((currentQuestion + 1) / questions.length) * 100}
                             size={40}
-                            strokeColor='#136dec'
+                            strokeColor='#1E40AF'
                         />
                     </Space>
                     <div style={{ textAlign: 'right' }}>
@@ -304,8 +304,8 @@ export const InternTest = () => {
                             {t('test.time_remaining')}
                         </Text>
                         <Space>
-                            <ClockCircleOutlined style={{ color: timeLeft < 60 ? '#ff4d4f' : '#136dec' }} />
-                            <Text strong style={{ fontSize: '18px', color: timeLeft < 60 ? '#ff4d4f' : 'inherit' }}>
+                            <ClockCircleOutlined style={{ color: timeLeft < 60 ? '#EF4444' : '#1E40AF' }} />
+                            <Text strong style={{ fontSize: '18px', color: timeLeft < 60 ? '#EF4444' : 'inherit' }}>
                                 {formatTime(timeLeft)}
                             </Text>
                         </Space>
@@ -319,7 +319,7 @@ export const InternTest = () => {
                 loading={isSubmitting}
                 title={
                     <Space>
-                        <BulbOutlined style={{ color: '#136dec' }} />
+                        <BulbOutlined style={{ color: '#1E40AF' }} />
                         <Title level={4} style={{ margin: 0 }}>
                             Fundamental React Knowledge Test
                         </Title>
@@ -362,7 +362,7 @@ export const InternTest = () => {
                     style={{
                         display: 'flex',
                         justifyContent: 'space-between',
-                        borderTop: '1px solid #f0f0f0',
+                        borderTop: '1px solid #E2E8F0',
                         paddingTop: '24px'
                     }}
                 >

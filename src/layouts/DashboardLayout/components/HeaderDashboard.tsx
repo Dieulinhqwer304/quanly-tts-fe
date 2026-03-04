@@ -94,7 +94,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop
             <div
                 style={{
                     padding: '8px 16px',
-                    borderBottom: '1px solid #f0f0f0',
+                    borderBottom: '1px solid #E2E8F0',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center'
@@ -112,7 +112,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop
                     <List.Item
                         style={{
                             padding: '12px 16px',
-                            background: item.read ? '#fff' : '#f0f9ff',
+                            background: item.read ? '#fff' : 'rgba(30, 64, 175, 0.05)',
                             cursor: 'pointer',
                             transition: 'background 0.3s'
                         }}
@@ -137,7 +137,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop
         <Header
             style={{
                 padding: isMobile ? '0 12px' : '0 24px',
-                background: 'rgba(255, 255, 255, 0.8)',
+                background: 'rgba(255, 255, 255, 0.85)',
                 backdropFilter: 'blur(8px)',
                 position: 'sticky',
                 top: 0,
@@ -145,7 +145,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                borderBottom: '1px solid rgba(5, 5, 5, 0.06)',
+                borderBottom: '1px solid #E2E8F0',
                 height: '64px'
             }}
         >
@@ -162,11 +162,11 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop
                 />
 
                 <Input
-                    prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+                    prefix={<SearchOutlined style={{ color: '#94A3B8' }} />}
                     placeholder='Search...'
                     variant='borderless'
                     style={{
-                        backgroundColor: '#f3f4f6',
+                        backgroundColor: '#F1F5F9',
                         borderRadius: '6px',
                         width: isLaptop ? '200px' : '240px',
                         padding: '6px 12px'
@@ -176,15 +176,15 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '16px' }}>
-                <Button type='text' shape='circle' icon={<QuestionCircleOutlined />} style={{ color: '#6b7280' }} />
+                <Button type='text' shape='circle' icon={<QuestionCircleOutlined />} style={{ color: '#64748B' }} />
 
                 <Popover content={notificationContent} trigger='click' placement='bottomRight' arrow={false}>
                     <Badge count={1} dot offset={[-4, 4]}>
-                        <Button type='text' shape='circle' icon={<BellOutlined />} style={{ color: '#6b7280' }} />
+                        <Button type='text' shape='circle' icon={<BellOutlined />} style={{ color: '#64748B' }} />
                     </Badge>
                 </Popover>
 
-                {!isMobile && <div style={{ width: '1px', height: '24px', background: '#e5e7eb' }}></div>}
+                {!isMobile && <div style={{ width: '1px', height: '24px', background: '#E2E8F0' }}></div>}
 
                 <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement='bottomRight' arrow>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -197,7 +197,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop
                             size='default'
                             icon={<UserOutlined />}
                         />
-                        {!isMobile && <span style={{ fontWeight: 500, color: '#374151' }}>Admin</span>}
+                        {!isMobile && <span style={{ fontWeight: 500, color: '#1E293B' }}>Admin</span>}
                     </div>
                 </Dropdown>
 

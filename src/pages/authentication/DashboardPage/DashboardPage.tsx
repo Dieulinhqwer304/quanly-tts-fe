@@ -17,7 +17,7 @@ const StatCard = ({ title, value, prefix, color, trend, loading }: any) => (
                     {title}
                 </Text>
                 <div style={{ marginTop: '8px', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                    <span style={{ fontSize: '28px', fontWeight: 700, color: '#1f2937' }}>{value}</span>
+                    <span style={{ fontSize: '28px', fontWeight: 700, color: '#1E293B' }}>{value}</span>
                     {trend && (
                         <span
                             style={{
@@ -84,7 +84,7 @@ export const DashboardPage = () => {
                         title='Tổng người dùng'
                         value={stats?.totalUsers?.toLocaleString() || '0'}
                         prefix={<UserOutlined />}
-                        color='#6366f1'
+                        color='#1E40AF'
                         trend={12.5}
                         loading={statsLoading}
                     />
@@ -149,7 +149,7 @@ export const DashboardPage = () => {
                                         key={tech}
                                         style={{
                                             padding: '16px',
-                                            background: '#f9fafb',
+                                            background: '#F8FAFC',
                                             borderRadius: '8px',
                                             border: '1px solid #f3f4f6',
                                             display: 'flex',
@@ -162,7 +162,7 @@ export const DashboardPage = () => {
                                                 width: '8px',
                                                 height: '8px',
                                                 borderRadius: '50%',
-                                                background: '#6366f1'
+                                                background: '#1E40AF'
                                             }}
                                         ></div>
                                         <Text strong>{tech}</Text>
@@ -179,7 +179,7 @@ export const DashboardPage = () => {
                                     border: '1px solid #e0e7ff'
                                 }}
                             >
-                                <Text strong style={{ color: '#4338ca', display: 'block', marginBottom: '8px' }}>
+                                <Text strong style={{ color: '#1E40AF', display: 'block', marginBottom: '8px' }}>
                                     Module mẫu CRUD hiện có:
                                 </Text>
                                 <Text>
@@ -206,7 +206,7 @@ export const DashboardPage = () => {
                                             justifyContent: 'center',
                                             fontSize: '12px',
                                             fontWeight: 600,
-                                            color: '#6b7280'
+                                            color: '#64748B'
                                         }}
                                     >
                                         U{item}

@@ -336,7 +336,7 @@ export const MentorEvaluation = () => {
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
-                                                    color: '#1890ff'
+                                                    color: '#1E40AF'
                                                 }}
                                             >
                                                 <TeamOutlined />
@@ -345,7 +345,7 @@ export const MentorEvaluation = () => {
                                                 <div style={{ fontWeight: 600, fontSize: '16px' }}>
                                                     {t('eval.attitude_soft_skills')}
                                                 </div>
-                                                <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                                                <div style={{ fontSize: '14px', color: '#64748B' }}>
                                                     Punctuality, proactiveness, and cultural fit.
                                                 </div>
                                             </div>
@@ -354,7 +354,7 @@ export const MentorEvaluation = () => {
                                     style: {
                                         background: '#fff',
                                         borderRadius: '12px',
-                                        border: '1px solid #e5e7eb',
+                                        border: '1px solid #E2E8F0',
                                         overflow: 'hidden',
                                         marginBottom: '16px'
                                     },
@@ -410,7 +410,7 @@ export const MentorEvaluation = () => {
                                                 style={{
                                                     width: 40,
                                                     height: 40,
-                                                    background: '#136dec',
+                                                    background: '#1E40AF',
                                                     borderRadius: '8px',
                                                     display: 'flex',
                                                     alignItems: 'center',
@@ -424,7 +424,7 @@ export const MentorEvaluation = () => {
                                                 <div style={{ fontWeight: 600, fontSize: '16px' }}>
                                                     {t('eval.technical_proficiency')}
                                                 </div>
-                                                <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                                                <div style={{ fontSize: '14px', color: '#64748B' }}>
                                                     Code quality, tool mastery, and problem solving.
                                                 </div>
                                             </div>
@@ -433,7 +433,7 @@ export const MentorEvaluation = () => {
                                     style: {
                                         background: '#fff',
                                         borderRadius: '12px',
-                                        border: '1px solid #e5e7eb',
+                                        border: '1px solid #E2E8F0',
                                         overflow: 'hidden',
                                         marginBottom: '16px'
                                     },
@@ -466,7 +466,7 @@ export const MentorEvaluation = () => {
                                                 >
                                                     <div style={{ maxWidth: '300px' }}>
                                                         <div style={{ fontWeight: 600 }}>{item.title}</div>
-                                                        <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                                                        <div style={{ fontSize: '12px', color: '#64748B' }}>
                                                             {item.desc}
                                                         </div>
                                                     </div>
@@ -489,7 +489,7 @@ export const MentorEvaluation = () => {
                         <Card
                             title={t('eval.final_recommendation')}
                             bordered={false}
-                            style={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
+                            style={{ borderRadius: '12px', border: '1px solid #E2E8F0' }}
                         >
                             <Row gutter={32}>
                                 <Col span={12}>
@@ -537,7 +537,7 @@ export const MentorEvaluation = () => {
 
             <Card
                 bordered={false}
-                style={{ borderRadius: '12px', marginBottom: '24px', background: '#fff', border: '1px solid #e5e7eb' }}
+                style={{ borderRadius: '12px', marginBottom: '24px', background: '#fff', border: '1px solid #E2E8F0' }}
             >
                 <Row align='middle' gutter={24}>
                     <Col>
@@ -573,7 +573,7 @@ export const MentorEvaluation = () => {
                     background: '#fff',
                     padding: '24px',
                     borderRadius: '12px',
-                    border: '1px solid #e5e7eb'
+                    border: '1px solid #E2E8F0'
                 }}
             >
                 <Steps
@@ -599,7 +599,7 @@ export const MentorEvaluation = () => {
                         padding: '16px 24px',
                         background: 'rgba(255,255,255,0.9)',
                         backdropFilter: 'blur(10px)',
-                        borderTop: '1px solid #e5e7eb',
+                        borderTop: '1px solid #E2E8F0',
                         zIndex: 100,
                         paddingLeft: 280
                     }}

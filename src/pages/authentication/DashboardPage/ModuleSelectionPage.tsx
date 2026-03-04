@@ -77,28 +77,28 @@ export const ModuleSelectionPage: FC = () => {
             title: 'Tuyển dụng',
             description: 'Quản lý kế hoạch, tin tuyển dụng, sàng lọc CV và lịch phỏng vấn ứng viên.',
             icon: <TeamOutlined />,
-            color: '#6366f1',
+            color: '#1E40AF',
             path: RouteConfig.RecruitmentDashboard.path
         },
         {
             title: 'Đào tạo',
             description: 'Quản lý lộ trình học tập, giao task thực tế và đánh giá thực tập sinh.',
             icon: <BookOutlined />,
-            color: '#10b981',
-            path: RouteConfig.InternDashboard.path // Landing for training
+            color: '#0D9488',
+            path: RouteConfig.InternDashboard.path
         },
         {
             title: 'Quản trị',
             description: 'Cấu hình hệ thống, phê duyệt ngân sách và quản lý định hướng nhân sự.',
             icon: <SettingOutlined />,
-            color: '#f59e0b',
+            color: '#F59E0B',
             path: RouteConfig.DirectorApprovals.path
         },
         {
             title: 'Public Board',
             description: 'Xem giao diện trang tin tuyển dụng công khai dành cho ứng viên.',
             icon: <GlobalOutlined />,
-            color: '#ec4899',
+            color: '#10B981',
             path: RouteConfig.PublicJobBoard.path
         }
     ];

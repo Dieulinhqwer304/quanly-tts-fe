@@ -225,7 +225,7 @@ export const InternList = () => {
                             width: 180,
                             render: (progress) => (
                                 <div style={{ width: '100%' }}>
-                                    <Progress percent={progress} size='small' strokeColor='#136dec' />
+                                    <Progress percent={progress} size='small' strokeColor='#1E40AF' />
                                 </div>
                             )
                         },
@@ -266,7 +266,7 @@ export const InternList = () => {
                                     <Tooltip title={t('menu.evaluations')}>
                                         <Button
                                             type='text'
-                                            icon={<StarOutlined style={{ color: '#faad14' }} />}
+                                            icon={<StarOutlined style={{ color: '#F59E0B' }} />}
                                             onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}
                                         />
                                     </Tooltip>

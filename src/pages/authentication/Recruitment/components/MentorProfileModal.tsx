@@ -72,7 +72,7 @@ export const MentorProfileModal = ({ open, onCancel, intern }: MentorProfileModa
                             <Text>{intern.moduleProgress}</Text>
                             <Text strong>{intern.progressPercent}%</Text>
                         </div>
-                        <Progress percent={intern.progressPercent} status={intern.status === 'Behind' ? 'exception' : 'active'} strokeColor="#136dec" />
+                        <Progress percent={intern.progressPercent} status={intern.status === 'Behind' ? 'exception' : 'active'} strokeColor="#1E40AF" />
                         <Divider style={{ margin: '12px 0' }} />
                         <Space direction="vertical" style={{ width: '100%' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>

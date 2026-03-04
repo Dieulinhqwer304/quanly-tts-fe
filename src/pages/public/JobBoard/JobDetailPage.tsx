@@ -104,7 +104,7 @@ export const JobDetailPage = () => {
                         style={{
                             width: 32,
                             height: 32,
-                            background: '#136dec',
+                            background: '#1E40AF',
                             borderRadius: '8px',
                             display: 'flex',
                             alignItems: 'center',
@@ -181,7 +181,7 @@ export const JobDetailPage = () => {
                                                 color: '#475569'
                                             }}
                                         >
-                                            <span style={{ color: '#136dec' }}>{item.icon}</span>
+                                            <span style={{ color: '#1E40AF' }}>{item.icon}</span>
                                             {item.text}
                                         </div>
                                     ))}
@@ -279,7 +279,7 @@ export const JobDetailPage = () => {
                                             'Hỗ trợ dấu thực tập và báo cáo tốt nghiệp.'
                                         ].map((item, i) => (
                                             <li key={i} style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                                                <CheckCircleOutlined style={{ color: '#136dec', marginTop: '6px' }} />
+                                                <CheckCircleOutlined style={{ color: '#1E40AF', marginTop: '6px' }} />
                                                 {item}
                                             </li>
                                         ))}
@@ -354,7 +354,7 @@ export const JobDetailPage = () => {
                                             >
                                                 <p>
                                                     <CloudUploadOutlined
-                                                        style={{ fontSize: '32px', color: '#136dec' }}
+                                                        style={{ fontSize: '32px', color: '#1E40AF' }}
                                                     />
                                                 </p>
                                                 <p style={{ fontSize: '14px', fontWeight: 500 }}>

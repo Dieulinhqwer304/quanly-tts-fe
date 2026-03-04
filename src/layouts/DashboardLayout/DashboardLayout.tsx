@@ -29,7 +29,7 @@ export const DashboardLayout = () => {
                     marginLeft: isMobile ? 0 : collapsed ? sidebarCollapsedWidth : sidebarExpandedWidth,
                     minHeight: '100vh',
                     transition: 'all 0.2s',
-                    background: '#f8f8f8'
+                    background: '#F8FAFC'
                 }}
             >
                 <HeaderDashboard
@@ -42,9 +42,9 @@ export const DashboardLayout = () => {
                     style={{
                         margin: isMobile ? '12px 8px' : '24px 16px',
                         padding: isMobile ? 12 : isLaptop ? 18 : 24,
-                        background: '#fff',
-                        borderRadius: '4px',
-                        boxShadow: '0 1px 4px rgba(0,0,0,0.06)'
+                        background: '#ffffff',
+                        borderRadius: '8px',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
                     }}
                 >
                     <Outlet />

@@ -172,16 +172,16 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: C
                         <div
                             style={{
                                 padding: '24px',
-                                background: '#f9fafb',
+                                background: '#F8FAFC',
                                 borderRadius: '8px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                border: '1px dashed #d9d9d9'
+                                border: '1px dashed #E2E8F0'
                             }}
                         >
                             <div style={{ textAlign: 'center' }}>
-                                <FilePdfOutlined style={{ fontSize: '48px', color: '#ff4d4f', marginBottom: '12px' }} />
+                                <FilePdfOutlined style={{ fontSize: '48px', color: '#EF4444', marginBottom: '12px' }} />
                                 <Text strong style={{ display: 'block' }}>
                                     {candidate.fullName?.replace(' ', '_')}_Resume.pdf
                                 </Text>
