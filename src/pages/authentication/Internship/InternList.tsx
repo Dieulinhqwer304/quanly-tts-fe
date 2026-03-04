@@ -151,6 +151,7 @@ export const InternList = () => {
                 </div>
 
                 <Table
+                    scroll={{ x: 'max-content' }}
                     columns={[
                         {
                             title: t('internship.intern_info'),
@@ -255,6 +256,8 @@ export const InternList = () => {
                         {
                             title: t('common.actions'),
                             key: 'action',
+                            width: 100,
+                            fixed: 'right',
                             render: (_, record: any) => (
                                 <Space>
                                     <Tooltip title={t('common.view')}>

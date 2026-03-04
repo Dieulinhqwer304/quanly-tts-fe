@@ -182,6 +182,7 @@ export const PermissionManagement: FC = () => {
             title: 'Thao tác',
             key: 'action',
             width: 150,
+            fixed: 'right',
             render: (record: RolePermission) => (
                 <Button
                     type='text'
@@ -245,6 +246,7 @@ export const PermissionManagement: FC = () => {
                 <Table
                     dataSource={filteredRoles}
                     columns={columns}
+                    scroll={{ x: 'max-content' }}
                     pagination={false}
                     style={{ borderRadius: '12px', border: '1px solid #f0f0f0' }}
                 />

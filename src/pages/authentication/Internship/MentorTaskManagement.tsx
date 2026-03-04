@@ -252,6 +252,7 @@ export const MentorTaskManagement = () => {
             title: t('common.actions'),
             key: 'action',
             width: 80,
+            fixed: 'right',
             render: (_, record) => (
                 <Dropdown menu={getActionMenu(record)} trigger={['click']}>
                     <Button type='text' icon={<EllipsisOutlined />} />
@@ -318,6 +319,7 @@ export const MentorTaskManagement = () => {
                         <Table
                             columns={columns}
                             dataSource={dataSource}
+                            scroll={{ x: 'max-content' }}
                             loading={isLoading}
                             pagination={{
                                 total: tasksData?.pagination?.totalRows || dataSource.length,

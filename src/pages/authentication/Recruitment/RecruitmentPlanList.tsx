@@ -172,6 +172,8 @@ export const RecruitmentPlanList = () => {
         {
             title: t('common.actions'),
             key: 'action',
+            width: 80,
+            fixed: 'right',
             render: (_, record) => (
                 <Dropdown menu={getActionMenu(record)} trigger={['click']}>
                     <Button type='text' icon={<EllipsisOutlined />} />
@@ -230,6 +232,7 @@ export const RecruitmentPlanList = () => {
                         <Table
                             columns={columns as any}
                             dataSource={plansData?.data || []}
+                            scroll={{ x: 'max-content' }}
                             pagination={{
                                 current: 1,
                                 total: plansData?.pagination?.totalRows || 0,
