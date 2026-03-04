@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from 'antd';
 import { HeaderDashboard } from './components/HeaderDashboard';
 import { NavbarDashboard } from './components/NavbarDashboard';
@@ -13,6 +13,30 @@ export const DashboardLayout = () => {
     const sidebarCollapsedWidth = isLaptop ? 72 : 80;
     const [collapsed, setCollapsed] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    const sidebarWidth = isMobile ? 0 : collapsed ? sidebarCollapsedWidth : sidebarExpandedWidth;
+
+    // Offset all Ant Design modals so they center over the content area, not the full viewport
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.id = 'modal-sidebar-offset';
+        document.head.appendChild(style);
+        return () => {
+            document.getElementById('modal-sidebar-offset')?.remove();
+        };
+    }, []);
+
+    useEffect(() => {
+        const el = document.getElementById('modal-sidebar-offset') as HTMLStyleElement | null;
+        if (el) {
+            el.textContent = `
+                .ant-modal-root .ant-modal-wrap,
+                .ant-modal-root .ant-modal-mask {
+                    left: ${sidebarWidth}px !important;
+                }
+            `;
+        }
+    }, [sidebarWidth]);
 
     const toggleCollapsed = () => {
         if (isMobile) {
