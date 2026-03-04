@@ -237,7 +237,7 @@ export const QuizBuilder = () => {
                                         <Space wrap>
                                             <div
                                                 style={{
-                                                    background: '#1890ff',
+                                                    background: '#1E40AF',
                                                     color: '#fff',
                                                     width: 24,
                                                     height: 24,
@@ -287,9 +287,9 @@ export const QuizBuilder = () => {
                                                         placeholder={`${t('quiz.option_placeholder')} ${oIndex + 1}`}
                                                         value={opt}
                                                         onChange={(e) => handleOptionChange(index, oIndex, e.target.value)}
-                                                        prefix={q.correct === oIndex ? <CheckCircleFilled style={{ color: '#52c41a' }} /> : null}
+                                                        prefix={q.correct === oIndex ? <CheckCircleFilled style={{ color: '#10B981' }} /> : null}
                                                         style={{
-                                                            borderColor: q.correct === oIndex ? '#52c41a' : undefined,
+                                                            borderColor: q.correct === oIndex ? '#10B981' : undefined,
                                                             background: q.correct === oIndex ? '#f6ffed' : undefined
                                                         }}
                                                     />

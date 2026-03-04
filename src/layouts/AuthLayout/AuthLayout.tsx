@@ -6,7 +6,7 @@ export const AuthLayout = () => {
     const token = Cookies.get('accessToken');
 
     if (token) {
-``        return <Navigate to={RouteConfig.ModuleSelection.path} />;
+        return <Navigate to={RouteConfig.ModuleSelection.path} />;
     }
 
     return <Outlet />;

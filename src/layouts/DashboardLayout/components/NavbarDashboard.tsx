@@ -248,7 +248,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                     style={{
                         width: '32px',
                         height: '32px',
-                        background: `linear-gradient(135deg, ${token.colorPrimary} 0%, #764ba2 100%)`,
+                        background: `linear-gradient(135deg, #1E40AF 0%, #0D9488 100%)`,
                         borderRadius: '8px',
                         marginRight: collapsed ? 0 : '12px',
                         display: 'flex',
@@ -265,7 +265,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                 </div>
                 {!collapsed && (
                     <span
-                        style={{ fontSize: '18px', fontWeight: '700', color: '#1f2937', cursor: 'pointer' }}
+                        style={{ fontSize: '18px', fontWeight: '700', color: '#1E293B', cursor: 'pointer' }}
                         onClick={() => navigate(RouteConfig.ModuleSelection.path)}
                     >
                         {currentModule === 'recruitment'
@@ -294,7 +294,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: collapsed ? 'center' : 'flex-start',
-                        border: '1px dashed #d9d9d9'
+                        border: '1px dashed #E2E8F0'
                     }}
                 >
                     {!collapsed && 'Đổi phân hệ'}
@@ -324,7 +324,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                     alignItems: 'center',
                     padding: collapsed ? '0' : '0 16px',
                     justifyContent: collapsed ? 'center' : 'space-between',
-                    background: '#fafafa'
+                    background: '#F8FAFC'
                 }}
             >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
@@ -349,7 +349,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                     )}
                 </div>
                 {!collapsed && (
-                    <Button type='text' icon={<LogoutOutlined />} onClick={logout} style={{ color: '#6b7280' }} />
+                    <Button type='text' icon={<LogoutOutlined />} onClick={logout} style={{ color: '#64748B' }} />
                 )}
             </div>
         </>

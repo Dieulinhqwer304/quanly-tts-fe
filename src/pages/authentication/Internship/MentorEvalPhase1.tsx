@@ -241,7 +241,7 @@ export const MentorEvalPhase1 = () => {
                         }}
                     >
                         <Space>
-                            <InfoCircleOutlined style={{ color: '#52c41a' }} />
+                            <InfoCircleOutlined style={{ color: '#10B981' }} />
                             <Text>{t('eval.advancing_info')}</Text>
                         </Space>
                     </div>

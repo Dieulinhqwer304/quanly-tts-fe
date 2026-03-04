@@ -153,7 +153,7 @@ export const CVDetail = () => {
                                             display: 'flex',
                                             alignItems: 'center',
                                             gap: '16px',
-                                            color: '#6b7280',
+                                            color: '#64748B',
                                             fontSize: '14px'
                                         }}
                                     >
@@ -226,7 +226,7 @@ export const CVDetail = () => {
                                                     type='primary'
                                                     onClick={handlePassInterview}
                                                     loading={passInterviewMutation.isLoading}
-                                                    style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                                                    style={{ background: '#10B981', borderColor: '#10B981' }}
                                                 >
                                                     {t('candidate.pass_interview_btn')}
                                                 </Button>
@@ -279,7 +279,7 @@ export const CVDetail = () => {
                             <Divider />
 
                             <Title level={5}>{t('candidate.cover_letter')}</Title>
-                            <Paragraph style={{ color: '#4b5563' }}>
+                            <Paragraph style={{ color: '#64748B' }}>
                                 {candidate.coverLetter || 'No cover letter provided.'}
                             </Paragraph>
 
@@ -289,17 +289,17 @@ export const CVDetail = () => {
                             <div
                                 style={{
                                     height: '400px',
-                                    background: '#f9fafb',
+                                    background: '#F8FAFC',
                                     borderRadius: '8px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    border: '1px dashed #d9d9d9'
+                                    border: '1px dashed #E2E8F0'
                                 }}
                             >
                                 <div style={{ textAlign: 'center' }}>
                                     <FilePdfOutlined
-                                        style={{ fontSize: '48px', color: '#ff4d4f', marginBottom: '16px' }}
+                                        style={{ fontSize: '48px', color: '#EF4444', marginBottom: '16px' }}
                                     />
                                     <Text type='secondary' style={{ display: 'block' }}>
                                         {candidate.fullName.replace(' ', '_')}_Resume.pdf

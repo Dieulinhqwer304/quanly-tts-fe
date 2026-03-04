@@ -106,7 +106,7 @@ export const InternTaskBoard = () => {
             style={{
                 marginBottom: '12px',
                 borderRadius: '12px',
-                border: selectedTask?.id === task.id ? '2px solid #136dec' : '1px solid #f0f0f0',
+                border: selectedTask?.id === task.id ? '2px solid #1E40AF' : '1px solid #E2E8F0',
                 cursor: 'pointer'
             }}
             bodyStyle={{ padding: '16px' }}
@@ -161,10 +161,10 @@ export const InternTaskBoard = () => {
                 </Tag>
                 <MoreOutlined style={{ color: '#8c8c8c' }} />
             </div>
-            <div style={{ fontWeight: 600, marginBottom: '8px', color: '#1f2937' }}>{task.title}</div>
+            <div style={{ fontWeight: 600, marginBottom: '8px', color: '#1E293B' }}>{task.title}</div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#6b7280' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#64748B' }}>
                     <CalendarOutlined /> {task.dueDate}
                 </div>
                 <Avatar size='small' src={task.internAvatar} />
@@ -197,7 +197,7 @@ export const InternTaskBoard = () => {
                             alignItems: 'center',
                             gap: '8px',
                             fontSize: '14px',
-                            color: '#6b7280',
+                            color: '#64748B',
                             marginBottom: '8px'
                         }}
                     >
@@ -205,7 +205,7 @@ export const InternTaskBoard = () => {
                         <span style={{ fontSize: '10px' }}>▶</span>{' '}
                         <span>{t('intern_task_board.breadcrumb_project')}</span>{' '}
                         <span style={{ fontSize: '10px' }}>▶</span>{' '}
-                        <span style={{ color: '#111827', fontWeight: 500 }}>{t('menu.task_board')}</span>
+                        <span style={{ color: '#1E293B', fontWeight: 500 }}>{t('menu.task_board')}</span>
                     </div>
                     <div
                         style={{
@@ -225,7 +225,7 @@ export const InternTaskBoard = () => {
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '8px',
-                                    color: '#6b7280',
+                                    color: '#64748B',
                                     marginTop: '4px'
                                 }}
                             >
@@ -275,7 +275,7 @@ export const InternTaskBoard = () => {
                                 padding: '0 4px'
                             }}
                         >
-                            <div style={{ fontWeight: 600, color: '#374151' }}>
+                            <div style={{ fontWeight: 600, color: '#1E293B' }}>
                                 {t('task_mgmt.to_do')}{' '}
                                 <Tag style={{ marginLeft: '8px', borderRadius: '12px' }}>
                                     {tasks.filter((t) => t.status?.toLowerCase() === 'to_do').length}
@@ -302,7 +302,7 @@ export const InternTaskBoard = () => {
                                 padding: '0 4px'
                             }}
                         >
-                            <div style={{ fontWeight: 600, color: '#374151' }}>
+                            <div style={{ fontWeight: 600, color: '#1E293B' }}>
                                 {t('task_mgmt.in_progress')}{' '}
                                 <Tag color='blue' style={{ marginLeft: '8px', borderRadius: '12px' }}>
                                     {
@@ -323,7 +323,7 @@ export const InternTaskBoard = () => {
                                 background: 'rgba(243, 244, 246, 0.5)',
                                 borderRadius: '12px',
                                 padding: '12px',
-                                border: '2px dashed #e5e7eb'
+                                border: '2px dashed #E2E8F0'
                             }}
                         >
                             {tasks
@@ -355,7 +355,7 @@ export const InternTaskBoard = () => {
                                 padding: '0 4px'
                             }}
                         >
-                            <div style={{ fontWeight: 600, color: '#374151' }}>
+                            <div style={{ fontWeight: 600, color: '#1E293B' }}>
                                 {t('task_mgmt.completed')}{' '}
                                 <Tag color='green' style={{ marginLeft: '8px', borderRadius: '12px' }}>
                                     {tasks.filter((t) => t.status?.toLowerCase() === 'completed').length}
@@ -380,15 +380,15 @@ export const InternTaskBoard = () => {
                     width={isMobile ? '100%' : 400}
                     theme='light'
                     style={{
-                        borderLeft: isMobile ? 'none' : '1px solid #e5e7eb',
-                        borderTop: isMobile ? '1px solid #e5e7eb' : 'none',
+                        borderLeft: isMobile ? 'none' : '1px solid #E2E8F0',
+                        borderTop: isMobile ? '1px solid #E2E8F0' : 'none',
                         overflowY: 'auto'
                     }}
                 >
                     <div
                         style={{
                             padding: '24px',
-                            borderBottom: '1px solid #e5e7eb',
+                            borderBottom: '1px solid #E2E8F0',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'start'
@@ -410,7 +410,7 @@ export const InternTaskBoard = () => {
                             </Text>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <div
-                                    style={{ width: '8px', height: '8px', background: '#136dec', borderRadius: '50%' }}
+                                    style={{ width: '8px', height: '8px', background: '#1E40AF', borderRadius: '50%' }}
                                 ></div>
                                 <span style={{ fontWeight: 500 }}>
                                     {t(
@@ -455,7 +455,7 @@ export const InternTaskBoard = () => {
                                     marginBottom: '12px'
                                 }}
                             >
-                                <UploadOutlined style={{ color: '#136dec' }} />{' '}
+                                <UploadOutlined style={{ color: '#1E40AF' }} />{' '}
                                 {t('intern_task_board.submit_deliverable')}
                             </div>
                             <div style={{ marginBottom: '12px' }}>
@@ -463,7 +463,7 @@ export const InternTaskBoard = () => {
                                     style={{
                                         fontSize: '12px',
                                         fontWeight: 500,
-                                        color: '#6b7280',
+                                        color: '#64748B',
                                         display: 'block',
                                         marginBottom: '4px'
                                     }}
@@ -479,8 +479,8 @@ export const InternTaskBoard = () => {
                             <Upload.Dragger
                                 style={{
                                     padding: '16px',
-                                    background: '#f9fafb',
-                                    border: '2px dashed #e5e7eb',
+                                    background: '#F8FAFC',
+                                    border: '2px dashed #E2E8F0',
                                     marginBottom: '12px'
                                 }}
                             >
@@ -578,7 +578,7 @@ export const InternTaskBoard = () => {
                                                     {dayjs(c.createdAt).fromNow()}
                                                 </Text>
                                             </div>
-                                            <Text style={{ fontSize: '13px', color: '#4b5563' }}>{c.comment}</Text>
+                                            <Text style={{ fontSize: '13px', color: '#64748B' }}>{c.comment}</Text>
                                         </div>
                                     </div>
                                 </div>

@@ -118,12 +118,12 @@ export const DirectorApprovals = () => {
                 width={isMobile ? '100%' : 400}
                 theme='light'
                 style={{
-                    borderRight: isMobile ? 'none' : '1px solid #e5e7eb',
-                    borderBottom: isMobile ? '1px solid #e5e7eb' : 'none',
+                    borderRight: isMobile ? 'none' : '1px solid #E2E8F0',
+                    borderBottom: isMobile ? '1px solid #E2E8F0' : 'none',
                     overflowY: 'auto'
                 }}
             >
-                <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb' }}>
+                <div style={{ padding: '16px', borderBottom: '1px solid #E2E8F0' }}>
                     <div
                         style={{
                             display: 'flex',
@@ -187,11 +187,11 @@ export const DirectorApprovals = () => {
                             <div
                                 style={{
                                     padding: '16px',
-                                    borderBottom: '1px solid #f0f0f0',
+                                    borderBottom: '1px solid #E2E8F0',
                                     borderLeft:
                                         selectedRequestId === item.id ||
                                         (!selectedRequestId && queue[0]?.id === item.id)
-                                            ? '4px solid #136dec'
+                                            ? '4px solid #1E40AF'
                                             : '4px solid transparent',
                                     background:
                                         selectedRequestId === item.id ||
@@ -228,11 +228,11 @@ export const DirectorApprovals = () => {
                                     <Avatar
                                         icon={item.type === 'Recruitment' ? <FileTextOutlined /> : <UserOutlined />}
                                         size={40}
-                                        style={{ background: '#f0f2f4', color: '#6b7280' }}
+                                        style={{ background: '#f0f2f4', color: '#64748B' }}
                                     />
                                     <div>
                                         <div style={{ fontWeight: 600, color: '#111418' }}>{item.name}</div>
-                                        <div style={{ fontSize: '12px', color: '#6b7280' }}>{item.title}</div>
+                                        <div style={{ fontSize: '12px', color: '#64748B' }}>{item.title}</div>
                                     </div>
                                 </div>
                                 <div
@@ -240,7 +240,7 @@ export const DirectorApprovals = () => {
                                         display: 'flex',
                                         justifyContent: 'space-between',
                                         fontSize: '12px',
-                                        color: '#6b7280'
+                                        color: '#64748B'
                                     }}
                                 >
                                     {item.mentor ? (
@@ -257,7 +257,7 @@ export const DirectorApprovals = () => {
                                     ) : (
                                         <span
                                             style={{
-                                                color: item.priority === 'High' ? '#d97706' : '#6b7280',
+                                                color: item.priority === 'High' ? '#d97706' : '#64748B',
                                                 fontWeight: 600
                                             }}
                                         >
@@ -279,7 +279,7 @@ export const DirectorApprovals = () => {
                             style={{
                                 padding: isMobile ? '12px' : isLaptop ? '18px 24px' : '24px 32px',
                                 background: '#fff',
-                                borderBottom: '1px solid #e5e7eb',
+                                borderBottom: '1px solid #E2E8F0',
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'flex-start',
@@ -293,7 +293,7 @@ export const DirectorApprovals = () => {
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '8px',
-                                        color: '#6b7280',
+                                        color: '#64748B',
                                         fontSize: '12px',
                                         marginBottom: '8px'
                                     }}
@@ -309,7 +309,7 @@ export const DirectorApprovals = () => {
                                         alignItems: 'center',
                                         gap: '16px',
                                         fontSize: '14px',
-                                        color: '#6b7280'
+                                        color: '#64748B'
                                     }}
                                 >
                                     <Tag bordered={false} style={{ background: '#f3f4f6' }}>
@@ -355,7 +355,7 @@ export const DirectorApprovals = () => {
                                         style={{
                                             marginBottom: '24px',
                                             borderRadius: '12px',
-                                            border: '1px solid #e5e7eb'
+                                            border: '1px solid #E2E8F0'
                                         }}
                                     >
                                         <Title
@@ -367,7 +367,7 @@ export const DirectorApprovals = () => {
                                                 marginBottom: '24px'
                                             }}
                                         >
-                                            <AuditOutlined style={{ color: '#136dec' }} />{' '}
+                                            <AuditOutlined style={{ color: '#1E40AF' }} />{' '}
                                             {selectedRequest.type === 'Recruitment'
                                                 ? t('director.proposal_summary') || 'Proposal Summary'
                                                 : t('director.candidate_summary')}
@@ -454,7 +454,7 @@ export const DirectorApprovals = () => {
                                     style={{
                                         marginBottom: '24px',
                                         borderRadius: '12px',
-                                        border: '1px solid #e5e7eb'
+                                        border: '1px solid #E2E8F0'
                                     }}
                                 >
                                     <Title
@@ -466,7 +466,7 @@ export const DirectorApprovals = () => {
                                             marginBottom: '24px'
                                         }}
                                     >
-                                        <FileTextOutlined style={{ color: '#136dec' }} /> Recruitment Positions &
+                                        <FileTextOutlined style={{ color: '#1E40AF' }} /> Recruitment Positions &
                                         Requirements
                                     </Title>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -476,10 +476,10 @@ export const DirectorApprovals = () => {
                                                     key={idx}
                                                     style={{
                                                         padding: '16px',
-                                                        background: '#f8f9fa',
+                                                        background: '#F8FAFC',
                                                         borderRadius: '8px',
                                                         borderLeft:
-                                                            idx % 2 === 0 ? '3px solid #136dec' : '3px solid #52c41a'
+                                                            idx % 2 === 0 ? '3px solid #1E40AF' : '3px solid #10B981'
                                                     }}
                                                 >
                                                     <div
@@ -516,9 +516,9 @@ export const DirectorApprovals = () => {
                                             <div
                                                 style={{
                                                     padding: '16px',
-                                                    background: '#f8f9fa',
+                                                    background: '#F8FAFC',
                                                     borderRadius: '8px',
-                                                    borderLeft: '3px solid #136dec'
+                                                    borderLeft: '3px solid #1E40AF'
                                                 }}
                                             >
                                                 <div
@@ -573,7 +573,7 @@ export const DirectorApprovals = () => {
                                 <Col xs={24} lg={12}>
                                     <Card
                                         bordered={false}
-                                        style={{ borderRadius: '12px', border: '1px solid #e5e7eb', height: '100%' }}
+                                        style={{ borderRadius: '12px', border: '1px solid #E2E8F0', height: '100%' }}
                                     >
                                         <Title
                                             level={5}
@@ -584,13 +584,13 @@ export const DirectorApprovals = () => {
                                                 marginBottom: '24px'
                                             }}
                                         >
-                                            <DollarOutlined style={{ color: '#136dec' }} />{' '}
+                                            <DollarOutlined style={{ color: '#1E40AF' }} />{' '}
                                             {t('director.financial_impact')}
                                         </Title>
                                         <div
                                             style={{
                                                 padding: '16px',
-                                                background: '#f8f9fa',
+                                                background: '#F8FAFC',
                                                 borderRadius: '8px',
                                                 display: 'flex',
                                                 flexDirection: 'column',
@@ -601,7 +601,7 @@ export const DirectorApprovals = () => {
                                                 style={{
                                                     display: 'flex',
                                                     justifyContent: 'space-between',
-                                                    borderBottom: '1px solid #e5e7eb',
+                                                    borderBottom: '1px solid #E2E8F0',
                                                     paddingBottom: '12px'
                                                 }}
                                             >
@@ -648,7 +648,7 @@ export const DirectorApprovals = () => {
                                 <Col xs={24} lg={12}>
                                     <Card
                                         bordered={false}
-                                        style={{ borderRadius: '12px', border: '1px solid #e5e7eb', height: '100%' }}
+                                        style={{ borderRadius: '12px', border: '1px solid #E2E8F0', height: '100%' }}
                                     >
                                         <Title
                                             level={5}
@@ -659,7 +659,7 @@ export const DirectorApprovals = () => {
                                                 marginBottom: '24px'
                                             }}
                                         >
-                                            <MessageOutlined style={{ color: '#136dec' }} />{' '}
+                                            <MessageOutlined style={{ color: '#1E40AF' }} />{' '}
                                             {t('director.stakeholder_justification')}
                                         </Title>
                                         <div
@@ -671,14 +671,14 @@ export const DirectorApprovals = () => {
                                                     left: 0,
                                                     top: -8,
                                                     fontSize: '32px',
-                                                    color: '#e5e7eb',
+                                                    color: '#E2E8F0',
                                                     fontFamily: 'serif'
                                                 }}
                                             >
                                                 "
                                             </span>
                                             <Paragraph
-                                                style={{ fontStyle: 'italic', color: '#4b5563', lineHeight: 1.6 }}
+                                                style={{ fontStyle: 'italic', color: '#64748B', lineHeight: 1.6 }}
                                             >
                                                 {selectedRequest.details?.justification ||
                                                     'The candidate has consistently exceeded expectations in their current role. Performance metrics indicate a high technical aptitude and strong team integration.'}
@@ -703,7 +703,7 @@ export const DirectorApprovals = () => {
                                     left: 0,
                                     width: '100%',
                                     background: '#fff',
-                                    borderTop: '1px solid #e5e7eb',
+                                    borderTop: '1px solid #E2E8F0',
                                     padding: isMobile ? '12px' : isLaptop ? '18px 24px' : '24px 32px',
                                     boxShadow: '0 -4px 6px -1px rgba(0, 0, 0, 0.05)',
                                     zIndex: 10
@@ -734,7 +734,7 @@ export const DirectorApprovals = () => {
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: '8px',
-                                                color: '#6b7280',
+                                                color: '#64748B',
                                                 fontSize: '12px'
                                             }}
                                         >
@@ -765,7 +765,7 @@ export const DirectorApprovals = () => {
                                             <Button
                                                 type='primary'
                                                 icon={<CheckCircleOutlined />}
-                                                style={{ background: '#136dec' }}
+                                                style={{ background: '#1E40AF' }}
                                                 loading={updateApproval.isLoading}
                                                 onClick={() =>
                                                     Modal.confirm({

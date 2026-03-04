@@ -225,7 +225,7 @@ export const OnboardingList = () => {
                                 renderItem={(item) => (
                                     <List.Item style={{ padding: '12px 0' }}>
                                         <Space>
-                                            <span style={{ color: '#136dec' }}>{item.icon}</span>
+                                            <span style={{ color: '#1E40AF' }}>{item.icon}</span>
                                             <Text style={{ fontSize: '13px' }}>{item.text}</Text>
                                         </Space>
                                     </List.Item>

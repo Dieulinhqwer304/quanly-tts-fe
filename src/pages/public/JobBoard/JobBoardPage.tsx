@@ -51,7 +51,7 @@ export const JobBoardPage = () => {
                         style={{
                             width: 36,
                             height: 36,
-                            background: '#136dec',
+                            background: '#1E40AF',
                             borderRadius: '10px',
                             display: 'flex',
                             alignItems: 'center',
@@ -79,7 +79,7 @@ export const JobBoardPage = () => {
                 {/* Hero Section */}
                 <div
                     style={{
-                        background: 'linear-gradient(135deg, #136dec 0%, #0a4da2 100%)',
+                        background: 'linear-gradient(135deg, #1E40AF 0%, #0a4da2 100%)',
                         padding: '80px 24px',
                         textAlign: 'center',
                         color: '#fff'
@@ -248,7 +248,7 @@ export const JobBoardPage = () => {
                                                 borderTop: '1px solid #f1f5f9'
                                             }}
                                         >
-                                            <Text style={{ color: '#6366f1', fontWeight: 600 }}>
+                                            <Text style={{ color: '#1E40AF', fontWeight: 600 }}>
                                                 {job.filled} / {job.required} suất đã nhận
                                             </Text>
                                             <Button type='primary' shape='round' icon={<ArrowRightOutlined />}>

@@ -98,14 +98,14 @@ export const MentorLearningPath = () => {
                 width={isMobile ? '100%' : 320}
                 theme='light'
                 style={{
-                    borderRight: isMobile ? 'none' : '1px solid #e5e7eb',
-                    borderBottom: isMobile ? '1px solid #e5e7eb' : 'none',
+                    borderRight: isMobile ? 'none' : '1px solid #E2E8F0',
+                    borderBottom: isMobile ? '1px solid #E2E8F0' : 'none',
                     overflowY: 'auto'
                 }}
             >
-                <div style={{ padding: isMobile ? '12px' : '24px', borderBottom: '1px solid #e5e7eb' }}>
+                <div style={{ padding: isMobile ? '12px' : '24px', borderBottom: '1px solid #E2E8F0' }}>
                     <div style={{ marginBottom: '16px' }}>
-                        <Text strong style={{ fontSize: '12px', textTransform: 'uppercase', color: '#6b7280' }}>
+                        <Text strong style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B' }}>
                             {t('learning_path.path_title')}
                         </Text>
                         <Input
@@ -127,7 +127,7 @@ export const MentorLearningPath = () => {
                     </div>
                 </div>
 
-                <div style={{ padding: isMobile ? '12px' : '16px', background: '#f9fafb', minHeight: '100%' }}>
+                <div style={{ padding: isMobile ? '12px' : '16px', background: '#F8FAFC', minHeight: '100%' }}>
                     <Space direction='vertical' style={{ width: '100%' }}>
                         {modules.map((module) => (
                             <Card
@@ -135,9 +135,9 @@ export const MentorLearningPath = () => {
                                 hoverable
                                 style={{
                                     borderRadius: '8px',
-                                    border: selectedModuleId === module.id ? '2px solid #136dec' : '1px solid #e5e7eb',
+                                    border: selectedModuleId === module.id ? '2px solid #1E40AF' : '1px solid #E2E8F0',
                                     borderLeft:
-                                        selectedModuleId === module.id ? '2px solid #136dec' : '4px solid transparent',
+                                        selectedModuleId === module.id ? '2px solid #1E40AF' : '4px solid transparent',
                                     cursor: 'pointer'
                                 }}
                                 bodyStyle={{ padding: '12px' }}
@@ -173,7 +173,7 @@ export const MentorLearningPath = () => {
                                               : t('learning_path.locked')}
                                     </Tag>
                                 </div>
-                                <div style={{ paddingLeft: '24px', fontSize: '12px', color: '#6b7280' }}>
+                                <div style={{ paddingLeft: '24px', fontSize: '12px', color: '#64748B' }}>
                                     {module.items?.length > 0 ? (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                             {module.items.slice(0, 2).map((item) => (
@@ -217,15 +217,15 @@ export const MentorLearningPath = () => {
                                     marginBottom: '8px'
                                 }}
                             >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#4338ca' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1E40AF' }}>
                                     <CheckCircleOutlined />
-                                    <Text strong style={{ color: '#4338ca' }}>
+                                    <Text strong style={{ color: '#1E40AF' }}>
                                         {t('learning_path.final_assessment')}
                                     </Text>
                                 </div>
                                 <Tag color='geekblue'>Quiz</Tag>
                             </div>
-                            <div style={{ paddingLeft: '24px', fontSize: '12px', color: '#6366f1' }}>
+                            <div style={{ paddingLeft: '24px', fontSize: '12px', color: '#1E40AF' }}>
                                 {t('learning_path.passing_score')}: 80%
                             </div>
                         </Card>
@@ -239,7 +239,7 @@ export const MentorLearningPath = () => {
                     style={{
                         padding: isMobile ? '12px' : '0 32px',
                         minHeight: '64px',
-                        borderBottom: '1px solid #e5e7eb',
+                        borderBottom: '1px solid #E2E8F0',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: isMobile ? 'flex-start' : 'center',
@@ -376,7 +376,7 @@ export const MentorLearningPath = () => {
                         </Space>
                     </div>
 
-                    <Card style={{ borderRadius: '12px', border: '1px dashed #d9d9d9', background: '#fafafa' }}>
+                    <Card style={{ borderRadius: '12px', border: '1px dashed #E2E8F0', background: '#fafafa' }}>
                         <Title level={5} style={{ marginTop: 0 }}>
                             {t('learning_path.add_resource')}
                         </Title>
@@ -385,8 +385,8 @@ export const MentorLearningPath = () => {
                                 style={{
                                     flex: 1,
                                     height: '80px',
-                                    borderColor: '#136dec',
-                                    color: '#136dec',
+                                    borderColor: '#1E40AF',
+                                    color: '#1E40AF',
                                     background: '#fff'
                                 }}
                                 icon={
@@ -424,7 +424,7 @@ export const MentorLearningPath = () => {
                                 background: '#fff',
                                 padding: '24px',
                                 borderRadius: '12px',
-                                border: '1px solid #f0f0f0'
+                                border: '1px solid #E2E8F0'
                             }}
                         >
                             <Row gutter={16} style={{ marginBottom: '16px' }}>
@@ -449,7 +449,7 @@ export const MentorLearningPath = () => {
                         </div>
                     </Card>
 
-                    <div style={{ marginTop: '32px', paddingTop: '32px', borderTop: '1px solid #f0f0f0' }}>
+                    <div style={{ marginTop: '32px', paddingTop: '32px', borderTop: '1px solid #E2E8F0' }}>
                         <div
                             style={{
                                 display: 'flex',
@@ -478,8 +478,8 @@ export const MentorLearningPath = () => {
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
                                 <Text strong>Q1: What is the primary mission of our company?</Text>
                                 <Space>
-                                    <EditOutlined style={{ color: '#6b7280', cursor: 'pointer' }} />
-                                    <DeleteOutlined style={{ color: '#6b7280', cursor: 'pointer' }} />
+                                    <EditOutlined style={{ color: '#64748B', cursor: 'pointer' }} />
+                                    <DeleteOutlined style={{ color: '#64748B', cursor: 'pointer' }} />
                                 </Space>
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -488,13 +488,13 @@ export const MentorLearningPath = () => {
                                         background: '#fff',
                                         padding: '8px 12px',
                                         borderRadius: '8px',
-                                        border: '1px solid #52c41a',
+                                        border: '1px solid #10B981',
                                         display: 'flex',
                                         gap: '8px',
                                         alignItems: 'center'
                                     }}
                                 >
-                                    <CheckCircleOutlined style={{ color: '#52c41a' }} /> To enable digital
+                                    <CheckCircleOutlined style={{ color: '#10B981' }} /> To enable digital
                                     transformation for everyone.
                                 </div>
                                 <div
@@ -506,7 +506,7 @@ export const MentorLearningPath = () => {
                                         display: 'flex',
                                         gap: '8px',
                                         alignItems: 'center',
-                                        color: '#6b7280'
+                                        color: '#64748B'
                                     }}
                                 >
                                     <div
@@ -514,7 +514,7 @@ export const MentorLearningPath = () => {
                                             width: 14,
                                             height: 14,
                                             borderRadius: '50%',
-                                            border: '1px solid #d9d9d9'
+                                            border: '1px solid #E2E8F0'
                                         }}
                                     ></div>{' '}
                                     To sell software.
