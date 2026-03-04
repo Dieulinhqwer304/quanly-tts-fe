@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import {
     Table,
     Tag,
@@ -26,6 +26,7 @@ import {
     StopOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { http } from '../../../utils/http';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -47,40 +48,24 @@ export const UserManagement: FC = () => {
     const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
     const [form] = Form.useForm();
 
-    const [users, setUsers] = useState<UserRecord[]>([
-        {
-            key: '1',
-            name: 'Admin Hệ Thống',
-            email: 'admin@tts-learning.com',
-            role: 'Admin',
-            status: 'Active',
-            lastLogin: '2024-03-15 10:30'
-        },
-        {
-            key: '2',
-            name: 'Nguyễn Văn Mentor',
-            email: 'mentor1@tts-learning.com',
-            role: 'Mentor',
-            status: 'Active',
-            lastLogin: '2024-03-16 09:15'
-        },
-        {
-            key: '3',
-            name: 'Trần Thị Intern',
-            email: 'intern1@tts-learning.com',
-            role: 'Intern',
-            status: 'Inactive',
-            lastLogin: '2024-03-10 14:20'
-        },
-        {
-            key: '4',
-            name: 'Lê Quang Director',
-            email: 'director@tts-learning.com',
-            role: 'Director',
-            status: 'Active',
-            lastLogin: '2024-03-16 08:00'
+    const [usersData, setUsersData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const fetchUsers = async () => {
+        setIsLoading(true);
+        try {
+            const res = await http.get('/users');
+            setUsersData(res);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
         }
-    ]);
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
 
     const handleAddUser = () => {
         setEditingUser(null);
@@ -90,39 +75,51 @@ export const UserManagement: FC = () => {
 
     const handleEditUser = (record: UserRecord) => {
         setEditingUser(record);
-        form.setFieldsValue(record);
+        form.setFieldsValue({ ...record, role: record.role?.toLowerCase() });
         setIsModalOpen(true);
     };
 
-    const handleDeleteUser = (key: string) => {
-        setUsers(users.filter((user) => user.key !== key));
-        message.success('Xóa người dùng thành công');
+    const handleDeleteUser = async (key: string) => {
+        try {
+            await http.delete(`/users/${key}`);
+            message.success('Xóa người dùng thành công');
+            fetchUsers();
+        } catch {
+            message.error('Xóa thất bại');
+        }
     };
 
     const handleModalOk = () => {
-        form.validateFields().then((values) => {
-            if (editingUser) {
-                setUsers(users.map((u) => (u.key === editingUser.key ? { ...u, ...values } : u)));
-                message.success('Cập nhật người dùng thành công');
-            } else {
-                const newUser = {
-                    key: Date.now().toString(),
-                    ...values,
-                    status: 'Active',
-                    lastLogin: '-'
-                };
-                setUsers([...users, newUser]);
-                message.success('Thêm người dùng thành công');
+        form.validateFields().then(async (values) => {
+            try {
+                if (editingUser) {
+                    await http.patch(`/users/${editingUser.key}`, values);
+                    message.success('Cập nhật người dùng thành công');
+                } else {
+                    message.info('Tính năng tạo user mới chưa được hỗ trợ');
+                }
+                setIsModalOpen(false);
+                fetchUsers();
+            } catch {
+                message.error('Thao tác thất bại');
             }
-            setIsModalOpen(false);
         });
     };
 
-    const filteredUsers = users.filter((user) => {
+    const allUsers: UserRecord[] = (usersData?.data || []).map((u: any) => ({
+        key: u.id,
+        name: u.name || u.fullName,
+        email: u.email,
+        role: u.role || 'User',
+        status: u.status || 'Active',
+        lastLogin: u.lastLogin || '-'
+    }));
+
+    const filteredUsers = allUsers.filter((user) => {
         const matchesSearch =
-            user.name.toLowerCase().includes(searchText.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchText.toLowerCase());
-        const matchesRole = !roleFilter || user.role === roleFilter;
+            user.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+            user.email?.toLowerCase().includes(searchText.toLowerCase());
+        const matchesRole = !roleFilter || user.role?.toLowerCase() === roleFilter.toLowerCase();
         return matchesSearch && matchesRole;
     });
 
@@ -272,8 +269,10 @@ export const UserManagement: FC = () => {
                     dataSource={filteredUsers}
                     columns={columns}
                     scroll={{ x: 'max-content' }}
-                    pagination={{ pageSize: 8, showSizeChanger: true }}
+                    loading={isLoading}
+                    pagination={{ pageSize: 8, showSizeChanger: true, total: usersData?.pagination?.totalRows }}
                     style={{ borderRadius: '8px' }}
+                    rowKey='key'
                 />
 
                 <Modal

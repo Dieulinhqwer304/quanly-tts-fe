@@ -31,7 +31,7 @@ export const MentorLearningPath = () => {
     const fetchLearningPath = async () => {
         setIsLoading(true);
         try {
-            const res = await http.get(`/learning-paths/${track}`);
+            const res = await http.get(`/learning-paths/track/${track}`);
             setLearningPathData(res);
         } catch (error) {
             console.error(error);
@@ -55,7 +55,7 @@ export const MentorLearningPath = () => {
 
     const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
 
-    const learningPath = learningPathData?.data;
+    const learningPath = learningPathData;
     const modules = useMemo(() => {
         if (!learningPath?.modules) return [];
         return (learningPath.modules as any[]).map((m: any) => ({
