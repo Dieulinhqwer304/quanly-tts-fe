@@ -68,9 +68,10 @@ export const MentorEvalPhase2 = () => {
                 mentorId: mentorProfile?.id,
                 mentorName: mentorProfile?.fullName,
                 type: 'Mid-term', // Phase 2
-                score:
-                    ((values.techContribution + values.problemSolving + values.reliability + values.teamwork) / 4) * 2,
-                feedback: `${values.accomplishments}\n\nFeedback: ${values.feedback}`,
+                technicalScore: Math.round(((values.techContribution + values.problemSolving) / 2) * 2),
+                attitudeScore: Math.round(values.reliability * 2),
+                teamworkScore: Math.round(values.teamwork * 2),
+                feedback: values.accomplishments ? `${values.accomplishments}\n\nFeedback: ${values.feedback || ''}` : (values.feedback || ''),
                 date: new Date().toISOString()
             });
 

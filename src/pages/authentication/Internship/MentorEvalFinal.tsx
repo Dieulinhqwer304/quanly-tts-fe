@@ -93,8 +93,15 @@ export const MentorEvalFinal = () => {
                 mentorName: mentorProfile?.fullName,
                 type: 'Final',
                 decision: values.recommendation,
-                score: parseFloat(avgScore.toFixed(1)),
-                feedback: `Recommendation: ${values.recommendation}\n\nHR Note: ${values.hrNote}`,
+                technicalScore: Math.round(
+                    (technicalScores.filter(Boolean).reduce((a, b) => a + b, 0) /
+                        (technicalScores.filter(Boolean).length || 1)) * 2
+                ),
+                attitudeScore: Math.round(
+                    (softSkillScores.filter(Boolean).reduce((a, b) => a + b, 0) /
+                        (softSkillScores.filter(Boolean).length || 1)) * 2
+                ),
+                feedback: `Recommendation: ${values.recommendation}${values.hrNote ? '\n\nHR Note: ' + values.hrNote : ''}`,
                 date: new Date().toISOString()
             });
 

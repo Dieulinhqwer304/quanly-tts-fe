@@ -89,38 +89,46 @@ export const MentorEvaluation = () => {
         setIsProcessing(true);
         try {
             let evalType = 'Probation';
-            let score = 0;
             let feedback = '';
-            let nextProgress = 33;
-            let status = internData.status;
+            let technicalScore: number | undefined;
+            let attitudeScore: number | undefined;
+            let teamworkScore: number | undefined;
 
             if (currentStep === 0) {
                 evalType = 'Probation';
-                score =
-                    ((values.learningSpeed + values.communication + values.punctuality + values.codeQuality) / 4) * 2;
-                feedback = `${values.strengths}\n\nImprovements: ${values.improvements}`;
+                technicalScore = Math.round(values.codeQuality * 2);
+                attitudeScore = Math.round(((values.learningSpeed + values.punctuality) / 2) * 2);
+                teamworkScore = Math.round(values.communication * 2);
+                feedback = `${values.strengths || ''}\n\nImprovements: ${values.improvements || ''}`;
             } else if (currentStep === 1) {
                 evalType = 'Mid-term';
-                score =
-                    ((values.techContribution + values.problemSolving + values.reliability + values.teamwork) / 4) * 2;
-                feedback = `${values.accomplishments}\n\nFeedback: ${values.feedback}`;
+                technicalScore = Math.round(((values.techContribution + values.problemSolving) / 2) * 2);
+                attitudeScore = Math.round(values.reliability * 2);
+                teamworkScore = Math.round(values.teamwork * 2);
+                feedback = `${values.accomplishments || ''}\n\nFeedback: ${values.feedback || ''}`;
             } else {
                 evalType = 'Final';
                 const technicalScores = [values.codeQualityFinal, values.architectureFinal, values.toolingFinal];
                 const softSkillScores = [values.attitudeFinal, values.communicationFinal, values.teamworkFinal];
-                const allScores = [...technicalScores, ...softSkillScores].filter((s) => s !== undefined);
-                score = allScores.length > 0 ? (allScores.reduce((a, b) => a + b, 0) / allScores.length) * 2 : 0;
-                feedback = `Recommendation: ${values.recommendation}\n\nHR Note: ${values.hrNote}`;
+                technicalScore = Math.round(
+                    (technicalScores.filter(Boolean).reduce((a, b) => a + b, 0) / (technicalScores.filter(Boolean).length || 1)) * 2
+                );
+                attitudeScore = Math.round(
+                    (softSkillScores.filter(Boolean).reduce((a, b) => a + b, 0) / (softSkillScores.filter(Boolean).length || 1)) * 2
+                );
+                feedback = `Recommendation: ${values.recommendation}${values.hrNote ? '\n\nHR Note: ' + values.hrNote : ''}`;
             }
 
             await http.post('/evaluations', {
                 internId: id,
-            internName: internData.user?.fullName || internData.name,
-            mentorId: mentorProfile?.id,
-            mentorName: mentorProfile?.fullName,
+                internName: internData.user?.fullName || internData.name,
+                mentorId: mentorProfile?.id,
+                mentorName: mentorProfile?.fullName,
                 type: evalType as any,
-            decision: currentStep === 2 ? values.recommendation : undefined,
-                score: parseFloat(score.toFixed(1)),
+                decision: currentStep === 2 ? values.recommendation : undefined,
+                technicalScore,
+                attitudeScore,
+                teamworkScore,
                 feedback,
                 date: new Date().toISOString()
             });
