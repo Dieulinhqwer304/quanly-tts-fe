@@ -54,7 +54,7 @@ export const MentorEvalPhase1 = () => {
     }, [id]);
 
     useEffect(() => {
-        getProfile().then((res) => setMentorProfile(res)).catch(() => {});
+        getProfile().then((res) => setMentorProfile(res)).catch(() => { });
     }, []);
 
     const onFinish = async (values: any) => {
@@ -142,8 +142,8 @@ export const MentorEvalPhase1 = () => {
                             {intern?.track} • {intern?.id}
                         </Text>
                         <div style={{ marginTop: '4px' }}>
-                            <Tag color='blue'>Month 1-2 Review</Tag>
-                            <Tag color='cyan'>Training Phase</Tag>
+                            <Tag color='blue'>Xét duyệt tháng 1-2</Tag>
+                            <Tag color='cyan'>Giai đoạn đào tạo</Tag>
                         </div>
                     </Col>
                 </Row>

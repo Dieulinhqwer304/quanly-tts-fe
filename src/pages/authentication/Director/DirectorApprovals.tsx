@@ -89,14 +89,14 @@ export const DirectorApprovals = () => {
                 status: newStatus,
                 notes: directorNote
             });
-            message.success(`Request for ${selectedRequest.name} has been ${newStatus.toLowerCase()}`);
+            message.success(`Yêu cầu của ${selectedRequest.name} đã được ${newStatus === 'Approved' ? 'phê duyệt' : newStatus === 'Rejected' ? 'từ chối' : 'yêu cầu chỉnh sửa'}`);
             setDirectorNote('');
             refetch();
             if (queue.length <= 1) {
                 setSelectedRequestId(null);
             }
         } catch (err) {
-            message.error('Failed to update request. Please try again.');
+            message.error('Cập nhật yêu cầu thất bại. Vui lòng thử lại.');
         }
     };
 
@@ -190,12 +190,12 @@ export const DirectorApprovals = () => {
                                     borderBottom: '1px solid #E2E8F0',
                                     borderLeft:
                                         selectedRequestId === item.id ||
-                                        (!selectedRequestId && queue[0]?.id === item.id)
+                                            (!selectedRequestId && queue[0]?.id === item.id)
                                             ? '4px solid #1E40AF'
                                             : '4px solid transparent',
                                     background:
                                         selectedRequestId === item.id ||
-                                        (!selectedRequestId && queue[0]?.id === item.id)
+                                            (!selectedRequestId && queue[0]?.id === item.id)
                                             ? 'rgba(19, 109, 236, 0.05)'
                                             : '#fff',
                                     cursor: 'pointer',
@@ -215,8 +215,8 @@ export const DirectorApprovals = () => {
                                             item.status === 'Pending'
                                                 ? 'orange'
                                                 : item.status === 'Approved'
-                                                  ? 'success'
-                                                  : 'error'
+                                                    ? 'success'
+                                                    : 'error'
                                         }
                                     >
                                         {item.status}
@@ -262,7 +262,7 @@ export const DirectorApprovals = () => {
                                             }}
                                         >
                                             {item.priority === 'High' && <WarningOutlined />}{' '}
-                                            {item.priority || 'Normal'} Priority
+                                            {item.priority === 'High' ? 'Cao' : 'Bình thường'} Ưu tiên
                                         </span>
                                     )}
                                 </div>
@@ -313,7 +313,7 @@ export const DirectorApprovals = () => {
                                     }}
                                 >
                                     <Tag bordered={false} style={{ background: '#f3f4f6' }}>
-                                        {selectedRequest.department || 'General Dept'}
+                                        {selectedRequest.department || 'Bộ phận chung'}
                                     </Tag>
                                     <span>|</span>
                                     <span>
@@ -327,16 +327,16 @@ export const DirectorApprovals = () => {
                                     selectedRequest.status === 'Pending'
                                         ? 'warning'
                                         : selectedRequest.status === 'Approved'
-                                          ? 'success'
-                                          : 'error'
+                                            ? 'success'
+                                            : 'error'
                                 }
                                 style={{ fontSize: '14px', padding: '4px 12px', borderRadius: '16px' }}
                             >
                                 {selectedRequest.status === 'Pending'
                                     ? t('director.pending_review')
                                     : selectedRequest.status === 'Approved'
-                                      ? t('director.approved_review')
-                                      : t('director.rejected_review')}
+                                        ? t('director.approved_review')
+                                        : t('director.rejected_review')}
                             </Tag>
                         </div>
 
@@ -466,8 +466,8 @@ export const DirectorApprovals = () => {
                                             marginBottom: '24px'
                                         }}
                                     >
-                                        <FileTextOutlined style={{ color: '#1E40AF' }} /> Recruitment Positions &
-                                        Requirements
+                                        <FileTextOutlined style={{ color: '#1E40AF' }} /> Vị trí tuyển dụng &
+                                        Yêu cầu
                                     </Title>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                         {selectedRequest.details?.positions ? (
@@ -509,7 +509,7 @@ export const DirectorApprovals = () => {
                                                         </Text>
                                                         <Text style={{ fontSize: '13px' }}>{pos.requirements}</Text>
                                                     </div>
-                                                    <Tag>{pos.level || 'Intern Level'}</Tag>
+                                                    <Tag>{pos.level || 'Cấp độ thực tập sinh'}</Tag>
                                                 </div>
                                             ))
                                         ) : (
@@ -529,7 +529,7 @@ export const DirectorApprovals = () => {
                                                     }}
                                                 >
                                                     <Text strong style={{ fontSize: '15px' }}>
-                                                        Frontend Developer Intern
+                                                        Thực tập sinh Lập trình viên Frontend
                                                     </Text>
                                                     <Tag color='blue'>5 {t('director.positions')}</Tag>
                                                 </div>
@@ -545,11 +545,10 @@ export const DirectorApprovals = () => {
                                                         {t('director.requirements')}:
                                                     </Text>
                                                     <Text style={{ fontSize: '13px' }}>
-                                                        ReactJS, TypeScript, HTML/CSS, 6 months experience, team
-                                                        collaboration skills
+                                                        ReactJS, TypeScript, HTML/CSS, Kinh nghiệm 6 tháng, kỹ năng làm việc nhóm
                                                     </Text>
                                                 </div>
-                                                <Tag>Intern Level</Tag>
+                                                <Tag>Cấp độ thực tập sinh</Tag>
                                             </div>
                                         )}
                                         <div style={{ padding: '12px', background: '#e6f7ff', borderRadius: '8px' }}>
@@ -629,7 +628,7 @@ export const DirectorApprovals = () => {
                                                             fontSize: '12px'
                                                         }}
                                                     >
-                                                        <WarningOutlined /> Exceeds budget by $
+                                                        <WarningOutlined /> Vượt ngân sách $
                                                         {(
                                                             selectedRequest.salary - selectedRequest.budget
                                                         ).toLocaleString()}{' '}
@@ -637,7 +636,7 @@ export const DirectorApprovals = () => {
                                                         {Math.round(
                                                             ((selectedRequest.salary - selectedRequest.budget) /
                                                                 selectedRequest.budget) *
-                                                                100
+                                                            100
                                                         )}
                                                         %)
                                                     </div>
@@ -681,7 +680,7 @@ export const DirectorApprovals = () => {
                                                 style={{ fontStyle: 'italic', color: '#64748B', lineHeight: 1.6 }}
                                             >
                                                 {selectedRequest.details?.justification ||
-                                                    'The candidate has consistently exceeded expectations in their current role. Performance metrics indicate a high technical aptitude and strong team integration.'}
+                                                    'Hiệu suất của ứng viên liên tục vượt mức kỳ vọng trong vai trò hiện tại. Các chỉ số hiệu suất cho thấy năng khiếu kỹ thuật cao và khả năng hòa nhập nhóm tốt.'}
                                             </Paragraph>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

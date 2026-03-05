@@ -28,46 +28,46 @@ interface Question {
 const questions: Question[] = [
     {
         id: 1,
-        text: "What is the primary purpose of React's 'useEffect' hook?",
+        text: "Mục đích chính của hook 'useEffect' trong React là gì?",
         options: [
-            'To handle component styling',
-            'To perform side effects in functional components',
-            'To define global state',
-            'To optimize rendering performance'
+            'Xử lý giao diện component',
+            'Thực hiện các side effect trong functional components',
+            'Định nghĩa trạng thái toàn cục',
+            'Tối ưu hiệu suất rendering'
         ],
         correctAnswer: 1
     },
     {
         id: 2,
-        text: 'Which of the following is NOT a valid way to style a React component?',
-        options: ['Inline styles', 'CSS Modules', 'Styled Components', 'Native HTML style tags inside JSX'],
+        text: 'Cách nào sau đây KHÔNG phải là cách hợp lệ để style một React component?',
+        options: ['Inline styles', 'CSS Modules', 'Styled Components', 'Thẻ style HTML thuần trong JSX'],
         correctAnswer: 3
     },
     {
         id: 3,
-        text: 'What does JSX stand for?',
+        text: 'JSX viết tắt của gì?',
         options: ['JavaScript Extension', 'JavaScript XML', 'Java Standard Extension', 'JSON Syntax Extension'],
         correctAnswer: 1
     },
     {
         id: 4,
-        text: 'How do you handle conditional rendering in React?',
+        text: 'Làm thế nào để thực hiện conditional rendering trong React?',
         options: [
-            'Using if-else inside JSX',
-            'Using ternary operators or logical && operator',
-            'Using switch-case statements directly in JSX',
-            "React doesn't support conditional rendering"
+            'Dùng if-else bên trong JSX',
+            'Dùng toán tử ternary hoặc toán tử &&',
+            'Dùng switch-case trực tiếp trong JSX',
+            'React không hỗ trợ conditional rendering'
         ],
         correctAnswer: 1
     },
     {
         id: 5,
-        text: 'What is the benefit of using React Query for data fetching?',
+        text: 'Lợi ích của việc sử dụng React Query để fetch dữ liệu là gì?',
         options: [
-            'It automatically styles your components',
-            'It provides built-in caching and synchronization out of the box',
-            'It replaces the need for any backend API',
-            'It only works with GraphQL'
+            'Nó tự động style các component',
+            'Nó cung cấp cơ chế cache và đồng bộ sẵn có',
+            'Nó thay thế cho mọi backend API',
+            'Nó chỉ hoạt động với GraphQL'
         ],
         correctAnswer: 1
     }
@@ -145,22 +145,22 @@ export const InternTest = () => {
                     feedback: `Completed Fundamental React Knowledge Test with ${finalScore}/${questions.length} correct answers.`
                 });
                 setSubmitted(true);
-                message.success(t('test.submitted_success') || 'Test result submitted successfully!');
+                message.success(t('test.submitted_success') || 'Nộp kết quả bài kiểm tra thành công!');
             } catch (err) {
-                message.error('Failed to submit test results. Please try again.');
+                message.error('Nộp kết quả thất bại. Vui lòng thử lại.');
             } finally {
                 setIsSubmitting(false);
             }
         } else {
             setSubmitted(true);
-            message.warning('Test completed locally but failed to find intern profile to save results.');
+            message.warning('Hoàn thành bài kiểm tra nhưng không tìm thấy hồ sơ thực tập sinh để lưu kết quả.');
         }
     };
 
     if (isLoadingIntern) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-                <Spin size='large' tip='Loading test profile...' />
+                <Spin size='large' tip='Đang tải bài kiểm tra...' />
             </div>
         );
     }
@@ -171,7 +171,7 @@ export const InternTest = () => {
                 <Result
                     status={score >= 80 ? 'success' : 'info'}
                     title={t('test.completed')}
-                    subTitle={`You scored ${score}% in the Fundamental React Knowledge Test.`}
+                    subTitle={`Bạn đạt ${score}% trong Bài kiểm tra kiến thức React cơ bản.`}
                     extra={[
                         <Button
                             type='primary'
@@ -179,10 +179,10 @@ export const InternTest = () => {
                             icon={<DashboardOutlined />}
                             onClick={() => navigate(RouteConfig.InternDashboard.path)}
                         >
-                            Back to Dashboard
+                            Quay lại trang cá nhân
                         </Button>,
                         <Button key='review' icon={<FileSearchOutlined />} onClick={() => setShowAnswers(true)}>
-                            Review Answers
+                            Xem lại đáp án
                         </Button>
                     ]}
                 >
@@ -191,7 +191,7 @@ export const InternTest = () => {
                             <div style={{ display: 'flex', justifyContent: 'center', gap: '48px' }}>
                                 <div>
                                     <Text type='secondary' style={{ display: 'block' }}>
-                                        Correct Answers
+                                        Câu trả lời đúng
                                     </Text>
                                     <Title level={3} style={{ margin: 0, color: '#10B981' }}>
                                         {Math.round((score / 100) * questions.length)} / {questions.length}
@@ -200,7 +200,7 @@ export const InternTest = () => {
                                 <Divider type='vertical' style={{ height: 'auto' }} />
                                 <div>
                                     <Text type='secondary' style={{ display: 'block' }}>
-                                        Percentage
+                                        Tỷ lệ đúng
                                     </Text>
                                     <Title level={3} style={{ margin: 0, color: score >= 80 ? '#1E40AF' : '#f5222d' }}>
                                         {score}%
@@ -212,7 +212,7 @@ export const InternTest = () => {
 
                     {showAnswers && (
                         <div style={{ marginTop: '32px', textAlign: 'left' }}>
-                            <Title level={4}>Review Questions</Title>
+                            <Title level={4}>Xem lại câu hỏi</Title>
                             {questions.map((q, index) => (
                                 <Card
                                     key={q.id}
@@ -238,8 +238,8 @@ export const InternTest = () => {
                                                         optIdx === q.correctAnswer
                                                             ? '#10B981'
                                                             : answers[index] === optIdx
-                                                              ? '#EF4444'
-                                                              : 'inherit'
+                                                                ? '#EF4444'
+                                                                : 'inherit'
                                                 }}
                                             >
                                                 {optIdx === q.correctAnswer ? (
@@ -321,7 +321,7 @@ export const InternTest = () => {
                     <Space>
                         <BulbOutlined style={{ color: '#1E40AF' }} />
                         <Title level={4} style={{ margin: 0 }}>
-                            Fundamental React Knowledge Test
+                            Bài kiểm tra kiến thức React cơ bản
                         </Title>
                     </Space>
                 }
@@ -371,7 +371,7 @@ export const InternTest = () => {
                         disabled={currentQuestion === 0}
                         onClick={() => setCurrentQuestion((prev) => prev - 1)}
                     >
-                        Previous
+                        Quay lại
                     </Button>
                     {currentQuestion === questions.length - 1 ? (
                         <Button
