@@ -261,7 +261,7 @@ export const InternList = () => {
                                 return <Button size='small' type='dashed' onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}>Đánh giá</Button>;
                             }
                         } : null,
-                        {
+                        isTrainingModule ? {
                             title: t('internship.progress'),
                             dataIndex: 'overallProgress',
                             key: 'progress',
@@ -271,7 +271,7 @@ export const InternList = () => {
                                     <Progress percent={progress} size='small' strokeColor='#1E40AF' />
                                 </div>
                             )
-                        },
+                        } : null,
                         !isTrainingModule ? {
                             title: t('common.status'),
                             dataIndex: 'status',
