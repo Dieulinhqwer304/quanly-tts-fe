@@ -76,8 +76,7 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, 
                 disabled={viewOnly}
                 initialValues={{
                     status: 'Open',
-                    department: 'Engineering',
-                    level: 'Junior'
+                    department: 'Engineering'
                 }}
             >
                 <Form.Item
@@ -121,33 +120,13 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, 
                     </Col>
                 </Row>
 
-                <Row gutter={16}>
-                    <Col xs={24} md={12}>
-                        <Form.Item
-                            label={t('recruitment.level')}
-                            name="level"
-                            rules={[{ required: true, message: t('common.required_field') }]}
-                        >
-                            <Select
-                                options={[
-                                    { value: 'Junior', label: 'Junior' },
-                                    { value: 'Middle', label: 'Middle' },
-                                    { value: 'Senior', label: 'Senior' },
-                                    { value: 'Intern', label: 'Intern' }
-                                ]}
-                            />
-                        </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                        <Form.Item
-                            label={t('recruitment.quantity')}
-                            name="required"
-                            rules={[{ required: true, message: t('common.required_field') }]}
-                        >
-                            <InputNumber min={1} style={{ width: '100%' }} />
-                        </Form.Item>
-                    </Col>
-                </Row>
+                <Form.Item
+                    label={t('recruitment.quantity')}
+                    name="required"
+                    rules={[{ required: true, message: t('common.required_field') }]}
+                >
+                    <InputNumber min={1} style={{ width: '100%' }} />
+                </Form.Item>
 
                 <Form.Item
                     label={t('common.status')}
