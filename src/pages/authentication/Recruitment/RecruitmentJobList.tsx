@@ -157,11 +157,7 @@ export const RecruitmentJobList = () => {
             key: 'department',
             render: (text: any) => <Tag color='blue'>{text}</Tag>
         },
-        {
-            title: t('recruitment.level'),
-            dataIndex: 'level',
-            key: 'level'
-        },
+
         {
             title: t('recruitment.fulfillment'),
             key: 'fulfillment',
