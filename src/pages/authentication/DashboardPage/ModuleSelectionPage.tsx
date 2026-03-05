@@ -1,6 +1,6 @@
 import { FC } from 'react';
-import { Row, Col, Card, Typography, Space } from 'antd';
-import { TeamOutlined, BookOutlined, SettingOutlined, RightOutlined, GlobalOutlined } from '@ant-design/icons';
+import { Row, Col, Card, Typography } from 'antd';
+import { TeamOutlined, BookOutlined, SettingOutlined, RightOutlined, GlobalOutlined, CrownOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
 
@@ -88,11 +88,18 @@ export const ModuleSelectionPage: FC = () => {
             path: RouteConfig.InternDashboard.path
         },
         {
+            title: 'Giám đốc',
+            description: 'Phê duyệt kế hoạch nhân sự, ngân sách và định hướng chiến lược.',
+            icon: <CrownOutlined />,
+            color: '#8B5CF6',
+            path: RouteConfig.DirectorApprovals.path
+        },
+        {
             title: 'Quản trị',
-            description: 'Cấu hình hệ thống, phê duyệt ngân sách và quản lý định hướng nhân sự.',
+            description: 'Cấu hình hệ thống, quản trị người dùng và phân quyền.',
             icon: <SettingOutlined />,
             color: '#F59E0B',
-            path: RouteConfig.DirectorApprovals.path
+            path: RouteConfig.UserManagement.path
         },
         {
             title: 'Trang tuyển dụng',
@@ -124,9 +131,9 @@ export const ModuleSelectionPage: FC = () => {
                 </Text>
             </div>
 
-            <Row gutter={[32, 32]}>
+            <Row gutter={[32, 32]} justify="center">
                 {modules.map((m) => (
-                    <Col xs={24} md={12} lg={6} key={m.title}>
+                    <Col xs={24} md={12} lg={8} xl={6} key={m.title}>
                         <ModuleCard {...m} onClick={() => navigate(m.path)} />
                     </Col>
                 ))}
