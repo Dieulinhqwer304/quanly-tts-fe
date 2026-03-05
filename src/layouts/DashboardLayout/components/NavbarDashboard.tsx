@@ -95,12 +95,6 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
             onClick: () => navigate(RouteConfig.InterviewSchedule.path)
         },
         {
-            key: 'rec-onboarding',
-            icon: <BookOutlined />,
-            label: t('menu.onboarding'),
-            onClick: () => navigate(RouteConfig.OnboardingList.path)
-        },
-        {
             key: 'rec-interns',
             icon: <UserOutlined />,
             label: t('menu.intern_list'),
@@ -114,11 +108,6 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
             icon: <SolutionOutlined />,
             label: t('menu.mentor_portal'),
             children: [
-                {
-                    key: 'mentor-req',
-                    label: t('menu.recruitment_requests'),
-                    onClick: () => navigate(RouteConfig.MentorRequestList.path)
-                },
                 {
                     key: 'mentor-path',
                     label: t('menu.learning_path'),
