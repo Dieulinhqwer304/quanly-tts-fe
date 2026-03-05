@@ -1,4 +1,3 @@
-import { Account } from '../models/Account';
 
 export const RouteConfig = {
     ForbiddenPage: {
@@ -113,9 +112,9 @@ export const RouteConfig = {
         path: '/training/intern/tasks'
     },
 
-    // ADMIN MODULE
+    // DIRECTOR MODULE
     DirectorApprovals: {
-        path: '/admin/director/approvals'
+        path: '/director/approvals'
     },
     UserManagement: {
         path: '/admin/users'
