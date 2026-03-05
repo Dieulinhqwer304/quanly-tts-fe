@@ -65,42 +65,46 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
 
     const recruitmentItems: MenuItem[] = [
         {
-            key: 'recruitment',
+            key: 'rec-dashboard',
+            icon: <DashboardOutlined />,
+            label: t('menu.dashboard'),
+            onClick: () => navigate(RouteConfig.RecruitmentDashboard.path)
+        },
+        {
+            key: 'rec-plans',
+            icon: <FileProtectOutlined />,
+            label: t('menu.recruitment_plans'),
+            onClick: () => navigate(RouteConfig.RecruitmentPlanList.path)
+        },
+        {
+            key: 'rec-jobs',
+            icon: <RocketOutlined />,
+            label: t('menu.recruitment_jobs'),
+            onClick: () => navigate(RouteConfig.RecruitmentJobList.path)
+        },
+        {
+            key: 'rec-cvs',
+            icon: <SolutionOutlined />,
+            label: t('menu.cv_management'),
+            onClick: () => navigate(RouteConfig.CVList.path)
+        },
+        {
+            key: 'rec-interviews',
             icon: <TeamOutlined />,
-            label: t('menu.recruitment_management'),
-            children: [
-                {
-                    key: 'rec-dashboard',
-                    label: t('menu.dashboard'),
-                    onClick: () => navigate(RouteConfig.RecruitmentDashboard.path)
-                },
-                {
-                    key: 'rec-plans',
-                    label: t('menu.recruitment_plans'),
-                    onClick: () => navigate(RouteConfig.RecruitmentPlanList.path)
-                },
-                {
-                    key: 'rec-jobs',
-                    label: t('menu.recruitment_jobs'),
-                    onClick: () => navigate(RouteConfig.RecruitmentJobList.path)
-                },
-                { key: 'rec-cvs', label: t('menu.cv_management'), onClick: () => navigate(RouteConfig.CVList.path) },
-                {
-                    key: 'rec-interviews',
-                    label: t('menu.interviews'),
-                    onClick: () => navigate(RouteConfig.InterviewSchedule.path)
-                },
-                {
-                    key: 'rec-onboarding',
-                    label: t('menu.onboarding'),
-                    onClick: () => navigate(RouteConfig.OnboardingList.path)
-                },
-                {
-                    key: 'rec-interns',
-                    label: t('menu.intern_list'),
-                    onClick: () => navigate(RouteConfig.InternList.path)
-                }
-            ]
+            label: t('menu.interviews'),
+            onClick: () => navigate(RouteConfig.InterviewSchedule.path)
+        },
+        {
+            key: 'rec-onboarding',
+            icon: <BookOutlined />,
+            label: t('menu.onboarding'),
+            onClick: () => navigate(RouteConfig.OnboardingList.path)
+        },
+        {
+            key: 'rec-interns',
+            icon: <UserOutlined />,
+            label: t('menu.intern_list'),
+            onClick: () => navigate(RouteConfig.InternList.path)
         }
     ];
 
@@ -205,13 +209,13 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
 
     const getSelectedKeys = (): string[] => {
         const path = location.pathname;
-        if (path.includes('/recruitment/dashboard')) return ['recruitment', 'rec-dashboard'];
-        if (path.includes('/recruitment/plans')) return ['recruitment', 'rec-plans'];
-        if (path.includes('/recruitment/jobs')) return ['recruitment', 'rec-jobs'];
-        if (path.includes('/recruitment/cvs')) return ['recruitment', 'rec-cvs'];
-        if (path.includes('/recruitment/interviews')) return ['recruitment', 'rec-interviews'];
-        if (path.includes('/recruitment/onboarding')) return ['recruitment', 'rec-onboarding'];
-        if (path.includes('/recruitment/interns')) return ['recruitment', 'rec-interns'];
+        if (path.includes('/recruitment/dashboard')) return ['rec-dashboard'];
+        if (path.includes('/recruitment/plans')) return ['rec-plans'];
+        if (path.includes('/recruitment/jobs')) return ['rec-jobs'];
+        if (path.includes('/recruitment/cvs')) return ['rec-cvs'];
+        if (path.includes('/recruitment/interviews')) return ['rec-interviews'];
+        if (path.includes('/recruitment/onboarding')) return ['rec-onboarding'];
+        if (path.includes('/recruitment/interns')) return ['rec-interns'];
 
         if (path.includes('/training/mentor/requests')) return ['mentor', 'mentor-req'];
         if (path.includes('/training/mentor/learning-paths')) return ['mentor', 'mentor-path'];
@@ -306,7 +310,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                     theme='light'
                     mode='inline'
                     selectedKeys={getSelectedKeys()}
-                    defaultOpenKeys={['recruitment', 'mentor', 'intern', 'director']}
+                    defaultOpenKeys={['mentor', 'intern', 'director']}
                     items={getMenuItems()}
                     style={{
                         borderRight: 0,
