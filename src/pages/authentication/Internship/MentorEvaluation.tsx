@@ -1,12 +1,13 @@
 import {
     SaveOutlined,
-    InfoCircleOutlined,
-    RocketOutlined,
-    StarOutlined,
     CheckCircleOutlined,
     TrophyOutlined,
     SendOutlined,
-    TeamOutlined
+    TeamOutlined,
+    ClockCircleOutlined,
+    StarOutlined,
+    FileTextOutlined,
+    LockOutlined
 } from '@ant-design/icons';
 import {
     Avatar,
@@ -28,7 +29,10 @@ import {
     Radio,
     Collapse,
     Spin,
-    Progress
+    Progress,
+    Timeline,
+    Statistic,
+    Empty
 } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
@@ -39,6 +43,45 @@ import { getProfile } from '../../../services/auth/profile';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
+
+const PHASE_CONFIG = [
+    {
+        key: 'Probation',
+        label: 'Giai đoạn 1 – Thử việc',
+        color: '#1E40AF',
+        bg: '#EFF6FF',
+        icon: <ClockCircleOutlined />
+    },
+    {
+        key: 'Mid-term',
+        label: 'Giai đoạn 2 – Dự án',
+        color: '#059669',
+        bg: '#ECFDF5',
+        icon: <TeamOutlined />
+    },
+    {
+        key: 'Final',
+        label: 'Giai đoạn cuối – Tổng kết',
+        color: '#D97706',
+        bg: '#FFFBEB',
+        icon: <TrophyOutlined />
+    }
+];
+
+const ScoreBar = ({ label, score }: { label: string; score?: number }) => (
+    <div style={{ marginBottom: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <Text style={{ fontSize: '13px' }}>{label}</Text>
+            <Text strong style={{ fontSize: '13px' }}>{score ?? '--'}/10</Text>
+        </div>
+        <Progress
+            percent={score ? (score / 10) * 100 : 0}
+            showInfo={false}
+            strokeColor={score && score >= 7 ? '#10B981' : score && score >= 5 ? '#F59E0B' : '#EF4444'}
+            size='small'
+        />
+    </div>
+);
 
 export const MentorEvaluation = () => {
     const { t } = useTranslation();
@@ -51,6 +94,8 @@ export const MentorEvaluation = () => {
     const [isInternLoading, setIsInternLoading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [mentorProfile, setMentorProfile] = useState<any>(null);
+    const [evaluations, setEvaluations] = useState<any[]>([]);
+    const [isEvalLoading, setIsEvalLoading] = useState(false);
 
     const fetchIntern = async () => {
         if (!id) return;
@@ -65,15 +110,28 @@ export const MentorEvaluation = () => {
         }
     };
 
+    const fetchEvaluations = async () => {
+        if (!id) return;
+        setIsEvalLoading(true);
+        try {
+            const res = await http.get(`/evaluations/intern/${id}`);
+            setEvaluations(Array.isArray(res) ? res : res?.data || []);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsEvalLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchIntern();
+        fetchEvaluations();
     }, [id]);
 
     useEffect(() => {
-        getProfile().then((res) => setMentorProfile(res)).catch(() => {});
+        getProfile().then((res) => setMentorProfile(res)).catch(() => { });
     }, []);
 
-    // Logic to determine initial step based on intern progress
     useEffect(() => {
         if (internData) {
             const progress = internData.overallProgress || 0;
@@ -83,9 +141,10 @@ export const MentorEvaluation = () => {
         }
     }, [internData]);
 
+    const getEvalByPhase = (phase: string) => evaluations.find((e) => e.type === phase);
+
     const onFinish = async (values: any) => {
         if (!id || !internData) return;
-
         setIsProcessing(true);
         try {
             let evalType = 'Probation';
@@ -134,10 +193,12 @@ export const MentorEvaluation = () => {
             });
 
             message.success(t('common.success'));
+            await fetchEvaluations();
+            form.resetFields();
             if (currentStep < 2) {
                 setCurrentStep(currentStep + 1);
             } else {
-                navigate(RouteConfig.InternList.path);
+                navigate(RouteConfig.MentorInternList.path);
             }
         } catch {
             message.error(t('common.error'));
@@ -155,6 +216,144 @@ export const MentorEvaluation = () => {
     }
 
     const intern = internData;
+
+    // ── Phần tổng hợp tất cả giai đoạn ──
+    const renderPhaseSummary = () => (
+        <Card
+            bordered={false}
+            style={{ borderRadius: '12px', border: '1px solid #E2E8F0', marginBottom: '24px' }}
+            title={
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FileTextOutlined style={{ color: '#1E40AF' }} />
+                    Tổng hợp đánh giá theo giai đoạn
+                </span>
+            }
+        >
+            {isEvalLoading ? (
+                <div style={{ textAlign: 'center', padding: '24px' }}><Spin /></div>
+            ) : (
+                <Row gutter={16}>
+                    {PHASE_CONFIG.map((phase, idx) => {
+                        const eval_ = getEvalByPhase(phase.key);
+                        const isDone = !!eval_;
+                        const isNext = !isDone && idx === currentStep;
+                        return (
+                            <Col xs={24} md={8} key={phase.key}>
+                                <div
+                                    style={{
+                                        padding: '16px',
+                                        borderRadius: '12px',
+                                        border: `2px solid ${isDone ? phase.color : isNext ? '#E2E8F0' : '#F1F5F9'}`,
+                                        background: isDone ? phase.bg : '#FAFAFA',
+                                        position: 'relative',
+                                        height: '100%'
+                                    }}
+                                >
+                                    {/* Header */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                        <div>
+                                            <div
+                                                style={{
+                                                    width: 32, height: 32,
+                                                    borderRadius: '8px',
+                                                    background: isDone ? phase.color : '#E2E8F0',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    color: isDone ? '#fff' : '#94A3B8',
+                                                    marginBottom: '8px'
+                                                }}
+                                            >
+                                                {isDone ? <CheckCircleOutlined /> : isNext ? phase.icon : <LockOutlined />}
+                                            </div>
+                                            <Text strong style={{ fontSize: '13px', color: isDone ? phase.color : '#64748B' }}>
+                                                {phase.label}
+                                            </Text>
+                                        </div>
+                                        <Tag color={isDone ? 'success' : isNext ? 'processing' : 'default'}>
+                                            {isDone ? 'Hoàn thành' : isNext ? 'Đang thực hiện' : 'Chưa đến'}
+                                        </Tag>
+                                    </div>
+
+                                    {isDone ? (
+                                        <>
+                                            <Divider style={{ margin: '8px 0' }} />
+                                            <ScoreBar label='Kỹ thuật' score={eval_.technicalScore} />
+                                            <ScoreBar label='Thái độ' score={eval_.attitudeScore} />
+                                            <ScoreBar label='Làm việc nhóm' score={eval_.teamworkScore} />
+                                            {eval_.overallScore != null && (
+                                                <div style={{
+                                                    marginTop: '12px', padding: '8px 12px',
+                                                    background: '#fff', borderRadius: '8px',
+                                                    border: `1px solid ${phase.color}`,
+                                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                                }}>
+                                                    <Text style={{ fontSize: '12px', color: '#64748B' }}>Điểm tổng</Text>
+                                                    <Text strong style={{ fontSize: '18px', color: phase.color }}>
+                                                        {eval_.overallScore}/10
+                                                    </Text>
+                                                </div>
+                                            )}
+                                            {eval_.decision && (
+                                                <Tag
+                                                    color={eval_.decision === 'hire' ? 'success' : eval_.decision === 'extend' ? 'warning' : 'error'}
+                                                    style={{ marginTop: '8px', fontSize: '12px' }}
+                                                >
+                                                    {eval_.decision === 'hire' ? '✓ Đề xuất tuyển dụng'
+                                                        : eval_.decision === 'extend' ? '↻ Gia hạn thực tập'
+                                                            : '✕ Kết thúc chương trình'}
+                                                </Tag>
+                                            )}
+                                            <div style={{ marginTop: '8px', fontSize: '11px', color: '#94A3B8' }}>
+                                                <ClockCircleOutlined /> {eval_.evaluationDate ? new Date(eval_.evaluationDate).toLocaleDateString('vi-VN') : '--'}
+                                                {eval_.mentor?.fullName && ` • ${eval_.mentor.fullName}`}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div style={{ color: '#94A3B8', fontSize: '12px', marginTop: '8px' }}>
+                                            {isNext ? 'Sẵn sàng đánh giá bên dưới' : 'Chưa đến giai đoạn này'}
+                                        </div>
+                                    )}
+                                </div>
+                            </Col>
+                        );
+                    })}
+                </Row>
+            )}
+
+            {/* Timeline tổng quan */}
+            {evaluations.length > 0 && (
+                <>
+                    <Divider orientation='left' style={{ marginTop: '24px' }}>
+                        <Text type='secondary' style={{ fontSize: '12px' }}>Lịch sử đánh giá</Text>
+                    </Divider>
+                    <Timeline
+                        items={evaluations.map((e) => {
+                            const cfg = PHASE_CONFIG.find((p) => p.key === e.type);
+                            return {
+                                color: cfg?.color || 'blue',
+                                children: (
+                                    <div>
+                                        <Tag color='blue' style={{ fontSize: '11px' }}>{cfg?.label || e.type}</Tag>
+                                        <Text style={{ fontSize: '12px', marginLeft: '8px', color: '#64748B' }}>
+                                            {e.evaluationDate ? new Date(e.evaluationDate).toLocaleDateString('vi-VN') : '--'}
+                                        </Text>
+                                        {e.overallScore != null && (
+                                            <Text strong style={{ marginLeft: '8px', color: cfg?.color }}>
+                                                {e.overallScore}/10
+                                            </Text>
+                                        )}
+                                    </div>
+                                )
+                            };
+                        })}
+                    />
+                </>
+            )}
+
+            {evaluations.length === 0 && !isEvalLoading && (
+                <Empty description='Chưa có đánh giá nào' style={{ marginTop: '16px' }} />
+            )}
+        </Card>
+    );
 
     const renderStepContent = () => {
         switch (currentStep) {
@@ -335,13 +534,10 @@ export const MentorEvaluation = () => {
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                             <div
                                                 style={{
-                                                    width: 40,
-                                                    height: 40,
+                                                    width: 40, height: 40,
                                                     background: '#e6f7ff',
                                                     borderRadius: '8px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                     color: '#1E40AF'
                                                 }}
                                             >
@@ -352,56 +548,35 @@ export const MentorEvaluation = () => {
                                                     {t('eval.attitude_soft_skills')}
                                                 </div>
                                                 <div style={{ fontSize: '14px', color: '#64748B' }}>
-                                                    Punctuality, proactiveness, and cultural fit.
+                                                    Đúng giờ, chủ động và hòa nhập văn hóa.
                                                 </div>
                                             </div>
                                         </div>
                                     ),
                                     style: {
-                                        background: '#fff',
-                                        borderRadius: '12px',
-                                        border: '1px solid #E2E8F0',
-                                        overflow: 'hidden',
-                                        marginBottom: '16px'
+                                        background: '#fff', borderRadius: '12px',
+                                        border: '1px solid #E2E8F0', overflow: 'hidden', marginBottom: '16px'
                                     },
                                     children: (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                            <Form.Item
-                                                name='attitudeFinal'
-                                                label={t('eval.punctuality')}
-                                                initialValue={5}
-                                            >
+                                            <Form.Item name='attitudeFinal' label={t('eval.punctuality')} initialValue={5}>
                                                 <Radio.Group buttonStyle='solid'>
                                                     {[1, 2, 3, 4, 5].map((v) => (
-                                                        <Radio.Button key={v} value={v}>
-                                                            {v}
-                                                        </Radio.Button>
+                                                        <Radio.Button key={v} value={v}>{v}</Radio.Button>
                                                     ))}
                                                 </Radio.Group>
                                             </Form.Item>
-                                            <Form.Item
-                                                name='communicationFinal'
-                                                label={t('eval.communication')}
-                                                initialValue={4}
-                                            >
+                                            <Form.Item name='communicationFinal' label={t('eval.communication')} initialValue={4}>
                                                 <Radio.Group buttonStyle='solid'>
                                                     {[1, 2, 3, 4, 5].map((v) => (
-                                                        <Radio.Button key={v} value={v}>
-                                                            {v}
-                                                        </Radio.Button>
+                                                        <Radio.Button key={v} value={v}>{v}</Radio.Button>
                                                     ))}
                                                 </Radio.Group>
                                             </Form.Item>
-                                            <Form.Item
-                                                name='teamworkFinal'
-                                                label={t('eval.team_integration')}
-                                                initialValue={4}
-                                            >
+                                            <Form.Item name='teamworkFinal' label={t('eval.team_integration')} initialValue={4}>
                                                 <Radio.Group buttonStyle='solid'>
                                                     {[1, 2, 3, 4, 5].map((v) => (
-                                                        <Radio.Button key={v} value={v}>
-                                                            {v}
-                                                        </Radio.Button>
+                                                        <Radio.Button key={v} value={v}>{v}</Radio.Button>
                                                     ))}
                                                 </Radio.Group>
                                             </Form.Item>
@@ -414,13 +589,10 @@ export const MentorEvaluation = () => {
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                             <div
                                                 style={{
-                                                    width: 40,
-                                                    height: 40,
+                                                    width: 40, height: 40,
                                                     background: '#1E40AF',
                                                     borderRadius: '8px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                     color: '#fff'
                                                 }}
                                             >
@@ -431,57 +603,31 @@ export const MentorEvaluation = () => {
                                                     {t('eval.technical_proficiency')}
                                                 </div>
                                                 <div style={{ fontSize: '14px', color: '#64748B' }}>
-                                                    Code quality, tool mastery, and problem solving.
+                                                    Chất lượng code, thành thạo công cụ và giải quyết vấn đề.
                                                 </div>
                                             </div>
                                         </div>
                                     ),
                                     style: {
-                                        background: '#fff',
-                                        borderRadius: '12px',
-                                        border: '1px solid #E2E8F0',
-                                        overflow: 'hidden',
-                                        marginBottom: '16px'
+                                        background: '#fff', borderRadius: '12px',
+                                        border: '1px solid #E2E8F0', overflow: 'hidden', marginBottom: '16px'
                                     },
                                     children: (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                                             {[
-                                                {
-                                                    name: 'codeQualityFinal',
-                                                    title: t('eval.code_quality'),
-                                                    desc: t('eval.code_quality_desc')
-                                                },
-                                                {
-                                                    name: 'architectureFinal',
-                                                    title: 'Architecture & Design',
-                                                    desc: 'Ability to understand system design.'
-                                                },
-                                                {
-                                                    name: 'toolingFinal',
-                                                    title: 'Tooling Proficiency',
-                                                    desc: 'Comfort with Git, Docker, etc.'
-                                                }
+                                                { name: 'codeQualityFinal', title: t('eval.code_quality'), desc: t('eval.code_quality_desc') },
+                                                { name: 'architectureFinal', title: 'Kiến trúc & Thiết kế', desc: 'Khả năng hiểu thiết kế hệ thống.' },
+                                                { name: 'toolingFinal', title: 'Thành thạo công cụ', desc: 'Git, Docker, CI/CD, v.v.' }
                                             ].map((item, i) => (
-                                                <div
-                                                    key={i}
-                                                    style={{
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        alignItems: 'flex-start'
-                                                    }}
-                                                >
+                                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                                     <div style={{ maxWidth: '300px' }}>
                                                         <div style={{ fontWeight: 600 }}>{item.title}</div>
-                                                        <div style={{ fontSize: '12px', color: '#64748B' }}>
-                                                            {item.desc}
-                                                        </div>
+                                                        <div style={{ fontSize: '12px', color: '#64748B' }}>{item.desc}</div>
                                                     </div>
                                                     <Form.Item name={item.name} noStyle initialValue={4}>
                                                         <Radio.Group buttonStyle='solid'>
                                                             {[1, 2, 3, 4, 5].map((v) => (
-                                                                <Radio.Button key={v} value={v}>
-                                                                    {v}
-                                                                </Radio.Button>
+                                                                <Radio.Button key={v} value={v}>{v}</Radio.Button>
                                                             ))}
                                                         </Radio.Group>
                                                     </Form.Item>
@@ -504,7 +650,7 @@ export const MentorEvaluation = () => {
                                         name='recommendation'
                                         rules={[{ required: true }]}
                                     >
-                                        <Select placeholder='Select an outcome...'>
+                                        <Select placeholder='Chọn kết quả...'>
                                             <Select.Option value='hire'>{t('eval.ready_projects')}</Select.Option>
                                             <Select.Option value='extend'>{t('eval.extended_training')}</Select.Option>
                                             <Select.Option value='end'>{t('eval.not_meeting')}</Select.Option>
@@ -517,7 +663,7 @@ export const MentorEvaluation = () => {
                                         name='hrNote'
                                         rules={[{ required: true }]}
                                     >
-                                        <TextArea rows={4} placeholder='Add context for your decision...' />
+                                        <TextArea rows={4} placeholder='Thêm ghi chú cho quyết định của bạn...' />
                                     </Form.Item>
                                 </Col>
                             </Row>
@@ -529,18 +675,31 @@ export const MentorEvaluation = () => {
         }
     };
 
+    const completedPhases = evaluations.length;
+    const allDone = completedPhases === 3;
+
     return (
-        <div style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto', paddingBottom: '100px' }}>
+        <div style={{ padding: '24px', maxWidth: '1100px', margin: '0 auto', paddingBottom: '100px' }}>
             <div style={{ marginBottom: '24px' }}>
                 <Breadcrumb
                     items={[
                         { title: t('menu.mentor_portal') },
-                        { title: t('menu.evaluations') },
-                        { title: intern?.user?.fullName || intern?.name || 'Intern' }
+                        {
+                            title: (
+                                <span
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => navigate(RouteConfig.MentorInternList.path)}
+                                >
+                                    {t('menu.evaluations')}
+                                </span>
+                            )
+                        },
+                        { title: intern?.user?.fullName || intern?.name || 'Thực tập sinh' }
                     ]}
                 />
             </div>
 
+            {/* Header card intern */}
             <Card
                 bordered={false}
                 style={{ borderRadius: '12px', marginBottom: '24px', background: '#fff', border: '1px solid #E2E8F0' }}
@@ -561,84 +720,121 @@ export const MentorEvaluation = () => {
                             <Tag color='purple'>{intern?.mentor?.fullName}</Tag>
                         </div>
                     </Col>
-                    <Col style={{ textAlign: 'right' }}>
-                        <Text type='secondary' style={{ fontSize: '12px', display: 'block' }}>
-                            {t('internship.progress').toUpperCase()}
-                        </Text>
-                        <Text strong style={{ fontSize: '20px' }}>
-                            {intern?.overallProgress ?? 0}%
-                        </Text>
-                        <Progress percent={intern?.overallProgress ?? 0} size='small' status='active' style={{ width: '120px' }} />
+                    <Col>
+                        <Row gutter={24}>
+                            <Col>
+                                <Statistic
+                                    title='Tiến độ'
+                                    value={intern?.overallProgress ?? 0}
+                                    suffix='%'
+                                    valueStyle={{ color: '#1E40AF', fontSize: '24px' }}
+                                />
+                                <Progress percent={intern?.overallProgress ?? 0} size='small' status='active' style={{ width: '120px' }} />
+                            </Col>
+                            <Col>
+                                <Statistic
+                                    title='Giai đoạn đã đánh giá'
+                                    value={completedPhases}
+                                    suffix='/ 3'
+                                    valueStyle={{ color: completedPhases === 3 ? '#10B981' : '#F59E0B', fontSize: '24px' }}
+                                />
+                            </Col>
+                        </Row>
                     </Col>
                 </Row>
             </Card>
 
-            <div
-                style={{
-                    marginBottom: '32px',
-                    background: '#fff',
-                    padding: '24px',
-                    borderRadius: '12px',
-                    border: '1px solid #E2E8F0'
-                }}
-            >
-                <Steps
-                    current={currentStep}
-                    onChange={setCurrentStep}
-                    items={[
-                        { title: t('eval.phase1_title'), description: t('task_mgmt.training') },
-                        { title: t('eval.phase2_title'), description: t('task_mgmt.project') },
-                        { title: t('eval.final_title'), description: t('task_mgmt.completed') }
-                    ]}
-                />
-            </div>
+            {/* Tổng hợp đánh giá theo giai đoạn */}
+            {renderPhaseSummary()}
 
-            <Form form={form} layout='vertical' onFinish={onFinish}>
-                {renderStepContent()}
-
-                <div
-                    style={{
-                        position: 'fixed',
-                        bottom: 0,
-                        left: 0,
-                        width: '100%',
-                        padding: '16px 24px',
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(10px)',
-                        borderTop: '1px solid #E2E8F0',
-                        zIndex: 100,
-                        paddingLeft: 280
-                    }}
-                >
+            {/* Form đánh giá mới nếu chưa hoàn tất */}
+            {!allDone ? (
+                <>
                     <div
                         style={{
-                            maxWidth: '1000px',
-                            margin: '0 auto',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
+                            marginBottom: '32px',
+                            background: '#fff',
+                            padding: '24px',
+                            borderRadius: '12px',
+                            border: '1px solid #E2E8F0'
                         }}
                     >
-                        <Button size='large' onClick={() => navigate(RouteConfig.InternList.path)}>
-                            {t('common.back')}
-                        </Button>
-                        <Space>
-                            <Button icon={<SaveOutlined />} onClick={() => message.success(t('eval.draft_saved'))}>
-                                {t('eval.save_draft')}
-                            </Button>
-                            <Button
-                                type='primary'
-                                icon={<SendOutlined />}
-                                size='large'
-                                onClick={() => form.submit()}
-                                loading={isProcessing}
-                            >
-                                {currentStep === 2 ? t('eval.submit_eval') : t('common.save')}
-                            </Button>
-                        </Space>
+                        <Title level={5} style={{ marginBottom: '16px' }}>
+                            Nhập đánh giá – Giai đoạn {currentStep + 1}
+                        </Title>
+                        <Steps
+                            current={currentStep}
+                            onChange={(step) => {
+                                const evalDone = getEvalByPhase(PHASE_CONFIG[step].key);
+                                if (evalDone || step <= completedPhases) setCurrentStep(step);
+                                else message.warning('Vui lòng hoàn thành đánh giá giai đoạn trước.');
+                            }}
+                            items={[
+                                { title: t('eval.phase1_title'), description: t('task_mgmt.training'), icon: completedPhases > 0 ? <CheckCircleOutlined /> : undefined },
+                                { title: t('eval.phase2_title'), description: t('task_mgmt.project'), icon: completedPhases > 1 ? <CheckCircleOutlined /> : undefined },
+                                { title: t('eval.final_title'), description: t('task_mgmt.completed'), icon: completedPhases > 2 ? <TrophyOutlined /> : undefined }
+                            ]}
+                        />
                     </div>
-                </div>
-            </Form>
+
+                    <Form form={form} layout='vertical' onFinish={onFinish}>
+                        {renderStepContent()}
+
+                        <div
+                            style={{
+                                position: 'fixed',
+                                bottom: 0, left: 0,
+                                width: '100%',
+                                padding: '16px 24px',
+                                background: 'rgba(255,255,255,0.9)',
+                                backdropFilter: 'blur(10px)',
+                                borderTop: '1px solid #E2E8F0',
+                                zIndex: 100,
+                                paddingLeft: 280
+                            }}
+                        >
+                            <div
+                                style={{
+                                    maxWidth: '1100px',
+                                    margin: '0 auto',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <Button size='large' onClick={() => navigate(RouteConfig.MentorInternList.path)}>
+                                    {t('common.back')}
+                                </Button>
+                                <Space>
+                                    <Button icon={<SaveOutlined />} onClick={() => message.success(t('eval.draft_saved'))}>
+                                        {t('eval.save_draft')}
+                                    </Button>
+                                    <Button
+                                        type='primary'
+                                        icon={<SendOutlined />}
+                                        size='large'
+                                        onClick={() => form.submit()}
+                                        loading={isProcessing}
+                                    >
+                                        {currentStep === 2 ? t('eval.submit_eval') : t('common.save')}
+                                    </Button>
+                                </Space>
+                            </div>
+                        </div>
+                    </Form>
+                </>
+            ) : (
+                <Card bordered={false} style={{ borderRadius: '12px', border: '1px solid #10B981', background: '#F0FDF4', textAlign: 'center', padding: '32px' }}>
+                    <TrophyOutlined style={{ fontSize: '48px', color: '#10B981', marginBottom: '16px' }} />
+                    <Title level={4} style={{ color: '#059669' }}>Đã hoàn thành toàn bộ 3 giai đoạn đánh giá</Title>
+                    <Text type='secondary'>Tất cả các phiếu đánh giá đã được ghi nhận. Xem tổng hợp bên trên.</Text>
+                    <div style={{ marginTop: '24px' }}>
+                        <Button type='primary' onClick={() => navigate(RouteConfig.MentorInternList.path)}>
+                            Quay lại danh sách thực tập sinh
+                        </Button>
+                    </div>
+                </Card>
+            )}
         </div>
     );
 };
