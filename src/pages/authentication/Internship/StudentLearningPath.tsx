@@ -72,8 +72,8 @@ export const StudentLearningPath = () => {
         const status: ModuleView['status'] = completedModuleSet.has(module.id)
             ? 'Completed'
             : currentModuleId === module.id
-              ? 'In Progress'
-              : 'Locked';
+                ? 'In Progress'
+                : 'Locked';
 
         return {
             ...module,
@@ -264,8 +264,8 @@ export const StudentLearningPath = () => {
                                     String(selectedItem.type) === 'video'
                                         ? 'red'
                                         : String(selectedItem.type) === 'quiz'
-                                          ? 'purple'
-                                          : 'orange'
+                                            ? 'purple'
+                                            : 'orange'
                                 }
                             >
                                 {selectedItem.type.toUpperCase()}
@@ -291,7 +291,7 @@ export const StudentLearningPath = () => {
                                     <Title level={4} style={{ color: '#8c8c8c' }}>
                                         {t('student_learning_path.view_content')}
                                     </Title>
-                                    <Text type='secondary'>Video Player Placeholder</Text>
+                                    <Text type='secondary'>Không gian hiển thị video</Text>
                                 </div>
                             ) : String(selectedItem.type) === 'quiz' ? (
                                 <div style={{ textAlign: 'center' }}>
@@ -311,7 +311,7 @@ export const StudentLearningPath = () => {
                                     <Title level={4} style={{ color: '#8c8c8c' }}>
                                         {t('student_learning_path.view_content')}
                                     </Title>
-                                    <Text type='secondary'>Document Viewer Placeholder</Text>
+                                    <Text type='secondary'>Không gian xem tài liệu</Text>
                                 </div>
                             )}
                         </div>
@@ -331,7 +331,7 @@ export const StudentLearningPath = () => {
                         <Title level={4} style={{ color: '#bfbfbf' }}>
                             {t('student_learning_path.modules')}
                         </Title>
-                        <Text type='secondary'>Select an item from the sidebar to start learning</Text>
+                        <Text type='secondary'>Chọn một mục từ thanh bên để bắt đầu học</Text>
                     </div>
                 )}
             </Content>
@@ -352,7 +352,7 @@ export const StudentLearningPath = () => {
                 {quizResult !== null ? (
                     <Result
                         status={quizResult >= 80 ? 'success' : 'warning'}
-                        title={quizResult >= 80 ? 'Passed!' : 'Try Again'}
+                        title={quizResult >= 80 ? 'Qua!' : 'Thử lại'}
                         subTitle={`${t('student_learning_path.your_score')}: ${quizResult}%`}
                         extra={[
                             <Button type='primary' key='close' onClick={() => setIsQuizModalOpen(false)}>

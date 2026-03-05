@@ -271,10 +271,10 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                         {currentModule === 'recruitment'
                             ? 'Tuyển dụng'
                             : currentModule === 'training'
-                              ? 'Đào tạo'
-                              : currentModule === 'admin'
-                                ? 'Quản trị'
-                                : 'Admin'}
+                                ? 'Đào tạo'
+                                : currentModule === 'admin'
+                                    ? 'Quản trị'
+                                    : 'Admin'}
                     </span>
                 )}
                 <div style={{ marginLeft: 'auto', paddingRight: collapsed ? 0 : '12px' }}>
@@ -340,7 +340,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                                     textOverflow: 'ellipsis'
                                 }}
                             >
-                                Admin User
+                                Quản trị viên
                             </Text>
                             <Text type='secondary' style={{ fontSize: '12px' }}>
                                 admin@example.com

@@ -99,7 +99,7 @@ export const CVDetail = () => {
     if (!candidate) {
         return (
             <div style={{ padding: '100px' }}>
-                <Empty description='Candidate not found' />
+                <Empty description='Không tìm thấy ứng viên' />
             </div>
         );
     }
@@ -177,26 +177,26 @@ export const CVDetail = () => {
                                         status === 'passed_interview'
                                             ? 'success'
                                             : status === 'shortlisted' || status === 'interview_scheduled'
-                                              ? 'processing'
-                                              : status === 'rejected'
-                                                ? 'error'
-                                                : status === 'converted_to_intern'
-                                                  ? 'purple'
-                                                  : 'warning'
+                                                ? 'processing'
+                                                : status === 'rejected'
+                                                    ? 'error'
+                                                    : status === 'converted_to_intern'
+                                                        ? 'purple'
+                                                        : 'warning'
                                     }
                                     style={{ fontSize: '14px', padding: '4px 12px' }}
                                 >
                                     {status === 'passed_interview'
                                         ? t('candidate.passed_interview')
                                         : status === 'interview_scheduled'
-                                          ? t('candidate.interview_scheduled')
-                                          : status === 'shortlisted'
-                                            ? t('candidate.shortlisted')
-                                            : status === 'rejected'
-                                              ? t('candidate.rejected')
-                                              : status === 'converted_to_intern'
-                                                ? t('candidate.converted_to_intern')
-                                                : t('candidate.pending_review')}
+                                            ? t('candidate.interview_scheduled')
+                                            : status === 'shortlisted'
+                                                ? t('candidate.shortlisted')
+                                                : status === 'rejected'
+                                                    ? t('candidate.rejected')
+                                                    : status === 'converted_to_intern'
+                                                        ? t('candidate.converted_to_intern')
+                                                        : t('candidate.pending_review')}
                                 </Tag>
                             </div>
                             <Space>
@@ -280,7 +280,7 @@ export const CVDetail = () => {
 
                             <Title level={5}>{t('candidate.cover_letter')}</Title>
                             <Paragraph style={{ color: '#64748B' }}>
-                                {candidate.coverLetter || 'No cover letter provided.'}
+                                {candidate.coverLetter || 'Chưa có thư giới thiệu.'}
                             </Paragraph>
 
                             <Divider />
@@ -351,7 +351,7 @@ export const CVDetail = () => {
                                                 <br />
                                                 <Text type='secondary' style={{ fontSize: '12px' }}>
                                                     {status === 'Shortlisted'
-                                                        ? `${t('candidate.just_now')} - by HR`
+                                                        ? `${t('candidate.just_now')} - bởi HR`
                                                         : t('learning_path.draft')}
                                                 </Text>
                                             </>
@@ -374,8 +374,8 @@ export const CVDetail = () => {
                                 itemLayout='horizontal'
                                 dataSource={[
                                     {
-                                        user: 'System',
-                                        text: `Match score calculated: ${candidate.matchScore}% based on keywords.`,
+                                        user: 'Hệ thống',
+                                        text: `Điểm phù hợp được tính toán: ${candidate.matchScore}% dựa trên từ khóa.`,
                                         time: candidate.timeAgo
                                     }
                                 ]}

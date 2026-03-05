@@ -68,7 +68,7 @@ export const MentorEvalFinal = () => {
     }, [id]);
 
     useEffect(() => {
-        getProfile().then((res) => setMentorProfile(res)).catch(() => {});
+        getProfile().then((res) => setMentorProfile(res)).catch(() => { });
     }, []);
 
     const onFinish = async (values: any) => {
@@ -138,12 +138,12 @@ export const MentorEvalFinal = () => {
                     }}
                 >
                     <span style={{ cursor: 'pointer' }} onClick={() => navigate(RouteConfig.InternList.path)}>
-                        Interns
+                        Thực tập sinh
                     </span>
                     <RightOutlined style={{ fontSize: '10px' }} />
-                    <span style={{ cursor: 'pointer' }}>Evaluations</span>
+                    <span style={{ cursor: 'pointer' }}>Đánh giá</span>
                     <RightOutlined style={{ fontSize: '10px' }} />
-                    <span style={{ color: '#1E40AF', fontWeight: 600 }}>Final Assessment</span>
+                    <span style={{ color: '#1E40AF', fontWeight: 600 }}>Đánh giá cuối kỳ</span>
                 </div>
 
                 <Card
@@ -195,7 +195,7 @@ export const MentorEvalFinal = () => {
                                     }}
                                 >
                                     <span>
-                                        <IdcardOutlined /> {intern?.track} Intern
+                                        <IdcardOutlined /> {intern?.track} Thực tập sinh
                                     </span>
                                     <span>•</span>
                                     <span>
@@ -203,7 +203,7 @@ export const MentorEvalFinal = () => {
                                     </span>
                                 </div>
                                 <Tag color='blue' style={{ borderRadius: '12px' }}>
-                                    Engineering Dept
+                                    Phòng kỹ thuật
                                 </Tag>
                             </div>
                         </div>
@@ -218,10 +218,10 @@ export const MentorEvalFinal = () => {
                                     display: 'block'
                                 }}
                             >
-                                Overall Progress
+                                Tiến độ tổng thể
                             </Text>
                             <Text strong style={{ fontSize: '18px' }}>
-                                {intern?.overallProgress ?? 0}% Completed
+                                {intern?.overallProgress ?? 0}% Hoàn thành
                             </Text>
                             <Progress percent={intern?.overallProgress ?? 0} size='small' status='active' />
                         </div>
@@ -255,7 +255,7 @@ export const MentorEvalFinal = () => {
                                         type='secondary'
                                         style={{ fontSize: '12px', textTransform: 'uppercase', fontWeight: 600 }}
                                     >
-                                        Mid-term Score
+                                        Điểm giữa kỳ
                                     </Text>
                                     <CheckCircleOutlined style={{ color: '#10B981' }} />
                                 </div>
@@ -264,7 +264,7 @@ export const MentorEvalFinal = () => {
                                     <span style={{ fontSize: '18px', color: '#9ca3af' }}>/10</span>
                                 </div>
                                 <Text type='success' style={{ fontWeight: 500 }}>
-                                    <LineChartOutlined /> On Track
+                                    <LineChartOutlined /> Đúng tiến độ
                                 </Text>
                             </div>
                         </Card>
@@ -295,7 +295,7 @@ export const MentorEvalFinal = () => {
                                         type='secondary'
                                         style={{ fontSize: '12px', textTransform: 'uppercase', fontWeight: 600 }}
                                     >
-                                        Project Phase
+                                        Giai đoạn dự án
                                     </Text>
                                     <CheckCircleOutlined style={{ color: '#10B981' }} />
                                 </div>
@@ -304,7 +304,7 @@ export const MentorEvalFinal = () => {
                                     <span style={{ fontSize: '18px', color: '#9ca3af' }}>/10</span>
                                 </div>
                                 <Text type='success' style={{ fontWeight: 500 }}>
-                                    <TrophyOutlined /> Exceeds Expectations
+                                    <TrophyOutlined /> Vượt kỳ vọng
                                 </Text>
                             </div>
                         </Card>
@@ -320,9 +320,9 @@ export const MentorEvalFinal = () => {
                     }}
                 >
                     <Title level={3} style={{ margin: 0 }}>
-                        Final Assessment Form
+                        Mẫu đánh giá cuối kỳ
                     </Title>
-                    <Tag style={{ borderRadius: '12px', padding: '4px 12px' }}>Draft saved recently</Tag>
+                    <Tag style={{ borderRadius: '12px', padding: '4px 12px' }}>Bản nhiớm đã lưu gần đây</Tag>
                 </div>
 
                 <Form
@@ -364,10 +364,10 @@ export const MentorEvalFinal = () => {
                                             </div>
                                             <div>
                                                 <div style={{ fontWeight: 600, fontSize: '16px' }}>
-                                                    Attitude & Soft Skills
+                                                    Thái độ & Kỹ năng mềm
                                                 </div>
                                                 <div style={{ fontSize: '14px', color: '#64748B' }}>
-                                                    Punctuality, proactiveness, and cultural fit.
+                                                    Sự đúng giờ, chủ động và văn hóa làm việc.
                                                 </div>
                                             </div>
                                         </div>
@@ -381,7 +381,7 @@ export const MentorEvalFinal = () => {
                                     },
                                     children: (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                            <Form.Item name='attitude' label='Attitude & Proactiveness'>
+                                            <Form.Item name='attitude' label='Thái độ & Tính chủ động'>
                                                 <Radio.Group buttonStyle='solid'>
                                                     {[1, 2, 3, 4, 5].map((v) => (
                                                         <Radio.Button key={v} value={v}>
@@ -390,7 +390,7 @@ export const MentorEvalFinal = () => {
                                                     ))}
                                                 </Radio.Group>
                                             </Form.Item>
-                                            <Form.Item name='communication' label='Communication'>
+                                            <Form.Item name='communication' label='Kỹ năng giao tiếp'>
                                                 <Radio.Group buttonStyle='solid'>
                                                     {[1, 2, 3, 4, 5].map((v) => (
                                                         <Radio.Button key={v} value={v}>
@@ -399,7 +399,7 @@ export const MentorEvalFinal = () => {
                                                     ))}
                                                 </Radio.Group>
                                             </Form.Item>
-                                            <Form.Item name='teamwork' label='Teamwork & Collaboration'>
+                                            <Form.Item name='teamwork' label='Làm việc nhóm & Hợp tác'>
                                                 <Radio.Group buttonStyle='solid'>
                                                     {[1, 2, 3, 4, 5].map((v) => (
                                                         <Radio.Button key={v} value={v}>
@@ -431,10 +431,10 @@ export const MentorEvalFinal = () => {
                                             </div>
                                             <div>
                                                 <div style={{ fontWeight: 600, fontSize: '16px' }}>
-                                                    Technical Proficiency
+                                                    Năng lực kỹ thuật
                                                 </div>
                                                 <div style={{ fontSize: '14px', color: '#64748B' }}>
-                                                    Code quality, tool mastery, and problem solving.
+                                                    Chất lượng mã, thành thạo công cụ và giải quyết vấn đề.
                                                 </div>
                                             </div>
                                         </div>
@@ -458,18 +458,18 @@ export const MentorEvalFinal = () => {
                                             {[
                                                 {
                                                     name: 'codeQuality',
-                                                    title: 'Code Quality & Standards',
-                                                    desc: 'Adherence to style guides, readability, and commenting practices.'
+                                                    title: 'Chất lượng mã & Tiêu chuẩn',
+                                                    desc: 'Tuân thủ quy tắc viết code, dễ đọc và comment rõ ràng.'
                                                 },
                                                 {
                                                     name: 'architecture',
-                                                    title: 'Architecture & Design',
-                                                    desc: 'Ability to understand system design and contribute to architectural decisions.'
+                                                    title: 'Kiến trúc & Thiết kế',
+                                                    desc: 'Khả năng hiểu thiết kế hệ thống và đóng góp vào quyết định kiến trúc.'
                                                 },
                                                 {
                                                     name: 'tooling',
-                                                    title: 'Tooling Proficiency',
-                                                    desc: 'Comfort with Git, Docker, CI/CD pipelines and IDEs.'
+                                                    title: 'Thành thạo công cụ',
+                                                    desc: 'Sử dụng thành thạo Git, Docker, CI/CD và IDE.'
                                                 }
                                             ].map((item, i) => (
                                                 <div
@@ -537,10 +537,10 @@ export const MentorEvalFinal = () => {
                             <TrophyOutlined style={{ fontSize: '32px', color: '#1E40AF' }} />
                             <div>
                                 <Title level={4} style={{ margin: 0 }}>
-                                    Final Recommendation
+                                    Đề xuất cuối cùng
                                 </Title>
                                 <Text type='secondary'>
-                                    This decision will be forwarded to the HR department for final processing.
+                                    Quyết định này sẽ được chuyển tới bộ phận HR để xử lý.
                                 </Text>
                             </div>
                         </div>
@@ -548,27 +548,27 @@ export const MentorEvalFinal = () => {
                         <Row gutter={32}>
                             <Col span={12}>
                                 <Form.Item
-                                    label={<Text strong>Recommendation Action</Text>}
+                                    label={<Text strong>Quyết định đề xuất</Text>}
                                     name='recommendation'
                                     rules={[{ required: true }]}
                                 >
-                                    <Select placeholder='Select an outcome...' style={{ width: '100%' }} size='large'>
-                                        <Select.Option value='hire'>Hire Full-time</Select.Option>
-                                        <Select.Option value='extend'>Extend Internship (3 Months)</Select.Option>
-                                        <Select.Option value='end'>End Program</Select.Option>
+                                    <Select placeholder='Chọn kết quả...' style={{ width: '100%' }} size='large'>
+                                        <Select.Option value='hire'>Tuyển chính thức</Select.Option>
+                                        <Select.Option value='extend'>Gia hạn thực tập (3 tháng)</Select.Option>
+                                        <Select.Option value='end'>Kết thúc chương trình</Select.Option>
                                     </Select>
                                 </Form.Item>
                                 <Text type='secondary' style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                                    Please consult with the Department Head before selecting "Hire Full-time".
+                                    Vui lòng tham khảo với Trưởng phòng trước khi chọn "Tuyển chính thức".
                                 </Text>
                             </Col>
                             <Col span={12}>
                                 <Form.Item
-                                    label={<Text strong>Confidential Note for HR</Text>}
+                                    label={<Text strong>Ghi chú bảo mật cho HR</Text>}
                                     name='hrNote'
                                     rules={[{ required: true }]}
                                 >
-                                    <TextArea rows={4} placeholder='Add context for your decision...' />
+                                    <TextArea rows={4} placeholder='Thêm nhận xét về quyết định của bạn...' />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -611,8 +611,8 @@ export const MentorEvalFinal = () => {
                                 </div>
                             </div>
                             <Space>
-                                <Button icon={<SaveOutlined />} onClick={() => message.success('Draft saved!')}>
-                                    Save Draft
+                                <Button icon={<SaveOutlined />} onClick={() => message.success('Bản nhiớm đã được lưu!')}>
+                                    Lưu bản nhiớm
                                 </Button>
                                 <Button
                                     type='primary'
@@ -621,7 +621,7 @@ export const MentorEvalFinal = () => {
                                     onClick={() => form.submit()}
                                     loading={isProcessing}
                                 >
-                                    Submit Evaluation
+                                    Gửi đánh giá
                                 </Button>
                             </Space>
                         </div>

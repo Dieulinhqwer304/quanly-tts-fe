@@ -28,10 +28,10 @@ export default function SettingPage() {
             <Content style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
                 <div style={{ marginBottom: '24px' }}>
                     <Title level={2} style={{ margin: 0 }}>
-                        System Configuration
+                        Cấu hình hệ thống
                     </Title>
                     <Text type='secondary'>
-                        Manage global settings, communication templates, and organizational structure.
+                        Quản lý cài đặt toàn cục, mẫu giao tiếp và cơ cấu tổ chức.
                     </Text>
                 </div>
 
@@ -43,7 +43,7 @@ export default function SettingPage() {
                             key: '1',
                             label: (
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <FileTextOutlined /> Email Templates
+                                    <FileTextOutlined /> Mẫu email
                                 </span>
                             ),
                             children: (
@@ -73,30 +73,29 @@ export default function SettingPage() {
                                                     dataSource={[
                                                         {
                                                             id: 1,
-                                                            title: 'Interview Invite',
-                                                            subject:
-                                                                'Subject: Invitation to Interview with [Company Name]',
+                                                            title: 'Thư mời phỏng vấn',
+                                                            subject: 'Chủ đề: Mời tham gia phỏng vấn tại [Tên công ty]',
                                                             color: 'green',
                                                             active: true
                                                         },
                                                         {
                                                             id: 2,
-                                                            title: 'Offer Letter',
-                                                            subject: 'Subject: Internship Offer - Welcome Aboard!',
+                                                            title: 'Thư chào mừng',
+                                                            subject: 'Chủ đề: Đề nghị thực tập - Chào mừng!',
                                                             color: 'green',
                                                             active: false
                                                         },
                                                         {
                                                             id: 3,
-                                                            title: 'Rejection Email',
-                                                            subject: 'Subject: Update on your application',
+                                                            title: 'Email từ chối',
+                                                            subject: 'Chủ đề: Thông tin về đơn ứng tuyển của bạn',
                                                             color: 'default',
                                                             active: false
                                                         },
                                                         {
                                                             id: 4,
-                                                            title: 'Onboarding Welcome',
-                                                            subject: 'Subject: First day instructions and access',
+                                                            title: 'Hướng dẫn nhận việc',
+                                                            subject: 'Chủ đề: Hướng dẫn ngày đầu và quyền truy cập',
                                                             color: 'default',
                                                             active: false
                                                         }
@@ -160,7 +159,7 @@ export default function SettingPage() {
                                             </div>
                                             <div style={{ padding: '12px', borderTop: '1px solid #E2E8F0' }}>
                                                 <Button type='dashed' block icon={<PlusOutlined />}>
-                                                    New Template
+                                                    Mẫu mới
                                                 </Button>
                                             </div>
                                         </Card>
@@ -192,10 +191,10 @@ export default function SettingPage() {
                                                     }}
                                                 >
                                                     <Title level={4} style={{ margin: 0 }}>
-                                                        Edit Template
+                                                        Chỉnh sửa mẫu
                                                     </Title>
                                                     <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                        <ClockCircleOutlined /> Last edited: Today, 10:23 AM
+                                                        <ClockCircleOutlined /> Chỉnh sửa lần cuối: Hôm nay, 10:23 SA
                                                     </Text>
                                                 </div>
                                                 <div>
@@ -207,10 +206,10 @@ export default function SettingPage() {
                                                             color: '#64748B'
                                                         }}
                                                     >
-                                                        Subject Line
+                                                        Tiêu đề email
                                                     </Text>
                                                     <Input
-                                                        defaultValue='Invitation to Interview - {{position_name}}'
+                                                        defaultValue='Mời phỏng vấn - {{position_name}}'
                                                         style={{ marginTop: '8px' }}
                                                     />
                                                 </div>
@@ -234,31 +233,30 @@ export default function SettingPage() {
                                                 <Button type='text' icon={<OrderedListOutlined />} size='small' />
                                                 <Divider type='vertical' />
                                                 <Button size='small' icon={<CodeOutlined />}>
-                                                    Insert Variable
+                                                    Chèn biến
                                                 </Button>
                                             </div>
 
                                             <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
                                                 <Paragraph>
-                                                    Dear <Tag>{'{candidate_name}'}</Tag>,
+                                                    Kính gửi <Tag>{'{candidate_name}'}</Tag>,
                                                 </Paragraph>
                                                 <Paragraph>
-                                                    Thank you for applying to the <Tag>{'{position_name}'}</Tag>{' '}
-                                                    position at InternshipOS. We were impressed by your background and
-                                                    would like to invite you to an interview.
+                                                    Cảm ơn bạn đã ứng tuyển vị trí <Tag>{'{position_name}'}</Tag>{' '}
+                                                    tại InternshipOS. Chúng tôi ấn tượng với hồ sơ của bạn và muốn mời bạn tham gia phỏng vấn.
                                                 </Paragraph>
                                                 <Paragraph>
-                                                    The interview will be conducted by <Tag>{'{interviewer_name}'}</Tag>{' '}
-                                                    and is scheduled to last approximately 45 minutes.
+                                                    Buổi phỏng vấn sẽ do <Tag>{'{interviewer_name}'}</Tag>{' '}
+                                                    thực hiện và dự kiến kéo dài khoảng 45 phút.
                                                 </Paragraph>
                                                 <Paragraph>
-                                                    Please use the following link to select a time that works best for
-                                                    you: <a href='#'>Schedule Interview</a>
+                                                    Vui lòng sử dụng đường dẫn sau để chọn thời gian phù hợp với bạn:{' '}
+                                                    <a href='#'>Đặt lịch phỏng vấn</a>
                                                 </Paragraph>
                                                 <Paragraph>
-                                                    Best regards,
+                                                    Trân trọng,
                                                     <br />
-                                                    Recruitment Team
+                                                    Bộ phẫn Tuyển dụng
                                                 </Paragraph>
                                             </div>
 
@@ -271,11 +269,11 @@ export default function SettingPage() {
                                                     justifyContent: 'space-between'
                                                 }}
                                             >
-                                                <Button>Send Test Email</Button>
+                                                <Button>Gửi email thử</Button>
                                                 <Space>
-                                                    <Button>Discard Changes</Button>
+                                                    <Button>Hủy thay đổi</Button>
                                                     <Button type='primary' icon={<SaveOutlined />}>
-                                                        Save Template
+                                                        Lưu mẫu
                                                     </Button>
                                                 </Space>
                                             </div>
@@ -288,12 +286,12 @@ export default function SettingPage() {
                             key: '2',
                             label: (
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <SettingOutlined /> Departments
+                                    <SettingOutlined /> Phòng ban
                                 </span>
                             ),
                             children: (
                                 <div style={{ padding: '24px', textAlign: 'center', color: '#8c8c8c' }}>
-                                    Department settings content placeholder
+                                    Nội dung cấu hình phòng ban
                                 </div>
                             )
                         },
@@ -301,12 +299,12 @@ export default function SettingPage() {
                             key: '3',
                             label: (
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <TeamOutlined /> User Roles
+                                    <TeamOutlined /> Vai trò người dùng
                                 </span>
                             ),
                             children: (
                                 <div style={{ padding: '24px', textAlign: 'center', color: '#8c8c8c' }}>
-                                    User role management content placeholder
+                                    Nội dung quản lý vai trò người dùng
                                 </div>
                             )
                         }

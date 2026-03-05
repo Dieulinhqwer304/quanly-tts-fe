@@ -54,7 +54,7 @@ const StatCard = ({ title, value, prefix, color, trend, loading }: any) => (
         </div>
         <div style={{ marginTop: '16px' }}>
             <Text type='secondary' style={{ fontSize: '12px' }}>
-                Compared to last month
+                So sánh với tháng trước
             </Text>
         </div>
     </Card>
@@ -114,10 +114,10 @@ export const DashboardPage = () => {
             <Row gutter={[24, 24]}>
                 <Col xs={24} lg={16}>
                     <Card
-                        title='Welcome to Base Admin Dashboard'
+                        title='Giới thiệu nền tảng'
                         bordered={false}
                         extra={
-                            <Dropdown menu={{ items: [{ key: '1', label: 'Action 1' }] }}>
+                            <Dropdown menu={{ items: [{ key: '1', label: 'Xem chi tiết' }] }}>
                                 <Button type='text' icon={<MoreOutlined />} />
                             </Dropdown>
                         }
@@ -213,10 +213,10 @@ export const DashboardPage = () => {
                                     </div>
                                     <div>
                                         <Text strong style={{ display: 'block' }}>
-                                            User #{item} updated profile
+                                            Người dùng #{item} cập nhật hồ sơ
                                         </Text>
                                         <Text type='secondary' style={{ fontSize: '12px' }}>
-                                            2 hours ago
+                                            2 giờ trước
                                         </Text>
                                     </div>
                                 </div>
