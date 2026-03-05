@@ -153,12 +153,12 @@ export const InternList = () => {
 
                 <Table
                     scroll={{ x: 'max-content' }}
-                    columns={[
+                    columns={([
                         {
                             title: t('internship.intern_info'),
                             dataIndex: 'user',
                             key: 'user',
-                            render: (user, record: any) => (
+                            render: (user: any, record: any) => (
                                 <Space size='middle'>
                                     <Avatar size={40} src={user?.avatarUrl} icon={<UserOutlined />} />
                                     <div>
@@ -172,30 +172,24 @@ export const InternList = () => {
                                 </Space>
                             )
                         },
-                        {
+                        !isTrainingModule ? {
                             title: t('internship.contact'),
                             key: 'contact',
-                            render: (_, record: any) => (
+                            render: (_: any, record: any) => (
                                 <div>
-                                    <div
-                                        style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}
-                                    >
-                                        <MailOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} />{' '}
-                                        {record.user?.email}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
+                                        <MailOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} /> {record.user?.email}
                                     </div>
-                                    <div
-                                        style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}
-                                    >
-                                        <PhoneOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} />{' '}
-                                        {record.user?.phone}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
+                                        <PhoneOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} /> {record.user?.phone}
                                     </div>
                                 </div>
                             )
-                        },
+                        } : null,
                         {
                             title: t('internship.track_mentor'),
                             key: 'track',
-                            render: (_, record: any) => (
+                            render: (_: any, record: any) => (
                                 <div>
                                     <Tag color='purple'>{record.track}</Tag>
                                     <div style={{ marginTop: '4px', fontSize: '12px' }}>
@@ -205,10 +199,10 @@ export const InternList = () => {
                                 </div>
                             )
                         },
-                        {
+                        !isTrainingModule ? {
                             title: t('internship.duration'),
                             key: 'duration',
-                            render: (_, record: any) => (
+                            render: (_: any, record: any) => (
                                 <div style={{ fontSize: '13px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                         <CalendarOutlined style={{ color: '#8c8c8c' }} /> {record.startDate}
@@ -218,62 +212,99 @@ export const InternList = () => {
                                     </Text>
                                 </div>
                             )
-                        },
+                        } : null,
+                        isTrainingModule ? {
+                            title: 'GĐ 1 (Thử việc)',
+                            key: 'eval_phase1',
+                            render: (_: any, record: any) => {
+                                const e = record.evaluations?.find((x: any) => x.type === 'Probation');
+                                if (e) {
+                                    return (
+                                        <div onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))} style={{ cursor: 'pointer' }}>
+                                            <Text strong style={{ color: '#1E40AF' }}>{e.overallScore}/10</Text><br />
+                                            <Text type='secondary' style={{ fontSize: '11px' }}>{new Date(e.evaluationDate).toLocaleDateString('vi-VN')}</Text>
+                                        </div>
+                                    );
+                                }
+                                return <Button size='small' type='dashed' onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}>Đánh giá</Button>;
+                            }
+                        } : null,
+                        isTrainingModule ? {
+                            title: 'GĐ 2 (Dự án)',
+                            key: 'eval_phase2',
+                            render: (_: any, record: any) => {
+                                const e = record.evaluations?.find((x: any) => x.type === 'Mid-term');
+                                if (e) {
+                                    return (
+                                        <div onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))} style={{ cursor: 'pointer' }}>
+                                            <Text strong style={{ color: '#059669' }}>{e.overallScore}/10</Text><br />
+                                            <Text type='secondary' style={{ fontSize: '11px' }}>{new Date(e.evaluationDate).toLocaleDateString('vi-VN')}</Text>
+                                        </div>
+                                    );
+                                }
+                                return <Button size='small' type='dashed' onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}>Đánh giá</Button>;
+                            }
+                        } : null,
+                        isTrainingModule ? {
+                            title: 'GĐ Cuối',
+                            key: 'eval_final',
+                            render: (_: any, record: any) => {
+                                const e = record.evaluations?.find((x: any) => x.type === 'Final');
+                                if (e) {
+                                    return (
+                                        <div onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))} style={{ cursor: 'pointer' }}>
+                                            <Text strong style={{ color: '#D97706' }}>{e.overallScore}/10</Text><br />
+                                            <Text type='secondary' style={{ fontSize: '11px' }}>{new Date(e.evaluationDate).toLocaleDateString('vi-VN')}</Text>
+                                        </div>
+                                    );
+                                }
+                                return <Button size='small' type='dashed' onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}>Đánh giá</Button>;
+                            }
+                        } : null,
                         {
                             title: t('internship.progress'),
                             dataIndex: 'overallProgress',
                             key: 'progress',
-                            width: 180,
-                            render: (progress) => (
+                            width: 140,
+                            render: (progress: number) => (
                                 <div style={{ width: '100%' }}>
                                     <Progress percent={progress} size='small' strokeColor='#1E40AF' />
                                 </div>
                             )
                         },
-                        {
+                        !isTrainingModule ? {
                             title: t('common.status'),
                             dataIndex: 'status',
                             key: 'status',
-                            render: (status) => {
-                                let color = 'processing' as any;
+                            render: (status: string) => {
+                                let color = 'processing';
                                 let label = status;
-                                if (status === 'active') {
-                                    color = 'processing';
-                                    label = t('internship.active');
-                                } else if (status === 'completed') {
-                                    color = 'success';
-                                    label = t('internship.completed');
-                                } else if (status === 'terminated') {
-                                    color = 'error';
-                                    label = t('internship.dropped');
-                                } else if (status === 'on_hold') {
-                                    color = 'warning';
-                                    label = t('internship.on_hold');
-                                }
-                                return (
-                                    <Tag color={color} style={{ borderRadius: '10px' }}>
-                                        {label}
-                                    </Tag>
-                                );
+                                if (status === 'active') { color = 'processing'; label = t('internship.active'); }
+                                else if (status === 'completed') { color = 'success'; label = t('internship.completed'); }
+                                else if (status === 'terminated') { color = 'error'; label = t('internship.dropped'); }
+                                else if (status === 'on_hold') { color = 'warning'; label = t('internship.on_hold'); }
+                                return <Tag color={color} style={{ borderRadius: '10px' }}>{label}</Tag>;
                             }
-                        },
+                        } : null,
                         {
                             title: t('common.actions'),
                             key: 'action',
                             width: 100,
                             fixed: 'right',
-                            render: (_, record: any) => (
+                            render: (_: any, record: any) => (
                                 <Space>
                                     <Tooltip title={t('common.view')}>
                                         <Button type='text' icon={<EyeOutlined />} onClick={() => handleView(record)} />
                                     </Tooltip>
-                                    <Tooltip title={t('menu.evaluations')}>
-                                        <Button
-                                            type='text'
-                                            icon={<StarOutlined style={{ color: '#F59E0B' }} />}
-                                            onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}
-                                        />
-                                    </Tooltip>
+                                    {!isTrainingModule && (
+                                        <Tooltip title={t('menu.evaluations')}>
+                                            <Button
+                                                type='text'
+                                                icon={<StarOutlined style={{ color: '#F59E0B' }} />}
+                                                onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}
+                                            />
+                                        </Tooltip>
+                                    )}
                                     <Tooltip title={t('common.edit')}>
                                         <Button
                                             type='text'
@@ -284,7 +315,7 @@ export const InternList = () => {
                                 </Space>
                             )
                         }
-                    ]}
+                    ].filter(Boolean) as any[])}
                     dataSource={dataSource}
                     loading={isLoading}
                     pagination={{

@@ -206,7 +206,6 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
         if (path.includes('/recruitment/onboarding')) return ['rec-onboarding'];
         if (path.includes('/recruitment/interns')) return ['rec-interns'];
 
-        if (path.includes('/training/mentor/requests')) return ['mentor', 'mentor-req'];
         if (path.includes('/training/mentor/learning-paths')) return ['mentor', 'mentor-path'];
         if (path.includes('/training/mentor/interns')) return ['mentor', 'mentor-eval'];
         if (path.includes('/training/mentor/evaluations')) return ['mentor', 'mentor-eval'];
