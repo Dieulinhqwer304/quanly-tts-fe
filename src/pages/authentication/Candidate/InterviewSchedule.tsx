@@ -46,45 +46,45 @@ export const InterviewSchedule = () => {
     const [searchText, setSearchText] = useState('');
     const [isEditing, setIsEditing] = useState(false);
     const [emailHtml, setEmailHtml] = useState<string>(`
-        <p>Dear {Candidate_Name},</p>
-        <p>Thank you so much for your interest in the <strong>{Role}</strong> position at <strong>SV Technologies JSC</strong> and welcome you to become members of our family!</p>
-        <p>We would like to send you the <strong>Offer for Trainee Period</strong> in detail:</p>
+        <p>Kính gửi {Candidate_Name},</p>
+        <p>Cảm ơn bạn đã quan tâm đến vị trí <strong>{Role}</strong> tại <strong>SV Technologies JSC</strong> và chào mừng bạn gia nhập gia đình chúng tôi!</p>
+        <p>Chúng tôi xin gửi bạn <strong>Thư mời Thực tập</strong> chi tiết như sau:</p>
         <div style="background: #F8FAFC; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #E2E8F0;">
-            <p style="margin-bottom: 8px;">1. Position: <strong>{Role}</strong></p>
-            <p style="margin-bottom: 8px;">2. Department: <strong>DnA</strong></p>
-            <p style="margin-bottom: 8px;">3. Report to: <strong>Ms. Duong Thi Thuy Hong</strong></p>
+            <p style="margin-bottom: 8px;">1. Vị trí: <strong>{Role}</strong></p>
+            <p style="margin-bottom: 8px;">2. Phòng ban: <strong>DnA</strong></p>
+            <p style="margin-bottom: 8px;">3. Báo cáo tới: <strong>Bà Dương Thị Thùy Hồng</strong></p>
             <div style="margin-top: 16px;">
-                <p>4. Apprenticeship period:</p>
-                <p style="padding-left: 20px; margin-top: 8px;">Start date: <strong>{Start_Date}</strong></p>
-                <p style="padding-left: 20px;">Working time: <strong>Part-time. From Monday to Friday, and the first Saturday of the month.</strong></p>
+                <p>4. Thời gian thực tập:</p>
+                <p style="padding-left: 20px; margin-top: 8px;">Ngày bắt đầu: <strong>{Start_Date}</strong></p>
+                <p style="padding-left: 20px;">Lịch làm việc: <strong>Bán thời gian. Từ Thứ Hai đến Thứ Sáu và Thứ Bảy đầu tiên của tháng.</strong></p>
             </div>
         </div>
-        <p>Please have a look and give us feedback as soon as possible.</p>
-        <p>If you have any questions, please contact me via the information below.</p>
+        <p>Vui lòng xem xét và phản hồi cho chúng tôi sớm nhất có thể.</p>
+        <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi qua thông tin bên dưới.</p>
         <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 24px 0 16px;">
-        <p style="color: #8c8c8c;">Best regards,</p>
-        <p><strong>SV Technologies Recruitment Team</strong></p>
+        <p style="color: #8c8c8c;">Trân trọng,</p>
+        <p><strong>Nhóm Tuyển dụng SV Technologies</strong></p>
     `);
 
     const defaultTemplate = `
-        <p>Dear {Candidate_Name},</p>
-        <p>Thank you so much for your interest in the <strong>{Role}</strong> position at <strong>SV Technologies JSC</strong> and welcome you to become members of our family!</p>
-        <p>We would like to send you the <strong>Offer for Trainee Period</strong> in detail:</p>
+        <p>Kính gửi {Candidate_Name},</p>
+        <p>Cảm ơn bạn đã quan tâm đến vị trí <strong>{Role}</strong> tại <strong>SV Technologies JSC</strong> và chào mừng bạn gia nhập gia đình chúng tôi!</p>
+        <p>Chúng tôi xin gửi bạn <strong>Thư mời Thực tập</strong> chi tiết như sau:</p>
         <div style="background: #F8FAFC; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #E2E8F0;">
-            <p style="margin-bottom: 8px;">1. Position: <strong>{Role}</strong></p>
-            <p style="margin-bottom: 8px;">2. Department: <strong>DnA</strong></p>
-            <p style="margin-bottom: 8px;">3. Report to: <strong>Ms. Duong Thi Thuy Hong</strong></p>
+            <p style="margin-bottom: 8px;">1. Vị trí: <strong>{Role}</strong></p>
+            <p style="margin-bottom: 8px;">2. Phòng ban: <strong>DnA</strong></p>
+            <p style="margin-bottom: 8px;">3. Báo cáo tới: <strong>Bà Dương Thị Thùy Hồng</strong></p>
             <div style="margin-top: 16px;">
-                <p>4. Apprenticeship period:</p>
-                <p style="padding-left: 20px; margin-top: 8px;">Start date: <strong>{Start_Date}</strong></p>
-                <p style="padding-left: 20px;">Working time: <strong>Part-time. From Monday to Friday, and the first Saturday of the month.</strong></p>
+                <p>4. Thời gian thực tập:</p>
+                <p style="padding-left: 20px; margin-top: 8px;">Ngày bắt đầu: <strong>{Start_Date}</strong></p>
+                <p style="padding-left: 20px;">Lịch làm việc: <strong>Bán thời gian. Từ Thứ Hai đến Thứ Sáu và Thứ Bảy đầu tiên của tháng.</strong></p>
             </div>
         </div>
-        <p>Please have a look and give us feedback as soon as possible.</p>
-        <p>If you have any questions, please contact me via the information below.</p>
+        <p>Vui lòng xem xét và phản hồi cho chúng tôi sớm nhất có thể.</p>
+        <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi qua thông tin bên dưới.</p>
         <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 24px 0 16px;">
-        <p style="color: #8c8c8c;">Best regards,</p>
-        <p><strong>SV Technologies Recruitment Team</strong></p>
+        <p style="color: #8c8c8c;">Trân trọng,</p>
+        <p><strong>Nhóm Tuyển dụng SV Technologies</strong></p>
     `;
 
     const formattedDate = date ? date.format('dddd, DD/MM/YYYY') : 'Monday, 03/11/2025';
@@ -141,11 +141,11 @@ export const InterviewSchedule = () => {
 
     const handleSendInvites = async () => {
         if (selectedCandidates.length === 0) {
-            message.warning('Please select at least one candidate.');
+            message.warning('Vui lòng chọn ít nhất một ứng viên.');
             return;
         }
         if (!date || !timeRange) {
-            message.warning('Please select a date and time range.');
+            message.warning('Vui lòng chọn ngày và khung giờ.');
             return;
         }
 
@@ -153,7 +153,7 @@ export const InterviewSchedule = () => {
 
         try {
             setIsProcessing(true);
-            message.loading({ content: 'Sending invites...', key: 'inviting' });
+            message.loading({ content: 'Đang gửi thư mời...', key: 'inviting' });
 
             await Promise.all(
                 selectedCandsInfo.map((cand) =>
@@ -164,13 +164,13 @@ export const InterviewSchedule = () => {
                         interviewTime: timeRange[0].format('HH:mm'),
                         durationMinutes: 60,
                         format: 'online',
-                        notes: 'Standard Technical Interview'
+                        notes: 'Phỏng vấn kỹ thuật tiêu chuẩn'
                     })
                 )
             );
 
             message.success({
-                content: `Sent interview invites to ${selectedCandidates.length} candidates!`,
+                content: `Đã gửi thư mời phỏng vấn tới ${selectedCandidates.length} ứng viên!`,
                 key: 'inviting'
             });
             setSelectedCandidates([]);
@@ -178,7 +178,7 @@ export const InterviewSchedule = () => {
             setTimeRange(null);
             fetchCandidates();
         } catch (error) {
-            message.error({ content: 'Failed to send some invites.', key: 'inviting' });
+            message.error({ content: 'Gửi thư mời thất bại.', key: 'inviting' });
         } finally {
             setIsProcessing(false);
         }
@@ -198,7 +198,7 @@ export const InterviewSchedule = () => {
                     setSelectedCandidates([]);
                     fetchCandidates();
                 } catch (error) {
-                    message.error('Failed to delete some candidates.');
+                    message.error('Xóa một số ứng viên thất bại.');
                 }
             }
         });
@@ -288,8 +288,8 @@ export const InterviewSchedule = () => {
                                                         item.matchScore >= 90
                                                             ? 'success'
                                                             : item.matchScore >= 80
-                                                              ? 'processing'
-                                                              : 'warning'
+                                                                ? 'processing'
+                                                                : 'warning'
                                                     }
                                                 >
                                                     {item.matchScore}
@@ -395,7 +395,7 @@ export const InterviewSchedule = () => {
                                                     icon={<CopyOutlined />}
                                                     type='text'
                                                     size='small'
-                                                    onClick={() => message.success('Copied link')}
+                                                    onClick={() => message.success('Sao chép đường dẫn thành công')}
                                                 />
                                             }
                                             defaultValue='https://meet.google.com/abc-defg-hij'
@@ -434,7 +434,7 @@ export const InterviewSchedule = () => {
                                     <Col span={24}>
                                         <Text strong>{t('interview.subject')}</Text>
                                         <Input
-                                            defaultValue='Offer for Trainee Period - {Role}'
+                                            defaultValue='Thư mời Thực tập - {Role}'
                                             style={{ marginTop: '8px' }}
                                         />
                                     </Col>

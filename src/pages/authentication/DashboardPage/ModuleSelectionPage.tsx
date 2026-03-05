@@ -95,7 +95,7 @@ export const ModuleSelectionPage: FC = () => {
             path: RouteConfig.DirectorApprovals.path
         },
         {
-            title: 'Public Board',
+            title: 'Trang tuyển dụng',
             description: 'Xem giao diện trang tin tuyển dụng công khai dành cho ứng viên.',
             icon: <GlobalOutlined />,
             color: '#10B981',

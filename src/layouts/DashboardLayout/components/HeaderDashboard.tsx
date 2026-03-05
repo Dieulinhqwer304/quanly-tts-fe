@@ -47,9 +47,9 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop
     const [isLoading, setIsLoading] = useState(false);
 
     const notifications = [
-        { title: 'New user registered', time: '5 min ago', read: false },
-        { title: 'System update completed', time: '1 hour ago', read: true },
-        { title: 'Weekly report ready', time: 'Yesterday', read: true }
+        { title: 'Người dùng mới đăng ký', time: '5 phút trước', read: false },
+        { title: 'Cập nhật hệ thống hoàn tất', time: '1 giờ trước', read: true },
+        { title: 'Báo cáo tuần đã sẵn sàng', time: 'Hôm qua', read: true }
     ];
 
     const handleLogout = async () => {
@@ -100,9 +100,9 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop
                     alignItems: 'center'
                 }}
             >
-                <Text strong>Notifications</Text>
+                <Text strong>Thông báo</Text>
                 <Button type='link' size='small'>
-                    Mark all read
+                    Đánh dấu đã đọc
                 </Button>
             </div>
             <List
@@ -163,7 +163,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop
 
                 <Input
                     prefix={<SearchOutlined style={{ color: '#94A3B8' }} />}
-                    placeholder='Search...'
+                    placeholder='Tìm kiếm...'
                     variant='borderless'
                     style={{
                         backgroundColor: '#F1F5F9',
@@ -197,7 +197,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop
                             size='default'
                             icon={<UserOutlined />}
                         />
-                        {!isMobile && <span style={{ fontWeight: 500, color: '#1E293B' }}>Admin</span>}
+                        {!isMobile && <span style={{ fontWeight: 500, color: '#1E293B' }}>Quản trị viên</span>}
                     </div>
                 </Dropdown>
 

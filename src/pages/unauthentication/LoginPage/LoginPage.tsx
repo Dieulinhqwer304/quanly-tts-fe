@@ -80,22 +80,22 @@ export const LoginPage = () => {
                                 backdropFilter: 'blur(10px)'
                             }}
                         ></div>
-                        Admin Dashboard
+                        Quản trị hệ thống
                     </div>
                 </div>
 
                 <div style={{ zIndex: 10, maxWidth: '480px' }}>
                     <h1 style={{ fontSize: '48px', fontWeight: 'bold', marginBottom: '24px', lineHeight: '1.2' }}>
-                        Manage your business with ease.
+                        Quản lý doanh nghiệp của bạn dễ dàng hơn.
                     </h1>
                     <p style={{ fontSize: '18px', opacity: 0.9 }}>
-                        Start managing your users, tracking analytics, and growing your business with our comprehensive
-                        dashboard solution.
+                        Bắt đầu quản lý người dùng, theo dõi số liệu và phát triển doanh nghiệp với giải pháp
+                        dashboard toàn diện của chúng tôi.
                     </p>
                 </div>
 
                 <div style={{ zIndex: 10, fontSize: '14px', opacity: 0.7 }}>
-                    © 2024 Base Project. All rights reserved.
+                    © 2024 TTS System. Bảo lưu mọi quyền.
                 </div>
 
                 <div
@@ -128,10 +128,10 @@ export const LoginPage = () => {
                 <div style={{ width: '100%', maxWidth: '420px' }}>
                     <div style={{ marginBottom: '40px' }}>
                         <Title level={2} style={{ marginBottom: '8px' }}>
-                            Welcome back
+                            Chào mừng quay lại!
                         </Title>
                         <Text type='secondary' style={{ fontSize: '16px' }}>
-                            Please enter your details to sign in.
+                            Vui lòng nhập thông tin đăng nhập của bạn.
                         </Text>
                     </div>
 
@@ -145,7 +145,7 @@ export const LoginPage = () => {
                         }}
                     >
                         <Text style={{ fontSize: '14px', color: token.colorPrimaryText }}>
-                            Demo Account: <strong>admin@system.com</strong> / <strong>123456</strong>
+                            Tài khoản demo: <strong>admin@system.com</strong> / <strong>123456</strong>
                         </Text>
                     </div>
 
@@ -155,13 +155,13 @@ export const LoginPage = () => {
                             control={control}
                             render={({ field }) => (
                                 <Form.Item
-                                    label={<span style={{ fontWeight: 500 }}>Email Address</span>}
+                                    label={<span style={{ fontWeight: 500 }}>Địa chỉ Email</span>}
                                     help={errors.email?.message}
                                     validateStatus={errors.email ? 'error' : ''}
                                 >
                                     <Input
                                         {...field}
-                                        placeholder='Enter your email'
+                                        placeholder='Nhập email của bạn'
                                         prefix={<UserOutlined style={{ color: '#bfbfbf' }} />}
                                     />
                                 </Form.Item>
@@ -173,13 +173,13 @@ export const LoginPage = () => {
                             control={control}
                             render={({ field }) => (
                                 <Form.Item
-                                    label={<span style={{ fontWeight: 500 }}>Password</span>}
+                                    label={<span style={{ fontWeight: 500 }}>Mật khẩu</span>}
                                     help={errors.password?.message}
                                     validateStatus={errors.password ? 'error' : ''}
                                 >
                                     <Input.Password
                                         {...field}
-                                        placeholder='Enter your password'
+                                        placeholder='Nhập mật khẩu của bạn'
                                         prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
                                     />
                                 </Form.Item>
@@ -207,7 +207,7 @@ export const LoginPage = () => {
                             block
                             style={{ fontWeight: 600 }}
                         >
-                            Sign In
+                            Đăng nhập
                         </Button>
                     </Form>
                 </div>

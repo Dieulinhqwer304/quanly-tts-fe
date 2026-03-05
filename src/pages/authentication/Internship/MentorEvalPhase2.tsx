@@ -54,7 +54,7 @@ export const MentorEvalPhase2 = () => {
     }, [id]);
 
     useEffect(() => {
-        getProfile().then((res) => setMentorProfile(res)).catch(() => {});
+        getProfile().then((res) => setMentorProfile(res)).catch(() => { });
     }, []);
 
     const onFinish = async (values: any) => {
@@ -101,7 +101,7 @@ export const MentorEvalPhase2 = () => {
                     items={[
                         { title: t('menu.mentor_portal') },
                         { title: t('menu.evaluations') },
-                        { title: 'Phase 2: Project Collaboration' }
+                        { title: 'Giai đoạn 2: Hợp tác dự án' }
                     ]}
                 />
             </div>
@@ -115,12 +115,12 @@ export const MentorEvalPhase2 = () => {
                 }}
             >
                 <Title level={3} style={{ margin: 0 }}>
-                    Step 2: Project Collaboration Review
+                    Bước 2: Đánh giá hợp tác dự án
                 </Title>
                 <Space>
-                    <Button icon={<SaveOutlined />}>Save Progress</Button>
+                    <Button icon={<SaveOutlined />}>Lưu tiến độ</Button>
                     <Button type='primary' onClick={() => form.submit()} loading={isProcessing}>
-                        Submit Review
+                        Gửi đánh giá
                     </Button>
                 </Space>
             </div>
@@ -146,8 +146,8 @@ export const MentorEvalPhase2 = () => {
                             {intern?.track} • {intern?.id}
                         </Text>
                         <div style={{ marginTop: '4px' }}>
-                            <Tag color='purple'>Month 3-5 Review</Tag>
-                            <Tag color='geekblue'>Project Phase</Tag>
+                            <Tag color='purple'>Xét duyệt tháng 3-5</Tag>
+                            <Tag color='geekblue'>Giai đoạn dự án</Tag>
                         </div>
                     </Col>
                 </Row>
@@ -155,77 +155,77 @@ export const MentorEvalPhase2 = () => {
 
             <Form form={form} layout='vertical' onFinish={onFinish}>
                 <Card
-                    title='Project Performance'
+                    title='Hiệu suất dự án'
                     bordered={false}
                     style={{ borderRadius: '12px', marginBottom: '24px' }}
                 >
                     <Row gutter={48}>
                         <Col span={12}>
                             <Form.Item
-                                label='Technical Contribution'
+                                label='Đóng góp kỹ thuật'
                                 name='techContribution'
                                 rules={[{ required: true }]}
                             >
                                 <Rate character={<StarOutlined />} />
                             </Form.Item>
                             <Text type='secondary' style={{ fontSize: '12px' }}>
-                                Impact of their code/work on the project.
+                                Tác động của code/công việc lên dự án.
                             </Text>
                         </Col>
                         <Col span={12}>
-                            <Form.Item label='Problem Solving' name='problemSolving' rules={[{ required: true }]}>
+                            <Form.Item label='Giải quyết vấn đề' name='problemSolving' rules={[{ required: true }]}>
                                 <Rate character={<StarOutlined />} />
                             </Form.Item>
                             <Text type='secondary' style={{ fontSize: '12px' }}>
-                                Independence in identifying and fixing issues.
+                                Tính độc lập trong việc xác định và khắc phục sự cố.
                             </Text>
                         </Col>
                     </Row>
                     <Divider />
                     <Row gutter={48}>
                         <Col span={12}>
-                            <Form.Item label='Reliability' name='reliability' rules={[{ required: true }]}>
+                            <Form.Item label='Độ tin cậy' name='reliability' rules={[{ required: true }]}>
                                 <Rate character={<StarOutlined />} />
                             </Form.Item>
                             <Text type='secondary' style={{ fontSize: '12px' }}>
-                                Meeting deadlines and consistent quality.
+                                Hoàn thành đúng hạn và chất lượng ổn định.
                             </Text>
                         </Col>
                         <Col span={12}>
-                            <Form.Item label='Team Integration' name='teamwork' rules={[{ required: true }]}>
+                            <Form.Item label='Hòa nhập nhóm' name='teamwork' rules={[{ required: true }]}>
                                 <Rate character={<StarOutlined />} />
                             </Form.Item>
                             <Text type='secondary' style={{ fontSize: '12px' }}>
-                                Collaboration with developers and designers.
+                                Hợp tác với lập trình viên và nhà thiết kế.
                             </Text>
                         </Col>
                     </Row>
                 </Card>
 
                 <Card
-                    title='Task/Milestone Summary'
+                    title='Tóm tắt nhiệm vụ/mốc'
                     bordered={false}
                     style={{ borderRadius: '12px', marginBottom: '24px' }}
                 >
-                    <Form.Item label='Major Accomplishments' name='accomplishments' rules={[{ required: true }]}>
-                        <TextArea rows={4} placeholder='Key tasks or milestones reached during this project phase...' />
+                    <Form.Item label='Thành tích nổi bật' name='accomplishments' rules={[{ required: true }]}>
+                        <TextArea rows={4} placeholder='Các nhiệm vụ hoặc mốc quan trọng trong giai đoạn dự án...' />
                     </Form.Item>
 
-                    <Form.Item label='Project Mentor Feedback' name='feedback'>
-                        <TextArea rows={3} placeholder='Additional comments on performance...' />
+                    <Form.Item label='Phản hồi của mentor dự án' name='feedback'>
+                        <TextArea rows={3} placeholder='Nhận xét thêm về hiệu suất...' />
                     </Form.Item>
                 </Card>
 
-                <Card title='Final Step Readiness' bordered={false} style={{ borderRadius: '12px' }}>
+                <Card title='Sẵn sàng bước cuối' bordered={false} style={{ borderRadius: '12px' }}>
                     <Form.Item
-                        label='Readiness for Final Evaluation?'
+                        label='Sẵn sàng cho đánh giá cuối kỳ?'
                         name='readyForFinal'
                         rules={[{ required: true }]}
                     >
                         <Select
                             options={[
-                                { value: 'ready', label: 'Ready - Begin graduation process' },
-                                { value: 'not_ready', label: 'Not Ready - Extended project work needed' }
+                                { value: 'ready', label: 'Sẵn sàng - Bắt đầu quy trình tốt nghiệp' },
+                                { value: 'not_ready', label: 'Chưa sẵn sàng - Cần thêm thời gian thực hiện dự án' }
                             ]}
                         />
                     </Form.Item>
@@ -239,7 +239,7 @@ export const MentorEvalPhase2 = () => {
                     >
                         <Space>
                             <RocketOutlined style={{ color: '#722ed1' }} />
-                            <Text>Final evaluation determines hireability and program graduation.</Text>
+                            <Text>Đánh giá cuối kỳ xác định khả năng tuyển và tốt nghiệp chương trình.</Text>
                         </Space>
                     </div>
                 </Card>

@@ -73,13 +73,13 @@ export const ConvertToInternModal = ({ open, onCancel, candidateId, candidateNam
                     rules={[{ required: true, message: t('onboarding.track_required') }]}
                 >
                     <Select placeholder={t('onboarding.select_track')}>
-                        <Select.Option value='Frontend Development'>Frontend Development</Select.Option>
-                        <Select.Option value='Backend Development'>Backend Development</Select.Option>
-                        <Select.Option value='Full Stack Development'>Full Stack Development</Select.Option>
-                        <Select.Option value='Mobile Development'>Mobile Development</Select.Option>
+                        <Select.Option value='Frontend Development'>Phát triển Frontend</Select.Option>
+                        <Select.Option value='Backend Development'>Phát triển Backend</Select.Option>
+                        <Select.Option value='Full Stack Development'>Phát triển Full Stack</Select.Option>
+                        <Select.Option value='Mobile Development'>Phát triển Mobile</Select.Option>
                         <Select.Option value='DevOps'>DevOps</Select.Option>
-                        <Select.Option value='UI/UX Design'>UI/UX Design</Select.Option>
-                        <Select.Option value='QA Testing'>QA Testing</Select.Option>
+                        <Select.Option value='UI/UX Design'>Thiết kế UI/UX</Select.Option>
+                        <Select.Option value='QA Testing'>Kiểm thử QA</Select.Option>
                     </Select>
                 </Form.Item>
 
@@ -103,10 +103,10 @@ export const ConvertToInternModal = ({ open, onCancel, candidateId, candidateNam
                     rules={[{ required: true, message: t('onboarding.department_required') }]}
                 >
                     <Select placeholder={t('onboarding.select_department')}>
-                        <Select.Option value='Engineering'>Engineering</Select.Option>
-                        <Select.Option value='Product'>Product</Select.Option>
-                        <Select.Option value='Design'>Design</Select.Option>
-                        <Select.Option value='QA'>QA</Select.Option>
+                        <Select.Option value='Engineering'>Kỹ thuật</Select.Option>
+                        <Select.Option value='Product'>Sản phẩm</Select.Option>
+                        <Select.Option value='Design'>Thiết kế</Select.Option>
+                        <Select.Option value='QA'>Kiểm định chất lượng</Select.Option>
                         <Select.Option value='DevOps'>DevOps</Select.Option>
                     </Select>
                 </Form.Item>

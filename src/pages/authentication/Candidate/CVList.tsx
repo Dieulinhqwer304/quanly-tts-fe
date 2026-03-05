@@ -334,7 +334,7 @@ export const CVList = () => {
                                 type='primary'
                                 icon={<CheckCircleOutlined />}
                                 onClick={() => {
-                                    message.success('Batch shortlist successful');
+                                    message.success('Chọn lọc hàng loạt thành công');
                                     setSelectedRowKeys([]);
                                 }}
                             >
@@ -344,7 +344,7 @@ export const CVList = () => {
                                 danger
                                 icon={<CloseCircleOutlined />}
                                 onClick={() => {
-                                    message.success('Batch reject successful');
+                                    message.success('Loại hàng loạt thành công');
                                     setSelectedRowKeys([]);
                                 }}
                             >
