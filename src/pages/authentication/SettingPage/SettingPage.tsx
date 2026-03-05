@@ -281,32 +281,6 @@ export default function SettingPage() {
                                     </Col>
                                 </Row>
                             )
-                        },
-                        {
-                            key: '2',
-                            label: (
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <SettingOutlined /> Phòng ban
-                                </span>
-                            ),
-                            children: (
-                                <div style={{ padding: '24px', textAlign: 'center', color: '#8c8c8c' }}>
-                                    Nội dung cấu hình phòng ban
-                                </div>
-                            )
-                        },
-                        {
-                            key: '3',
-                            label: (
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <TeamOutlined /> Vai trò người dùng
-                                </span>
-                            ),
-                            children: (
-                                <div style={{ padding: '24px', textAlign: 'center', color: '#8c8c8c' }}>
-                                    Nội dung quản lý vai trò người dùng
-                                </div>
-                            )
                         }
                     ]}
                 />
