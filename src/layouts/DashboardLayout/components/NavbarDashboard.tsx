@@ -2,7 +2,6 @@ import { Layout, Menu, Avatar, Typography, theme, Button, Drawer } from 'antd';
 import {
     DashboardOutlined,
     UserOutlined,
-    SettingOutlined,
     LogoutOutlined,
     TeamOutlined,
     SolutionOutlined,
@@ -21,7 +20,7 @@ import { LanguageSwitcher } from '../../../components';
 const { Sider } = Layout;
 const { Text } = Typography;
 
-type ModuleType = 'recruitment' | 'training' | 'admin' | 'none';
+type ModuleType = 'recruitment' | 'training' | 'admin' | 'director' | 'none';
 
 interface NavbarDashboardProps {
     collapsed: boolean;
@@ -57,6 +56,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
         const path = location.pathname;
         if (path.startsWith('/recruitment')) return 'recruitment';
         if (path.startsWith('/training')) return 'training';
+        if (path.startsWith('/director')) return 'director';
         if (path.startsWith('/admin')) return 'admin';
         return 'none';
     };
@@ -132,13 +132,8 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
             children: [
                 {
                     key: 'intern-dash',
-                    label: t('menu.intern_dashboard'),
+                    label: 'Bài giảng',
                     onClick: () => navigate(RouteConfig.InternDashboard.path)
-                },
-                {
-                    key: 'intern-test',
-                    label: t('menu.knowledge_test'),
-                    onClick: () => navigate(RouteConfig.InternTest.path)
                 },
                 {
                     key: 'intern-tasks',
@@ -149,7 +144,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
         }
     ];
 
-    const adminItems: MenuItem[] = [
+    const directorItems: MenuItem[] = [
         {
             key: 'director',
             icon: <FileProtectOutlined />,
@@ -161,7 +156,10 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                     onClick: () => navigate(RouteConfig.DirectorApprovals.path)
                 }
             ]
-        },
+        }
+    ];
+
+    const adminItems: MenuItem[] = [
         {
             key: 'user-management',
             icon: <UserOutlined />,
@@ -182,6 +180,8 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                 return recruitmentItems;
             case 'training':
                 return trainingItems;
+            case 'director':
+                return directorItems;
             case 'admin':
                 return adminItems;
             default:
@@ -212,10 +212,10 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
         if (path.includes('/training/mentor/tasks')) return ['mentor', 'mentor-tasks'];
 
         if (path.includes('/training/intern/dashboard')) return ['intern', 'intern-dash'];
-        if (path.includes('/training/intern/test')) return ['intern', 'intern-test'];
+        if (path.includes('/training/intern/test')) return ['intern', 'intern-dash'];
         if (path.includes('/training/intern/tasks')) return ['intern', 'intern-tasks'];
 
-        if (path.includes('/admin/director/approvals')) return ['director', 'dir-approvals'];
+        if (path.includes('/director/approvals')) return ['director', 'dir-approvals'];
         if (path.includes('/admin/users')) return ['user-management'];
         if (path.includes('/admin/permissions')) return ['permission-management'];
 
@@ -253,7 +253,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                     }}
                     onClick={() => navigate(RouteConfig.ModuleSelection.path)}
                 >
-                    A
+                    {currentModule === 'recruitment' ? 'T' : currentModule === 'training' ? 'Đ' : currentModule === 'director' ? 'G' : currentModule === 'admin' ? 'Q' : 'A'}
                 </div>
                 {!collapsed && (
                     <span
@@ -264,9 +264,11 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                             ? 'Tuyển dụng'
                             : currentModule === 'training'
                                 ? 'Đào tạo'
-                                : currentModule === 'admin'
-                                    ? 'Quản trị'
-                                    : 'Admin'}
+                                : currentModule === 'director'
+                                    ? 'Giám đốc'
+                                    : currentModule === 'admin'
+                                        ? 'Quản trị'
+                                        : 'Admin'}
                     </span>
                 )}
                 <div style={{ marginLeft: 'auto', paddingRight: collapsed ? 0 : '12px' }}>

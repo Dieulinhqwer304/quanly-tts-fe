@@ -14,7 +14,7 @@ import {
     RightOutlined,
     TrophyOutlined
 } from '@ant-design/icons';
-import { Avatar, Button, Card, Col, Progress, Row, Tag, Timeline, Typography, Skeleton, App } from 'antd';
+import { Avatar, Button, Card, Col, Progress, Row, Tag, Timeline, Typography, Skeleton, App, Space } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from 'react';
@@ -216,8 +216,8 @@ export const InternDashboard = () => {
                                     module.status === 'Ready'
                                         ? 'green'
                                         : module.status === 'In Progress'
-                                          ? 'blue'
-                                          : 'gray',
+                                            ? 'blue'
+                                            : 'gray',
                                 dot: (
                                     <div
                                         style={{
@@ -227,8 +227,8 @@ export const InternDashboard = () => {
                                                 module.status === 'Ready'
                                                     ? '#10B981'
                                                     : module.status === 'In Progress'
-                                                      ? '#1E40AF'
-                                                      : '#E2E8F0',
+                                                        ? '#1E40AF'
+                                                        : '#E2E8F0',
                                             borderRadius: '50%',
                                             display: 'flex',
                                             alignItems: 'center',
@@ -292,8 +292,8 @@ export const InternDashboard = () => {
                                                             module.status === 'Ready'
                                                                 ? 'success'
                                                                 : module.status === 'In Progress'
-                                                                  ? 'blue'
-                                                                  : 'default'
+                                                                    ? 'blue'
+                                                                    : 'default'
                                                         }
                                                         style={{
                                                             border: 0,
@@ -301,14 +301,14 @@ export const InternDashboard = () => {
                                                                 module.status === 'Ready'
                                                                     ? '#f6ffed'
                                                                     : module.status === 'In Progress'
-                                                                      ? '#e6f7ff'
-                                                                      : '#f5f5f5',
+                                                                        ? '#e6f7ff'
+                                                                        : '#f5f5f5',
                                                             color:
                                                                 module.status === 'Ready'
                                                                     ? '#10B981'
                                                                     : module.status === 'In Progress'
-                                                                      ? '#1E40AF'
-                                                                      : '#8c8c8c',
+                                                                        ? '#1E40AF'
+                                                                        : '#8c8c8c',
                                                             fontWeight: 700,
                                                             textTransform: 'uppercase',
                                                             marginBottom: '8px'
@@ -317,8 +317,8 @@ export const InternDashboard = () => {
                                                         {module.status === 'Ready'
                                                             ? t('common.completed')
                                                             : module.status === 'In Progress'
-                                                              ? t('task_mgmt.in_progress')
-                                                              : t('common.locked')}
+                                                                ? t('task_mgmt.in_progress')
+                                                                : t('common.locked')}
                                                     </Tag>
                                                     <Title
                                                         level={module.status === 'In Progress' ? 3 : 4}
@@ -406,8 +406,8 @@ export const InternDashboard = () => {
                                                                                 ? 'success'
                                                                                 : task.status?.toLowerCase() ===
                                                                                     'in_progress'
-                                                                                  ? 'blue'
-                                                                                  : 'default'
+                                                                                    ? 'blue'
+                                                                                    : 'default'
                                                                         }
                                                                     >
                                                                         {t(
@@ -450,6 +450,25 @@ export const InternDashboard = () => {
                                                 >
                                                     {t('intern_dashboard.review_materials')}
                                                 </Button>
+                                            )}
+
+                                            {(module.status === 'Ready' || module.status === 'In Progress') && (
+                                                <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #E2E8F0' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                                                        <div>
+                                                            <Text strong style={{ display: 'block' }}><FireOutlined style={{ color: '#F59E0B', marginRight: '8px' }} />Bài tập & Kiểm tra</Text>
+                                                            <Text type='secondary' style={{ fontSize: '13px' }}>Hoàn thành bài tập/quiz để kết thúc bài học</Text>
+                                                        </div>
+                                                        <Space>
+                                                            <Button icon={<DownloadOutlined style={{ transform: 'rotate(180deg)' }} />} onClick={() => messageApi.success('Nộp bài tập thành công!')}>
+                                                                Nộp bài tập
+                                                            </Button>
+                                                            <Button type='primary' onClick={() => navigate(RouteConfig.InternTest.path)}>
+                                                                Làm bài kiểm tra
+                                                            </Button>
+                                                        </Space>
+                                                    </div>
+                                                </div>
                                             )}
 
                                             {module.status === 'Locked' && (
