@@ -1,16 +1,16 @@
+import React, { useEffect, useState } from 'react';
+import type { ColumnsType } from 'antd/es/table';
 import {
     Avatar,
+    Badge,
     Button,
     Card,
-    Col,
     Input,
     Progress,
-    Row,
-    Select,
-    Space,
-    Table,
+    Tabs,
     Tag,
     Typography,
+    Table,
     message,
     Dropdown,
     MenuProps,
@@ -19,18 +19,11 @@ import {
 import {
     CheckCircleOutlined,
     CloseCircleOutlined,
-    DownloadOutlined,
     EyeOutlined,
-    FilterOutlined,
-    RiseOutlined,
     SearchOutlined,
-    SortAscendingOutlined,
-    TeamOutlined,
     MoreOutlined,
     CalendarOutlined
 } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
@@ -39,33 +32,69 @@ import { CVDetailModal } from './components/CVDetailModal';
 
 const { Title, Text } = Typography;
 
+interface StatusSummary {
+    total: number;
+    pending_review: number;
+    cv_dat: number; // shortlisted + cv_screened (computed by BE)
+    interview_scheduled: number;
+    offer: number;
+    rejected_cv: number;
+    rejected_interview: number;
+    [key: string]: number;
+}
+
+const TABS = [
+    { key: 'all', labelKey: 'candidate.tab_all', summaryKey: 'total' },
+    { key: 'pending_review', labelKey: 'candidate.tab_new_cv', summaryKey: 'pending_review' },
+    { key: 'cv_dat', labelKey: 'candidate.tab_cv_dat', summaryKey: 'cv_dat' },
+    { key: 'interview_scheduled', labelKey: 'candidate.tab_interview', summaryKey: 'interview_scheduled' },
+    { key: 'offer', labelKey: 'candidate.tab_offer', summaryKey: 'offer' },
+    { key: 'rejected_cv', labelKey: 'candidate.tab_reject_cv', summaryKey: 'rejected_cv' },
+    { key: 'rejected_interview', labelKey: 'candidate.tab_reject_pv', summaryKey: 'rejected_interview' }
+];
+
+const STATUS_TAG: Record<string, { color: string; label: string }> = {
+    pending_review: { color: 'warning', label: 'candidate.pending_review' },
+    cv_screened: { color: 'processing', label: 'candidate.cv_screened' },
+    shortlisted: { color: 'success', label: 'candidate.shortlisted' },
+    interview_scheduled: { color: 'blue', label: 'candidate.interview_scheduled' },
+    passed_interview: { color: 'green', label: 'candidate.passed_interview' },
+    offer: { color: 'cyan', label: 'candidate.offer' },
+    rejected: { color: 'error', label: 'candidate.rejected' },
+    rejected_cv: { color: 'error', label: 'candidate.tab_reject_cv' },
+    rejected_interview: { color: 'volcano', label: 'candidate.tab_reject_pv' },
+    converted_to_intern: { color: 'purple', label: 'candidate.converted_to_intern' }
+};
+
 export const CVList = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+
     const [searchText, setSearchText] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [activeTab, setActiveTab] = useState('all');
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
     const [viewingCandidate, setViewingCandidate] = useState<Candidate | null>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-
-    const handleView = (candidate: Candidate) => {
-        setViewingCandidate(candidate);
-        setIsDetailModalOpen(true);
-    };
-
-    const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
-        setSelectedRowKeys(newSelectedRowKeys);
-    };
-
-    const rowSelection = {
-        selectedRowKeys,
-        onChange: onSelectChange
-    };
-
-    const hasSelected = selectedRowKeys.length > 0;
-
     const [candidatesData, setCandidatesData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [summary, setSummary] = useState<StatusSummary>({
+        total: 0,
+        pending_review: 0,
+        cv_dat: 0,
+        interview_scheduled: 0,
+        offer: 0,
+        rejected_cv: 0,
+        rejected_interview: 0
+    });
+
+    const fetchSummary = async () => {
+        try {
+            const res = await http.get('/candidates/summary');
+            setSummary(res as StatusSummary);
+        } catch {
+            // non-blocking
+        }
+    };
 
     const fetchCandidates = async () => {
         setIsLoading(true);
@@ -74,8 +103,8 @@ export const CVList = () => {
             if (searchText) {
                 params.searcher = JSON.stringify({ keyword: searchText, field: 'fullName' });
             }
-            if (statusFilter !== 'all') {
-                params.status = statusFilter;
+            if (activeTab !== 'all') {
+                params.status = activeTab;
             }
             const res = await http.get('/candidates', { params });
             setCandidatesData(res);
@@ -87,14 +116,24 @@ export const CVList = () => {
     };
 
     useEffect(() => {
+        fetchSummary();
+    }, []);
+
+    useEffect(() => {
         fetchCandidates();
-    }, [searchText, statusFilter]);
+    }, [searchText, activeTab]);
+
+    const handleView = (candidate: Candidate) => {
+        setViewingCandidate(candidate);
+        setIsDetailModalOpen(true);
+    };
 
     const handleShortlist = async (id: string, name: string) => {
         try {
-            await http.patch(`/candidates/${id}/status`, { status: 'shortlisted' });
+            await http.patch(`/candidates/${id}`, { status: 'shortlisted' });
             message.success(`${t('candidate.shortlisted')} ${name}`);
             fetchCandidates();
+            fetchSummary();
         } catch {
             message.error(t('common.error'));
         }
@@ -102,12 +141,18 @@ export const CVList = () => {
 
     const handleReject = async (id: string, name: string) => {
         try {
-            await http.patch(`/candidates/${id}/status`, { status: 'rejected' });
+            await http.patch(`/candidates/${id}`, { status: 'rejected_cv' });
             message.success(`${t('candidate.rejected')} ${name}`);
             fetchCandidates();
+            fetchSummary();
         } catch {
             message.error(t('common.error'));
         }
+    };
+
+    const rowSelection = {
+        selectedRowKeys,
+        onChange: (keys: React.Key[]) => setSelectedRowKeys(keys)
     };
 
     const columns: ColumnsType<Candidate> = [
@@ -161,35 +206,11 @@ export const CVList = () => {
             title: t('common.status'),
             dataIndex: 'status',
             key: 'status',
-            render: (status: any) => {
-                let color = 'default';
-                let translatedStatus = status;
-                if (status === 'pending_review') {
-                    color = 'warning';
-                    translatedStatus = t('candidate.pending_review');
-                } else if (status === 'cv_screened') {
-                    color = 'processing';
-                    translatedStatus = t('candidate.cv_screened');
-                } else if (status === 'shortlisted') {
-                    color = 'success';
-                    translatedStatus = t('candidate.shortlisted');
-                } else if (status === 'rejected') {
-                    color = 'error';
-                    translatedStatus = t('candidate.rejected');
-                } else if (status === 'interview_scheduled') {
-                    color = 'blue';
-                    translatedStatus = t('candidate.interview_scheduled');
-                } else if (status === 'passed_interview') {
-                    color = 'green';
-                    translatedStatus = t('candidate.passed_interview');
-                } else if (status === 'converted_to_intern') {
-                    color = 'purple';
-                    translatedStatus = t('candidate.converted_to_intern');
-                }
-
+            render: (status: string) => {
+                const tag = STATUS_TAG[status];
                 return (
-                    <Tag color={color} style={{ borderRadius: '10px' }}>
-                        {translatedStatus}
+                    <Tag color={tag?.color ?? 'default'} style={{ borderRadius: '10px' }}>
+                        {tag ? t(tag.label) : status}
                     </Tag>
                 );
             }
@@ -205,8 +226,8 @@ export const CVList = () => {
                         percent={score}
                         size='small'
                         status={score >= 80 ? 'success' : score >= 50 ? 'normal' : 'exception'}
-                        showInfo={true}
-                        format={(percent) => `${percent}%`}
+                        showInfo
+                        format={(p) => `${p}%`}
                     />
                 </div>
             )
@@ -238,7 +259,9 @@ export const CVList = () => {
                             key: 'shortlist',
                             label: t('candidate.shortlist_candidate'),
                             icon: <CheckCircleOutlined />,
-                            disabled: record.status === 'shortlisted' || record.status === 'rejected',
+                            disabled: ['shortlisted', 'rejected', 'rejected_cv', 'rejected_interview'].includes(
+                                record.status
+                            ),
                             onClick: () => handleShortlist(record.id, record.fullName)
                         },
                         {
@@ -246,12 +269,11 @@ export const CVList = () => {
                             label: t('candidate.reject_candidate'),
                             icon: <CloseCircleOutlined />,
                             danger: true,
-                            disabled: record.status === 'rejected',
+                            disabled: ['rejected', 'rejected_cv', 'rejected_interview'].includes(record.status),
                             onClick: () => handleReject(record.id, record.fullName)
                         }
                     ]
                 };
-
                 return (
                     <Dropdown menu={actionMenu} trigger={['click']}>
                         <Button type='text' icon={<MoreOutlined />} />
@@ -261,7 +283,30 @@ export const CVList = () => {
         }
     ];
 
-    const dataSource = candidatesData?.data || [];
+    const tabItems = TABS.map((tab) => {
+        const count = summary[tab.summaryKey] ?? 0;
+        return {
+            key: tab.key,
+            label: (
+                <span>
+                    {t(tab.labelKey)}
+                    {count > 0 && (
+                        <Badge
+                            count={count}
+                            size='small'
+                            style={{
+                                marginLeft: 6,
+                                backgroundColor: activeTab === tab.key ? '#1677ff' : '#d9d9d9',
+                                color: activeTab === tab.key ? '#fff' : '#666'
+                            }}
+                        />
+                    )}
+                </span>
+            )
+        };
+    });
+
+    const dataSource = candidatesData?.hits || candidatesData?.data || [];
 
     return (
         <div style={{ padding: '24px' }}>
@@ -283,37 +328,21 @@ export const CVList = () => {
             </div>
 
             <Card bordered={false} style={{ borderRadius: '12px' }}>
-                <div
-                    style={{
-                        marginBottom: '16px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        flexWrap: 'wrap',
-                        gap: '16px'
-                    }}
-                >
-                    <div style={{ display: 'flex', gap: '12px', flex: 1 }}>
-                        <Input
-                            prefix={<SearchOutlined />}
-                            placeholder={t('candidate.search_placeholder')}
-                            style={{ width: 300 }}
-                            onChange={(e) => setSearchText(e.target.value)}
-                        />
-                        <Select
-                            defaultValue='all'
-                            style={{ width: 160 }}
-                            onChange={setStatusFilter}
-                            options={[
-                                { value: 'all', label: t('common.all') },
-                                { value: 'pending_review', label: t('candidate.pending_review') },
-                                { value: 'cv_screened', label: t('candidate.cv_screened') },
-                                { value: 'shortlisted', label: t('candidate.shortlisted') },
-                                { value: 'rejected', label: t('candidate.rejected') }
-                            ]}
-                        />
-                    </div>
+                {/* Tabs */}
+                <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} style={{ marginBottom: 0 }} />
+
+                {/* Search bar */}
+                <div style={{ padding: '16px 0', borderBottom: '1px solid #f0f0f0', marginBottom: 16 }}>
+                    <Input
+                        prefix={<SearchOutlined />}
+                        placeholder={t('candidate.search_placeholder')}
+                        style={{ width: 300 }}
+                        onChange={(e) => setSearchText(e.target.value)}
+                    />
                 </div>
-                {hasSelected && (
+
+                {/* Bulk action bar */}
+                {selectedRowKeys.length > 0 && (
                     <div
                         style={{
                             marginBottom: '16px',
@@ -329,7 +358,7 @@ export const CVList = () => {
                         <Text strong>
                             {t('interview.selected')} {selectedRowKeys.length} {t('common.candidates')}
                         </Text>
-                        <Space>
+                        <span style={{ display: 'flex', gap: 8 }}>
                             <Button
                                 type='primary'
                                 icon={<CheckCircleOutlined />}
@@ -351,9 +380,10 @@ export const CVList = () => {
                                 {t('candidate.reject_candidate_btn')}
                             </Button>
                             <Button onClick={() => setSelectedRowKeys([])}>{t('common.cancel')}</Button>
-                        </Space>
+                        </span>
                     </div>
                 )}
+
                 <Table
                     rowSelection={rowSelection}
                     columns={columns as any}
@@ -364,7 +394,7 @@ export const CVList = () => {
                         total: candidatesData?.pagination?.totalRows || 0,
                         showTotal: (total, range) =>
                             `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.candidates')}`,
-                        pageSize: 5
+                        pageSize: 10
                     }}
                     rowKey='id'
                 />
