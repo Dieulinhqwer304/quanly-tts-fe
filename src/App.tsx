@@ -11,7 +11,6 @@ import { DashboardLayout } from './layouts/DashboardLayout/DashboardLayout';
 import RootLayout from './layouts/RootLayout/RootLayout';
 import { ProtectRoute } from './components/ProtectRoute/ProtectRoute';
 
-import { DashboardPage } from './pages/authentication/DashboardPage/DashboardPage';
 import { ModuleSelectionPage } from './pages/authentication/DashboardPage/ModuleSelectionPage';
 import { ForbiddenPage } from './pages/unauthentication/ForbiddenPage/ForbiddenPage';
 import { FormLogout } from './pages/unauthentication/FormLogout/FormLogout';
@@ -134,6 +133,14 @@ const dashboardRoutes: RouteObject[] = [
         )
     },
 
+    {
+        path: RouteConfig.TrainingInternList.path,
+        element: (
+            <ProtectRoute>
+                <InternList />
+            </ProtectRoute>
+        )
+    },
     {
         path: RouteConfig.MentorRequestList.path,
         element: (

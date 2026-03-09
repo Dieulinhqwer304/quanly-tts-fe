@@ -104,6 +104,12 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
 
     const trainingItems: MenuItem[] = [
         {
+            key: 'train-interns',
+            icon: <TeamOutlined />,
+            label: t('menu.intern_list'),
+            onClick: () => navigate(RouteConfig.TrainingInternList.path)
+        },
+        {
             key: 'mentor',
             icon: <SolutionOutlined />,
             label: t('menu.mentor_portal'),
@@ -206,6 +212,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
         if (path.includes('/recruitment/onboarding')) return ['rec-onboarding'];
         if (path.includes('/recruitment/interns')) return ['rec-interns'];
 
+        if (path.includes('/training/interns')) return ['train-interns'];
         if (path.includes('/training/mentor/learning-paths')) return ['mentor', 'mentor-path'];
         if (path.includes('/training/mentor/interns')) return ['mentor', 'mentor-eval'];
         if (path.includes('/training/mentor/evaluations')) return ['mentor', 'mentor-eval'];

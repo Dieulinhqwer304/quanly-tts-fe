@@ -74,6 +74,9 @@ export const RouteConfig = {
     },
 
     // TRAINING MODULE
+    TrainingInternList: {
+        path: '/training/interns'
+    },
     MentorRequestList: {
         path: '/training/mentor/requests'
     },

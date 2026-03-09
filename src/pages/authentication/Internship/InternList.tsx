@@ -89,7 +89,7 @@ export const InternList = () => {
         setIsModalOpen(true);
     };
 
-    const isTrainingModule = location.pathname.startsWith('/training');
+    const isMentorModule = location.pathname.startsWith('/training/mentor');
     const dataSource = internsData?.data || [];
 
     return (
@@ -97,8 +97,8 @@ export const InternList = () => {
             <div style={{ marginBottom: '24px' }}>
                 <Breadcrumb
                     items={[
-                        { title: isTrainingModule ? t('menu.training_module') : t('menu.recruitment_management') },
-                        { title: isTrainingModule ? t('menu.evaluations') : t('internship.intern_list') }
+                        { title: location.pathname.startsWith('/training') ? t('menu.training_module') : t('menu.recruitment_management') },
+                        { title: isMentorModule ? t('menu.evaluations') : t('internship.intern_list') }
                     ]}
                 />
             </div>
@@ -113,14 +113,14 @@ export const InternList = () => {
             >
                 <div>
                     <Title level={3} style={{ margin: 0 }}>
-                        {isTrainingModule ? t('menu.evaluations') : t('internship.management')}
+                        {isMentorModule ? t('menu.evaluations') : t('internship.management')}
                     </Title>
                     <Text type='secondary'>
-                        {isTrainingModule ? t('internship.eval_desc') : t('internship.management_desc')}
+                        {isMentorModule ? t('internship.eval_desc') : t('internship.management_desc')}
                     </Text>
                 </div>
                 <Space>
-                    {!isTrainingModule && (
+                    {!isMentorModule && (
                         <Button icon={<PlusOutlined />} type='primary' onClick={handleCreate}>
                             {t('internship.add_intern')}
                         </Button>
@@ -172,7 +172,7 @@ export const InternList = () => {
                                 </Space>
                             )
                         },
-                        !isTrainingModule ? {
+                        !isMentorModule ? {
                             title: t('internship.contact'),
                             key: 'contact',
                             render: (_: any, record: any) => (
@@ -199,7 +199,7 @@ export const InternList = () => {
                                 </div>
                             )
                         },
-                        !isTrainingModule ? {
+                        !isMentorModule ? {
                             title: t('internship.duration'),
                             key: 'duration',
                             render: (_: any, record: any) => (
@@ -213,7 +213,7 @@ export const InternList = () => {
                                 </div>
                             )
                         } : null,
-                        isTrainingModule ? {
+                        isMentorModule ? {
                             title: 'GĐ 1 (Thử việc)',
                             key: 'eval_phase1',
                             render: (_: any, record: any) => {
@@ -229,7 +229,7 @@ export const InternList = () => {
                                 return <Button size='small' type='dashed' onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}>Đánh giá</Button>;
                             }
                         } : null,
-                        isTrainingModule ? {
+                        isMentorModule ? {
                             title: 'GĐ 2 (Dự án)',
                             key: 'eval_phase2',
                             render: (_: any, record: any) => {
@@ -245,7 +245,7 @@ export const InternList = () => {
                                 return <Button size='small' type='dashed' onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}>Đánh giá</Button>;
                             }
                         } : null,
-                        isTrainingModule ? {
+                        isMentorModule ? {
                             title: 'GĐ Cuối',
                             key: 'eval_final',
                             render: (_: any, record: any) => {
@@ -261,7 +261,7 @@ export const InternList = () => {
                                 return <Button size='small' type='dashed' onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}>Đánh giá</Button>;
                             }
                         } : null,
-                        isTrainingModule ? {
+                        isMentorModule ? {
                             title: t('internship.progress'),
                             dataIndex: 'overallProgress',
                             key: 'progress',
@@ -272,7 +272,7 @@ export const InternList = () => {
                                 </div>
                             )
                         } : null,
-                        !isTrainingModule ? {
+                        !isMentorModule ? {
                             title: t('common.status'),
                             dataIndex: 'status',
                             key: 'status',
@@ -296,7 +296,7 @@ export const InternList = () => {
                                     <Tooltip title={t('common.view')}>
                                         <Button type='text' icon={<EyeOutlined />} onClick={() => handleView(record)} />
                                     </Tooltip>
-                                    {!isTrainingModule && (
+                                    {!isMentorModule && (
                                         <Tooltip title={t('menu.evaluations')}>
                                             <Button
                                                 type='text'
