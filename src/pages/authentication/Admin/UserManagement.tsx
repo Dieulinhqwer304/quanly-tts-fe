@@ -25,7 +25,6 @@ import {
     CheckCircleOutlined,
     StopOutlined
 } from '@ant-design/icons';
-import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
 
 const { Title, Text } = Typography;
@@ -35,20 +34,22 @@ interface UserRecord {
     key: string;
     name: string;
     email: string;
-    role: 'Admin' | 'Mentor' | 'Intern' | 'Director';
+    role: 'super_admin' | 'hr' | 'mentor' | 'intern' | 'director' | 'admin' | string;
     status: 'Active' | 'Inactive';
     lastLogin?: string;
 }
 
 export const UserManagement: FC = () => {
-    const { t } = useTranslation();
     const [searchText, setSearchText] = useState('');
     const [roleFilter, setRoleFilter] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
     const [form] = Form.useForm();
 
-    const [usersData, setUsersData] = useState<any>(null);
+    const [usersData, setUsersData] = useState<{
+        data?: Record<string, unknown>[];
+        pagination?: { totalRows: number };
+    } | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     const fetchUsers = async () => {
@@ -106,13 +107,13 @@ export const UserManagement: FC = () => {
         });
     };
 
-    const allUsers: UserRecord[] = (usersData?.data || []).map((u: any) => ({
-        key: u.id,
-        name: u.name || u.fullName,
-        email: u.email,
-        role: u.role || 'User',
-        status: u.status || 'Active',
-        lastLogin: u.lastLogin || '-'
+    const allUsers: UserRecord[] = (usersData?.data || []).map((u: Record<string, unknown>) => ({
+        key: String(u.id),
+        name: String(u.name || u.fullName || ''),
+        email: String(u.email || ''),
+        role: String(u.role || 'User'),
+        status: (u.status === 'Inactive' ? 'Inactive' : 'Active') as 'Active' | 'Inactive',
+        lastLogin: String(u.lastLogin || '-')
     }));
 
     const filteredUsers = allUsers.filter((user) => {
@@ -150,11 +151,32 @@ export const UserManagement: FC = () => {
             key: 'role',
             render: (role: string) => {
                 let color = 'default';
-                if (role === 'Admin') color = 'blue';
-                if (role === 'Mentor') color = 'green';
-                if (role === 'Director') color = 'purple';
-                if (role === 'Intern') color = 'orange';
-                return <Tag color={color}>{role.toUpperCase()}</Tag>;
+                let label = role;
+                if (role === 'super_admin') {
+                    color = 'magenta';
+                    label = 'Super Admin';
+                }
+                if (role === 'admin') {
+                    color = 'blue';
+                    label = 'Admin';
+                }
+                if (role === 'hr') {
+                    color = 'cyan';
+                    label = 'HR';
+                }
+                if (role === 'mentor') {
+                    color = 'green';
+                    label = 'Mentor';
+                }
+                if (role === 'director') {
+                    color = 'purple';
+                    label = 'Giám đốc';
+                }
+                if (role === 'intern') {
+                    color = 'orange';
+                    label = 'TTS';
+                }
+                return <Tag color={color}>{label.toUpperCase()}</Tag>;
             }
         },
         {
@@ -184,7 +206,7 @@ export const UserManagement: FC = () => {
             title: 'Thao tác',
             key: 'action',
             width: 120,
-            fixed: 'right',
+            fixed: 'right' as const,
             render: (record: UserRecord) => (
                 <Space size='small'>
                     <Tooltip title='Chỉnh sửa'>
@@ -251,10 +273,11 @@ export const UserManagement: FC = () => {
                         onChange={setRoleFilter}
                         allowClear
                     >
-                        <Option value='Admin'>Admin</Option>
-                        <Option value='Mentor'>Mentor</Option>
-                        <Option value='Intern'>Intern</Option>
-                        <Option value='Director'>Director</Option>
+                        <Option value='admin'>Admin</Option>
+                        <Option value='hr'>HR</Option>
+                        <Option value='mentor'>Mentor</Option>
+                        <Option value='intern'>TTS</Option>
+                        <Option value='director'>Giám đốc</Option>
                     </Select>
                     <Button
                         icon={<ReloadOutlined />}
@@ -309,10 +332,11 @@ export const UserManagement: FC = () => {
                             rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}
                         >
                             <Select placeholder='Chọn vai trò'>
-                                <Option value='Admin'>Admin</Option>
-                                <Option value='Mentor'>Mentor</Option>
-                                <Option value='Intern'>Intern</Option>
-                                <Option value='Director'>Director</Option>
+                                <Option value='admin'>Admin</Option>
+                                <Option value='hr'>HR</Option>
+                                <Option value='mentor'>Mentor</Option>
+                                <Option value='intern'>TTS</Option>
+                                <Option value='director'>Giám đốc</Option>
                             </Select>
                         </Form.Item>
                         {editingUser && (
