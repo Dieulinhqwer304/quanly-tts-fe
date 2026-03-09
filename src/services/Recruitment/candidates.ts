@@ -29,7 +29,10 @@ export interface Candidate {
         | 'shortlisted'
         | 'interview_scheduled'
         | 'passed_interview'
+        | 'offer'
         | 'rejected'
+        | 'rejected_cv'
+        | 'rejected_interview'
         | 'converted_to_intern';
     matchScore: number;
     coverLetter: string;
