@@ -7,7 +7,6 @@ import {
     SolutionOutlined,
     BookOutlined,
     FileProtectOutlined,
-    SafetyCertificateOutlined,
     RocketOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -171,12 +170,6 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
             icon: <UserOutlined />,
             label: 'Quản lý người dùng',
             onClick: () => navigate(RouteConfig.UserManagement.path)
-        },
-        {
-            key: 'permission-management',
-            icon: <SafetyCertificateOutlined />,
-            label: 'Phân quyền',
-            onClick: () => navigate(RouteConfig.PermissionManagement.path)
         }
     ];
 
@@ -224,7 +217,6 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
 
         if (path.includes('/director/approvals')) return ['director', 'dir-approvals'];
         if (path.includes('/admin/users')) return ['user-management'];
-        if (path.includes('/admin/permissions')) return ['permission-management'];
 
         return ['dashboard'];
     };
@@ -260,7 +252,15 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                     }}
                     onClick={() => navigate(RouteConfig.ModuleSelection.path)}
                 >
-                    {currentModule === 'recruitment' ? 'T' : currentModule === 'training' ? 'Đ' : currentModule === 'director' ? 'G' : currentModule === 'admin' ? 'Q' : 'A'}
+                    {currentModule === 'recruitment'
+                        ? 'T'
+                        : currentModule === 'training'
+                          ? 'Đ'
+                          : currentModule === 'director'
+                            ? 'G'
+                            : currentModule === 'admin'
+                              ? 'Q'
+                              : 'A'}
                 </div>
                 {!collapsed && (
                     <span
@@ -270,12 +270,12 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                         {currentModule === 'recruitment'
                             ? 'Tuyển dụng'
                             : currentModule === 'training'
-                                ? 'Đào tạo'
-                                : currentModule === 'director'
-                                    ? 'Giám đốc'
-                                    : currentModule === 'admin'
-                                        ? 'Quản trị'
-                                        : 'Admin'}
+                              ? 'Đào tạo'
+                              : currentModule === 'director'
+                                ? 'Giám đốc'
+                                : currentModule === 'admin'
+                                  ? 'Quản trị'
+                                  : 'Admin'}
                     </span>
                 )}
                 <div style={{ marginLeft: 'auto', paddingRight: collapsed ? 0 : '12px' }}>
