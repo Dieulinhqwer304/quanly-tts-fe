@@ -67,7 +67,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
                 message.success(t('common.success'));
             }
             onSuccess();
-        } catch (error) {
+        } catch {
             message.error(t('common.error'));
         }
     };
@@ -89,10 +89,10 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
             footer={
                 viewOnly
                     ? [
-                          <Button key='close' onClick={onCancel}>
-                              {t('common.close')}
-                          </Button>
-                      ]
+                        <Button key='close' onClick={onCancel}>
+                            {t('common.close')}
+                        </Button>
+                    ]
                     : undefined
             }
         >
@@ -165,7 +165,14 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
                             name='mentor'
                             rules={[{ required: true, message: t('common.required_field') }]}
                         >
-                            <Input placeholder={t('internship.mentor')} />
+                            <Select
+                                placeholder={t('internship.select_mentor')}
+                                options={[
+                                    { value: 'Nguyễn Văn A', label: 'Nguyễn Văn A' },
+                                    { value: 'Trần Thị B', label: 'Trần Thị B' },
+                                    { value: 'Lê Văn C', label: 'Lê Văn C' }
+                                ]}
+                            />
                         </Form.Item>
                     </Col>
                     <Col xs={24} md={12}>
