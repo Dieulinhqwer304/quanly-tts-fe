@@ -39,7 +39,7 @@ export const LoginPage = () => {
         try {
             const response = await login(values.email, values.password);
             if (response.accessToken) {
-                Cookies.set('accessToken', response.accessToken);
+                Cookies.set('accessToken', response.accessToken, { path: '/' });
                 setIsAuthenticated(true);
                 message.success('Đăng nhập thành công!');
                 navigate(RouteConfig.ModuleSelection.path);
@@ -89,14 +89,12 @@ export const LoginPage = () => {
                         Quản lý doanh nghiệp của bạn dễ dàng hơn.
                     </h1>
                     <p style={{ fontSize: '18px', opacity: 0.9 }}>
-                        Bắt đầu quản lý người dùng, theo dõi số liệu và phát triển doanh nghiệp với giải pháp
-                        dashboard toàn diện của chúng tôi.
+                        Bắt đầu quản lý người dùng, theo dõi số liệu và phát triển doanh nghiệp với giải pháp dashboard
+                        toàn diện của chúng tôi.
                     </p>
                 </div>
 
-                <div style={{ zIndex: 10, fontSize: '14px', opacity: 0.7 }}>
-                    © 2024 TTS System. Bảo lưu mọi quyền.
-                </div>
+                <div style={{ zIndex: 10, fontSize: '14px', opacity: 0.7 }}>© 2024 TTS System. Bảo lưu mọi quyền.</div>
 
                 <div
                     style={{
