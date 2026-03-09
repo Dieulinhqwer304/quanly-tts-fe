@@ -6,7 +6,8 @@ interface LoginData {
         id: string;
         email: string;
         fullName: string;
-        roles: Array<{
+        role?: string;
+        roles?: Array<{
             name: string;
             displayName: string;
         }>;
@@ -15,14 +16,15 @@ interface LoginData {
 
 export const login = async (email: string, password: string): Promise<any> => {
     const data = await httpPublic.post<LoginData>('/auth/login', { email, password });
+    const loginData = data as unknown as LoginData;
 
     return {
-        accessToken: (data as unknown as LoginData).access_token,
+        accessToken: loginData.access_token,
         userInfo: {
-            userId: (data as unknown as LoginData).user.id,
-            email: (data as unknown as LoginData).user.email,
-            fullName: (data as unknown as LoginData).user.fullName,
-            role: (data as unknown as LoginData).user.roles[0]?.name || ''
+            userId: loginData.user.id,
+            email: loginData.user.email,
+            fullName: loginData.user.fullName,
+            role: loginData.user.role || loginData.user.roles?.[0]?.name || ''
         }
     };
 };

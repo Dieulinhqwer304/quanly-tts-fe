@@ -9,8 +9,7 @@ class Http {
     constructor() {
         // Instance cho các API cần authentication
         this.instance = axios.create({
-            // baseURL: 'https://book-tour-khaki.vercel.app/',
-            baseURL: 'http://localhost:3001/',
+            baseURL: import.meta.env.VITE_API_BASE_URL,
             timeout: 10000,
             headers: {
                 'Content-Type': 'application/json'
@@ -20,8 +19,7 @@ class Http {
 
         // Instance cho các API public không cần authentication
         this.instancePublic = axios.create({
-            // baseURL: 'https://book-tour-khaki.vercel.app/',
-            baseURL: 'http://localhost:3001/',
+            baseURL: import.meta.env.VITE_API_BASE_URL,
             timeout: 10000,
             headers: {
                 'Content-Type': 'application/json'
