@@ -36,6 +36,7 @@ export interface GetJobPositionsParams {
     searcher?: SearchParams;
     department?: string;
     status?: string;
+    publicOnly?: boolean;
 }
 
 export const getJobPositions = async (params?: GetJobPositionsParams): Promise<ResponseListSuccess<JobPosition>> => {
@@ -43,6 +44,7 @@ export const getJobPositions = async (params?: GetJobPositionsParams): Promise<R
     if (params?.status) queryParams.status = params.status;
     if (params?.department) queryParams.department = params.department;
     if (params?.searcher?.keyword) queryParams.q = params.searcher.keyword;
+    if (params?.publicOnly) queryParams.public = 1;
     if (params?.pagination) {
         queryParams.page = params.pagination.page;
         queryParams.pageSize = params.pagination.pageSize;
@@ -56,8 +58,10 @@ export const getJobPositions = async (params?: GetJobPositionsParams): Promise<R
     };
 };
 
-export const getJobPosition = async (id: string): Promise<ResponseDetailSuccess<JobPosition>> => {
-    const result = await http.get<ResponseDetailSuccess<JobPosition>>(`/job-positions/${id}`);
+export const getJobPosition = async (id: string, publicOnly?: boolean): Promise<ResponseDetailSuccess<JobPosition>> => {
+    const result = await http.get<ResponseDetailSuccess<JobPosition>>(`/job-positions/${id}`, {
+        params: publicOnly ? { public: 1 } : undefined
+    });
     return result;
 };
 

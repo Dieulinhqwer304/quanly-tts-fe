@@ -133,6 +133,38 @@ export const createCandidate = async (params: CreateCandidateParams): Promise<Re
     return result;
 };
 
+export interface CreateCandidateWithCvParams {
+    fullName: string;
+    email: string;
+    phone?: string;
+    location?: string;
+    jobId: string;
+    education?: string;
+    experience?: string;
+    cv: File;
+}
+
+export const createCandidateWithCv = async (
+    params: CreateCandidateWithCvParams
+): Promise<ResponseDetailSuccess<Candidate>> => {
+    const formData = new FormData();
+    formData.append('fullName', params.fullName);
+    formData.append('email', params.email);
+    formData.append('jobId', params.jobId);
+    if (params.phone) formData.append('phone', params.phone);
+    if (params.location) formData.append('location', params.location);
+    if (params.education) formData.append('education', params.education);
+    if (params.experience) formData.append('experience', params.experience);
+    formData.append('cv', params.cv);
+
+    const result = await http.post<ResponseDetailSuccess<Candidate>>('/candidates/apply-with-cv', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+    return result;
+};
+
 export interface DeleteCandidateParams {
     id: string;
 }
