@@ -6,7 +6,6 @@ import {
     Button,
     Card,
     Input,
-    Progress,
     Tabs,
     Tag,
     Typography,
@@ -77,6 +76,8 @@ export const CVList = () => {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [candidatesData, setCandidatesData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
     const [summary, setSummary] = useState<StatusSummary>({
         total: 0,
         pending_review: 0,
@@ -100,16 +101,16 @@ export const CVList = () => {
         setIsLoading(true);
         try {
             const params: any = {};
-            if (searchText) {
-                params.searcher = JSON.stringify({ keyword: searchText, field: 'fullName' });
-            }
+            if (searchText.trim()) params.q = searchText.trim();
             if (activeTab !== 'all') {
                 params.status = activeTab;
             }
+            params.page = page;
+            params.pageSize = pageSize;
             const res = await http.get('/candidates', { params });
             setCandidatesData(res);
         } catch (error) {
-            console.error(error);
+            message.error(t('common.error'));
         } finally {
             setIsLoading(false);
         }
@@ -121,7 +122,7 @@ export const CVList = () => {
 
     useEffect(() => {
         fetchCandidates();
-    }, [searchText, activeTab]);
+    }, [searchText, activeTab, page, pageSize]);
 
     const handleView = (candidate: Candidate) => {
         setViewingCandidate(candidate);
@@ -143,6 +144,20 @@ export const CVList = () => {
         try {
             await http.patch(`/candidates/${id}`, { status: 'rejected_cv' });
             message.success(`${t('candidate.rejected')} ${name}`);
+            fetchCandidates();
+            fetchSummary();
+        } catch {
+            message.error(t('common.error'));
+        }
+    };
+
+    const handleBulkAction = async (status: 'shortlisted' | 'rejected_cv') => {
+        if (selectedRowKeys.length === 0) return;
+
+        try {
+            await Promise.all(selectedRowKeys.map((id) => http.patch(`/candidates/${id}`, { status })));
+            message.success(status === 'shortlisted' ? 'Đã shortlist các hồ sơ đã chọn.' : 'Đã từ chối các hồ sơ đã chọn.');
+            setSelectedRowKeys([]);
             fetchCandidates();
             fetchSummary();
         } catch {
@@ -214,23 +229,6 @@ export const CVList = () => {
                     </Tag>
                 );
             }
-        },
-        {
-            title: t('candidate.match_score'),
-            dataIndex: 'matchScore',
-            key: 'matchScore',
-            sorter: (a, b) => a.matchScore - b.matchScore,
-            render: (score: any) => (
-                <div style={{ width: 100 }}>
-                    <Progress
-                        percent={score}
-                        size='small'
-                        status={score >= 80 ? 'success' : score >= 50 ? 'normal' : 'exception'}
-                        showInfo
-                        format={(p) => `${p}%`}
-                    />
-                </div>
-            )
         },
         {
             title: t('common.actions'),
@@ -329,7 +327,15 @@ export const CVList = () => {
 
             <Card bordered={false} style={{ borderRadius: '12px' }}>
                 {/* Tabs */}
-                <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} style={{ marginBottom: 0 }} />
+                <Tabs
+                    activeKey={activeTab}
+                    onChange={(value) => {
+                        setActiveTab(value);
+                        setPage(1);
+                    }}
+                    items={tabItems}
+                    style={{ marginBottom: 0 }}
+                />
 
                 {/* Search bar */}
                 <div style={{ padding: '16px 0', borderBottom: '1px solid #f0f0f0', marginBottom: 16 }}>
@@ -337,7 +343,10 @@ export const CVList = () => {
                         prefix={<SearchOutlined />}
                         placeholder={t('candidate.search_placeholder')}
                         style={{ width: 300 }}
-                        onChange={(e) => setSearchText(e.target.value)}
+                        onChange={(e) => {
+                            setSearchText(e.target.value);
+                            setPage(1);
+                        }}
                     />
                 </div>
 
@@ -362,20 +371,14 @@ export const CVList = () => {
                             <Button
                                 type='primary'
                                 icon={<CheckCircleOutlined />}
-                                onClick={() => {
-                                    message.success('Chọn lọc hàng loạt thành công');
-                                    setSelectedRowKeys([]);
-                                }}
+                                onClick={() => handleBulkAction('shortlisted')}
                             >
                                 {t('candidate.shortlist_candidate_btn')}
                             </Button>
                             <Button
                                 danger
                                 icon={<CloseCircleOutlined />}
-                                onClick={() => {
-                                    message.success('Loại hàng loạt thành công');
-                                    setSelectedRowKeys([]);
-                                }}
+                                onClick={() => handleBulkAction('rejected_cv')}
                             >
                                 {t('candidate.reject_candidate_btn')}
                             </Button>
@@ -391,10 +394,18 @@ export const CVList = () => {
                     dataSource={dataSource}
                     loading={isLoading}
                     pagination={{
+                        current: page,
+                        pageSize,
                         total: candidatesData?.pagination?.totalRows || 0,
+                        onChange: (nextPage, nextPageSize) => {
+                            setPage(nextPage);
+                            if (nextPageSize && nextPageSize !== pageSize) {
+                                setPageSize(nextPageSize);
+                            }
+                        },
                         showTotal: (total, range) =>
                             `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.candidates')}`,
-                        pageSize: 10
+                        showSizeChanger: true
                     }}
                     rowKey='id'
                 />
@@ -404,6 +415,10 @@ export const CVList = () => {
                 open={isDetailModalOpen}
                 onCancel={() => setIsDetailModalOpen(false)}
                 candidate={viewingCandidate}
+                onUpdated={() => {
+                    fetchCandidates();
+                    fetchSummary();
+                }}
             />
         </div>
     );

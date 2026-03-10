@@ -29,9 +29,10 @@ interface CVDetailModalProps {
     open: boolean;
     onCancel: () => void;
     candidate: Candidate | null;
+    onUpdated?: () => void;
 }
 
-export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: CVDetailModalProps) => {
+export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate, onUpdated }: CVDetailModalProps) => {
     const { t } = useTranslation();
     const { isMobile, isLaptop } = useResponsive();
     const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
@@ -64,9 +65,10 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: C
         if (!candidate?.id) return;
         setIsProcessing(true);
         try {
-            await http.patch(`/candidates/${candidate.id}/status`, { status: 'shortlisted' });
+            await http.patch(`/candidates/${candidate.id}`, { status: 'shortlisted' });
             message.success(t('common.success'));
             fetchCandidate();
+            onUpdated?.();
         } catch {
             message.error(t('common.error'));
         } finally {
@@ -78,10 +80,14 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: C
         if (!candidate?.id) return;
         setIsProcessing(true);
         try {
-            await http.patch(`/candidates/${candidate.id}/status`, { status: 'rejected', reason: rejectReason });
+            await http.patch(`/candidates/${candidate.id}`, {
+                status: 'rejected_cv',
+                rejectionReason: rejectReason
+            });
             setIsRejectModalOpen(false);
             message.success(t('common.success'));
             fetchCandidate();
+            onUpdated?.();
         } catch {
             message.error(t('common.error'));
         } finally {
@@ -131,7 +137,9 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: C
                                             : candidate.status === 'shortlisted' ||
                                                 candidate.status === 'interview_scheduled'
                                               ? 'processing'
-                                              : candidate.status === 'rejected'
+                                              : candidate.status === 'rejected' ||
+                                                  candidate.status === 'rejected_cv' ||
+                                                  candidate.status === 'rejected_interview'
                                                 ? 'error'
                                                 : candidate.status === 'converted_to_intern'
                                                   ? 'purple'
@@ -143,10 +151,14 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: C
                                         ? t('candidate.passed_interview')
                                         : candidate.status === 'interview_scheduled'
                                           ? t('candidate.interview_scheduled')
-                                          : candidate.status === 'shortlisted'
-                                            ? t('candidate.shortlisted')
+                                            : candidate.status === 'shortlisted'
+                                              ? t('candidate.shortlisted')
                                             : candidate.status === 'rejected'
                                               ? t('candidate.rejected')
+                                              : candidate.status === 'rejected_cv'
+                                                ? t('candidate.tab_reject_cv')
+                                                : candidate.status === 'rejected_interview'
+                                                  ? t('candidate.tab_reject_pv')
                                               : candidate.status === 'converted_to_intern'
                                                 ? t('candidate.converted_to_intern')
                                                 : t('candidate.pending_review')}
@@ -169,28 +181,49 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: C
                         <Title level={5} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <FilePdfOutlined /> {t('candidate.resume_preview')}
                         </Title>
-                        <div
-                            style={{
-                                padding: '24px',
-                                background: '#F8FAFC',
-                                borderRadius: '8px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                border: '1px dashed #E2E8F0'
-                            }}
-                        >
-                            <div style={{ textAlign: 'center' }}>
-                                <FilePdfOutlined style={{ fontSize: '48px', color: '#EF4444', marginBottom: '12px' }} />
-                                <Text strong style={{ display: 'block' }}>
-                                    {candidate.fullName?.replace(' ', '_')}_Resume.pdf
-                                </Text>
-                                <Space wrap style={{ marginTop: '12px' }}>
-                                    <Button icon={<DownloadOutlined />}>{t('candidate.download_cv')}</Button>
-                                    <Button type='primary'>{t('candidate.click_to_preview')}</Button>
-                                </Space>
+                        {candidate.resumeUrl ? (
+                            <div
+                                style={{
+                                    padding: '24px',
+                                    background: '#F8FAFC',
+                                    borderRadius: '8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    border: '1px dashed #E2E8F0'
+                                }}
+                            >
+                                <div style={{ textAlign: 'center' }}>
+                                    <FilePdfOutlined style={{ fontSize: '48px', color: '#EF4444', marginBottom: '12px' }} />
+                                    <Text strong style={{ display: 'block' }}>
+                                        {candidate.resumeUrl.split('/').pop() || `${candidate.fullName}_Resume.pdf`}
+                                    </Text>
+                                    <Space wrap style={{ marginTop: '12px' }}>
+                                        <Button
+                                            icon={<DownloadOutlined />}
+                                            onClick={() => window.open(candidate.resumeUrl, '_blank', 'noopener,noreferrer')}
+                                        >
+                                            {t('candidate.download_cv')}
+                                        </Button>
+                                        <Button
+                                            type='primary'
+                                            onClick={() => window.open(candidate.resumeUrl, '_blank', 'noopener,noreferrer')}
+                                        >
+                                            {t('candidate.click_to_preview')}
+                                        </Button>
+                                    </Space>
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            <Empty description='Ứng viên chưa tải CV lên hệ thống' />
+                        )}
+                    </div>
+
+                    <div style={{ marginTop: '16px' }}>
+                        <Title level={5}>{t('candidate.cover_letter')}</Title>
+                        <Card size='small'>
+                            <Text>{candidate.coverLetter || 'Ứng viên chưa để lại nội dung giới thiệu.'}</Text>
+                        </Card>
                     </div>
 
                     <Divider />
@@ -198,6 +231,8 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate }: C
                     <div style={{ textAlign: 'right' }}>
                         <Space wrap>
                             {candidate.status !== 'rejected' &&
+                                candidate.status !== 'rejected_cv' &&
+                                candidate.status !== 'rejected_interview' &&
                                 candidate.status !== 'converted_to_intern' &&
                                 candidate.status !== 'passed_interview' && (
                                     <>
