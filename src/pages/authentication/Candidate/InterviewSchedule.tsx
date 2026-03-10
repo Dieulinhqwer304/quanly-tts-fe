@@ -286,17 +286,6 @@ export const InterviewSchedule = () => {
             return;
         }
 
-        const needsTime = selectedTemplate === 'interview' || selectedTemplate === 'meeting';
-        if (needsTime && (!date || !startTime || !intervalMinutes)) {
-            message.warning('Vui lòng chọn ngày, giờ bắt đầu và khoảng cách thời gian.');
-            return;
-        }
-
-        if (needsTime && !locationLink.trim()) {
-            message.warning('Vui lòng nhập link/phòng phỏng vấn.');
-            return;
-        }
-
         const selectedCandsInfo = candidates.filter((c) => selectedCandidates.includes(c.id));
 
         if (selectedCandsInfo.length === 0) {
@@ -308,71 +297,16 @@ export const InterviewSchedule = () => {
             setIsProcessing(true);
             message.loading({ content: 'Đang xử lý...', key: 'inviting' });
 
-            // 1. Chuẩn bị danh sách recipients với nội dung render sẵn
-            const emailRecipients = selectedCandsInfo.map((cand: ICandidate, index: number) => {
-                    const candTime = calculateTime(index);
-                    const role = String(
-                        (cand.job as Record<string, unknown> | undefined)?.title || cand.appliedForTitle || 'Business Analyst'
-                    );
-                    const department = String(
-                        (cand.job as Record<string, unknown> | undefined)?.department || 'N/A'
-                    );
-
-                    const candBody = emailHtml
-                        .replace(/{Candidate_Name}/g, String(cand.fullName || cand.name || 'Ứng viên'))
-                        .replace(/{Interview_Date}/g, String(date ? date.format('DD/MM/YYYY') : ''))
-                        .replace(/{Interview_Time}/g, candTime)
-                        .replace(/{Role}/g, role)
-                        .replace(/{Department}/g, department);
-
-                    return {
-                        email: cand.email,
-                        fullName: cand.fullName || cand.name || 'Ứng viên',
-                        htmlBody: candBody
-                    };
-                });
-
-            // Tiêu đề sử dụng ứng viên đầu tiên an toàn
-            const firstCandRole =
-                selectedCandsInfo[0]?.job?.title || selectedCandsInfo[0]?.appliedForTitle || 'Vị trí ứng tuyển';
-            const commonSubject = emailSubject.replace(/{Role}/g, firstCandRole);
-
-            // 2. Gửi request Schedule Interview nếu template là phỏng vấn / họp
-            if (needsTime) {
-                const jobId = selectedCandsInfo[0]?.job?.id || selectedCandsInfo[0]?.jobId;
-                if (!jobId) {
-                    message.warning('Không tìm thấy vị trí ứng tuyển để lên lịch phỏng vấn.');
-                    return;
-                }
-                await http.post('/interviews/batch', {
-                    candidateIds: selectedCandsInfo.map((c: ICandidate) => c.id),
-                    jobId: jobId,
-                    interviewDate: date.format('YYYY-MM-DD'),
-                    startTime: startTime.format('HH:mm'),
-                    intervalMinutes: intervalMinutes,
-                    format: format,
-                    location: locationLink,
-                    interviewerId
-                });
-            } else {
-                await Promise.all(
-                    selectedCandsInfo.map((c: ICandidate) => {
-                        const baseStatus = c.status || activeTab;
-                        const rejectionStatus =
-                            baseStatus === 'interview_scheduled' ? 'rejected_interview' : 'rejected_cv';
-                        return http.patch(`/candidates/${c.id}`, { status: rejectionStatus });
+            await Promise.all(
+                selectedCandsInfo.map((c: ICandidate) =>
+                    http.patch(`/candidates/${c.id}`, {
+                        status: 'interview_scheduled'
                     })
-                );
-            }
-
-            // 3. Gọi API gửi mail hàng loạt
-            await http.post('/recruitment/mail/send', {
-                subject: commonSubject,
-                recipients: emailRecipients
-            });
+                )
+            );
 
             message.success({
-                content: t('interview.send_success'),
+                content: 'Đã chuyển ứng viên sang trạng thái phỏng vấn thành công.',
                 key: 'inviting'
             });
             setSelectedCandidates([]);
