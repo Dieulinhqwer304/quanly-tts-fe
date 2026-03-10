@@ -18,11 +18,41 @@ interface RecruitmentJobModalProps {
     open: boolean;
     onCancel: () => void;
     onSuccess: () => void;
+    onSubmit: (values: JobFormValues) => Promise<void>;
+    campaignOptions: Array<{ value: string; label: string }>;
     initialValues?: JobPosition | null;
     viewOnly?: boolean;
 }
 
-export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, viewOnly }: RecruitmentJobModalProps) => {
+export interface JobFormValues {
+    title: string;
+    campaignId: string;
+    department: string;
+    requiredQuantity: number;
+    status: 'draft' | 'open' | 'closed' | 'on_hold';
+    description?: string;
+    requirements?: string;
+    location?: string;
+    salaryRange?: string;
+}
+
+const normalizeStatus = (status?: string): JobFormValues['status'] => {
+    const normalized = (status || 'draft').toLowerCase().replace(/\s+/g, '_');
+    if (normalized === 'open') return 'open';
+    if (normalized === 'closed') return 'closed';
+    if (normalized === 'on_hold') return 'on_hold';
+    return 'draft';
+};
+
+export const RecruitmentJobModal = ({
+    open,
+    onCancel,
+    onSuccess,
+    onSubmit,
+    campaignOptions,
+    initialValues,
+    viewOnly
+}: RecruitmentJobModalProps) => {
     const { t } = useTranslation();
     const { isMobile, isLaptop } = useResponsive();
     const [form] = Form.useForm();
@@ -31,22 +61,37 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, 
     useEffect(() => {
         if (open) {
             if (initialValues) {
-                form.setFieldsValue(initialValues);
+                form.setFieldsValue({
+                    title: initialValues.title,
+                    campaignId: initialValues.recruitmentPlanId,
+                    department: initialValues.department,
+                    requiredQuantity: initialValues.requiredQuantity,
+                    status: normalizeStatus(initialValues.status),
+                    description: initialValues.description,
+                    requirements: initialValues.requirements,
+                    location: initialValues.location,
+                    salaryRange: initialValues.salaryRange
+                });
             } else {
                 form.resetFields();
+                form.setFieldsValue({
+                    status: 'draft'
+                });
             }
         }
     }, [open, initialValues, form]);
 
-    const onFinish = (values: Partial<JobPosition>) => {
+    const onFinish = async (values: JobFormValues) => {
         setLoading(true);
-        console.log('Form values:', values);
-
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            await onSubmit(values);
             message.success(t('common.success'));
             onSuccess();
-        }, 1500);
+        } catch {
+            message.error(t('common.error'));
+        } finally {
+            setLoading(false);
+        }
     };
 
     const getTitle = () => {
@@ -75,7 +120,7 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, 
                 onFinish={onFinish}
                 disabled={viewOnly}
                 initialValues={{
-                    status: 'Open',
+                    status: 'draft',
                     department: 'Engineering'
                 }}
             >
@@ -91,15 +136,10 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, 
                     <Col xs={24} md={12}>
                         <Form.Item
                             label={t('recruitment.campaigns')}
-                            name="campaign"
+                            name="campaignId"
                             rules={[{ required: true, message: t('common.required_field') }]}
                         >
-                            <Select
-                                options={[
-                                    { value: 'Summer Internship 2025', label: 'Summer Internship 2025' },
-                                    { value: 'Fresh Graduate 2025', label: 'Fresh Graduate 2025' }
-                                ]}
-                            />
+                            <Select options={campaignOptions} />
                         </Form.Item>
                     </Col>
                     <Col xs={24} md={12}>
@@ -122,7 +162,7 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, 
 
                 <Form.Item
                     label={t('recruitment.quantity')}
-                    name="required"
+                    name="requiredQuantity"
                     rules={[{ required: true, message: t('common.required_field') }]}
                 >
                     <InputNumber min={1} style={{ width: '100%' }} />
@@ -134,9 +174,10 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, 
                 >
                     <Select
                         options={[
-                            { value: 'Open', label: t('common.open') },
-                            { value: 'On Hold', label: t('recruitment.on_hold') },
-                            { value: 'Closed', label: t('common.closed') }
+                            { value: 'draft', label: 'Draft' },
+                            { value: 'open', label: t('common.open') },
+                            { value: 'on_hold', label: t('recruitment.on_hold') },
+                            { value: 'closed', label: t('common.closed') }
                         ]}
                     />
                 </Form.Item>
@@ -153,6 +194,20 @@ export const RecruitmentJobModal = ({ open, onCancel, onSuccess, initialValues, 
                     name="requirements"
                 >
                     <Input.TextArea rows={3} placeholder={t('recruitment.requirements')} />
+                </Form.Item>
+
+                <Form.Item
+                    label={t('recruitment.location')}
+                    name="location"
+                >
+                    <Input placeholder='Hà Nội / TP.HCM / Remote' />
+                </Form.Item>
+
+                <Form.Item
+                    label={t('recruitment.salary')}
+                    name="salaryRange"
+                >
+                    <Input placeholder='1000 - 1500 USD' />
                 </Form.Item>
             </Form>
         </Modal>
