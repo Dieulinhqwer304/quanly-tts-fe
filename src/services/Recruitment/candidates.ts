@@ -124,6 +124,8 @@ export interface CreateCandidateParams {
     location?: string;
     jobId: string;
     education?: string;
+    experience?: string;
+    coverLetter?: string;
     skills?: string[];
     resumeUrl?: string;
 }
@@ -141,12 +143,26 @@ export interface CreateCandidateWithCvParams {
     jobId: string;
     education?: string;
     experience?: string;
-    cv: File;
+    coverLetter?: string;
+    cv?: File;
 }
 
 export const createCandidateWithCv = async (
     params: CreateCandidateWithCvParams
 ): Promise<ResponseDetailSuccess<Candidate>> => {
+    if (!params.cv) {
+        return createCandidate({
+            fullName: params.fullName,
+            email: params.email,
+            phone: params.phone,
+            location: params.location,
+            jobId: params.jobId,
+            education: params.education,
+            experience: params.experience,
+            coverLetter: params.coverLetter
+        });
+    }
+
     const formData = new FormData();
     formData.append('fullName', params.fullName);
     formData.append('email', params.email);
@@ -155,6 +171,7 @@ export const createCandidateWithCv = async (
     if (params.location) formData.append('location', params.location);
     if (params.education) formData.append('education', params.education);
     if (params.experience) formData.append('experience', params.experience);
+    if (params.coverLetter) formData.append('coverLetter', params.coverLetter);
     formData.append('cv', params.cv);
 
     const result = await http.post<ResponseDetailSuccess<Candidate>>('/candidates/apply-with-cv', formData, {
