@@ -163,8 +163,8 @@ export const RecruitmentPlanList = () => {
                         {s === 'active'
                             ? t('internship.active')
                             : s === 'pending_approval' || s === 'pending'
-                              ? t('recruitment.pending_approval')
-                              : t('recruitment.closed')}
+                                ? t('recruitment.pending_approval')
+                                : t('recruitment.closed')}
                     </Tag>
                 );
             }
@@ -231,7 +231,7 @@ export const RecruitmentPlanList = () => {
 
                         <Table
                             columns={columns as any}
-                            dataSource={plansData?.data || []}
+                            dataSource={plansData?.hits || []}
                             scroll={{ x: 'max-content' }}
                             pagination={{
                                 current: 1,
