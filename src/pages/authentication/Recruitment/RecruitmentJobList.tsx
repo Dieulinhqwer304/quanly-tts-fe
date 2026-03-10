@@ -27,9 +27,24 @@ import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
 import { JobPosition } from '../../../services/Recruitment/jobPositions';
 import { RecruitmentJobModal } from './components/RecruitmentJobModal';
+import { JobFormValues } from './components/RecruitmentJobModal';
 import { Modal } from 'antd';
 
 const { Title, Text } = Typography;
+
+type RecruitmentPlanOption = {
+    value: string;
+    label: string;
+    department?: string;
+};
+
+const normalizeJobStatus = (status?: string): 'draft' | 'open' | 'closed' | 'on_hold' => {
+    const normalized = (status || 'draft').toLowerCase().replace(/\s+/g, '_');
+    if (normalized === 'open') return 'open';
+    if (normalized === 'closed') return 'closed';
+    if (normalized === 'on_hold') return 'on_hold';
+    return 'draft';
+};
 
 export const RecruitmentJobList = () => {
     const { t } = useTranslation();
@@ -40,6 +55,7 @@ export const RecruitmentJobList = () => {
     const [isViewOnly, setIsViewOnly] = useState(false);
 
     const [jobPositionsData, setJobPositionsData] = useState<any>(null);
+    const [planOptions, setPlanOptions] = useState<RecruitmentPlanOption[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
     const fetchJobs = async () => {
@@ -61,12 +77,34 @@ export const RecruitmentJobList = () => {
         }
     };
 
+    const fetchPlans = async () => {
+        try {
+            const res = await http.get('/recruitment-plans');
+            const plans = (res as { data?: Array<Record<string, unknown>> }).data || [];
+            const activePlans = plans.filter((plan) => String(plan.status).toLowerCase() === 'active');
+
+            setPlanOptions(
+                activePlans.map((plan) => ({
+                    value: String(plan.id),
+                    label: String(plan.name || plan.batch || plan.id),
+                    department: String(plan.department || '')
+                }))
+            );
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     useEffect(() => {
         fetchJobs();
     }, [searchText, departmentFilter]);
 
+    useEffect(() => {
+        fetchPlans();
+    }, []);
+
     const handleStatusChange = async (record: JobPosition) => {
-        const currentStatus = record.status?.toLowerCase();
+        const currentStatus = normalizeJobStatus(record.status);
         const newStatus = currentStatus === 'open' ? 'closed' : 'open';
 
         try {
@@ -85,6 +123,10 @@ export const RecruitmentJobList = () => {
     };
 
     const handleCreate = () => {
+        if (planOptions.length === 0) {
+            message.warning('Chưa có kế hoạch tuyển dụng Active để tạo tin tuyển dụng.');
+            return;
+        }
         setEditingJob(null);
         setIsViewOnly(false);
         setIsModalOpen(true);
@@ -102,19 +144,47 @@ export const RecruitmentJobList = () => {
         setIsModalOpen(true);
     };
 
+    const handleDelete = async (record: JobPosition) => {
+        try {
+            await http.delete(`/job-positions/${record.id}`);
+            message.success(t('common.success'));
+            fetchJobs();
+        } catch (error) {
+            console.error(error);
+            message.error(t('common.error'));
+        }
+    };
+
+    const handleSubmit = async (values: JobFormValues) => {
+        const payload = {
+            title: values.title,
+            recruitmentPlanId: values.campaignId,
+            department: values.department,
+            requiredQuantity: values.requiredQuantity,
+            description: values.description,
+            requirements: values.requirements,
+            location: values.location,
+            salaryRange: values.salaryRange,
+            status: values.status
+        };
+
+        if (editingJob?.id) {
+            await http.patch(`/job-positions/${editingJob.id}`, payload);
+        } else {
+            await http.post('/job-positions', payload);
+        }
+    };
+
     const handleMenuClick = (key: string, record: JobPosition) => {
         if (key === 'view') {
             handleView(record);
         } else if (key === 'edit') {
             handleEdit(record);
         } else if (key === 'delete') {
-            // ... (keep delete logic)
             Modal.confirm({
                 title: t('common.delete_confirm'),
                 content: `${t('common.delete_confirm_desc')} ${record.title}?`,
-                onOk: () => {
-                    message.success(t('common.success'));
-                }
+                onOk: () => handleDelete(record)
             });
         }
     };
@@ -190,14 +260,22 @@ export const RecruitmentJobList = () => {
             dataIndex: 'status',
             key: 'status',
             render: (status: any, record: JobPosition) => {
-                let color = 'default';
+                const normalizedStatus = normalizeJobStatus(String(status));
+
+                let color: 'default' | 'success' | 'error' | 'warning' | 'processing' = 'default';
                 let label = status;
-                if (status === 'Open') {
+                if (normalizedStatus === 'open') {
                     color = 'success';
                     label = t('recruitment.status_published');
-                } else {
+                } else if (normalizedStatus === 'closed') {
                     color = 'error';
                     label = t('recruitment.status_stopped');
+                } else if (normalizedStatus === 'draft') {
+                    color = 'warning';
+                    label = 'Draft';
+                } else if (normalizedStatus === 'on_hold') {
+                    color = 'processing';
+                    label = t('recruitment.on_hold');
                 }
 
                 return (
@@ -312,10 +390,12 @@ export const RecruitmentJobList = () => {
             <RecruitmentJobModal
                 open={isModalOpen}
                 onCancel={() => setIsModalOpen(false)}
+                onSubmit={handleSubmit}
                 onSuccess={() => {
                     setIsModalOpen(false);
                     fetchJobs();
                 }}
+                campaignOptions={planOptions}
                 initialValues={editingJob}
                 viewOnly={isViewOnly}
             />
