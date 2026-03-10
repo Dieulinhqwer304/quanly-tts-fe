@@ -59,7 +59,19 @@ interface ICandidate {
     jobId?: string;
     appliedForTitle?: string;
     matchScore?: number;
+    status?: string;
     [key: string]: unknown;
+}
+
+interface IUserOption {
+    id: string;
+    fullName: string;
+    role?: string;
+}
+
+interface CandidateListResponse {
+    hits?: ICandidate[];
+    data?: ICandidate[];
 }
 
 const TABS = [
@@ -141,11 +153,12 @@ export const InterviewSchedule = () => {
     const [intervalMinutes, setIntervalMinutes] = useState<number>(30);
     const [format, setFormat] = useState('online');
     const [locationLink, setLocationLink] = useState('https://meet.google.com/abc-defg-hij');
+    const [interviewerId, setInterviewerId] = useState<string | undefined>(undefined);
 
     const [searchText, setSearchText] = useState('');
     const [activeTab, setActiveTab] = useState('all');
 
-    const [candidatesData, setCandidatesData] = useState<Record<string, unknown> | null>(null);
+    const [candidatesData, setCandidatesData] = useState<CandidateListResponse | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -158,6 +171,7 @@ export const InterviewSchedule = () => {
         rejected_cv: 0,
         rejected_interview: 0
     });
+    const [interviewers, setInterviewers] = useState<IUserOption[]>([]);
 
     const fetchSummary = async () => {
         try {
@@ -172,23 +186,44 @@ export const InterviewSchedule = () => {
         setIsLoading(true);
         try {
             const params: Record<string, string> = {};
-            if (searchText) {
-                params.searcher = JSON.stringify({ keyword: searchText, field: 'fullName' });
-            }
+            if (searchText.trim()) params.q = searchText.trim();
             if (activeTab !== 'all') {
                 params.status = activeTab;
             }
-            const res = await http.get('/candidates', { params });
+            params.page = '1';
+            params.pageSize = '200';
+            const res = await http.get<CandidateListResponse>('/candidates', { params });
             setCandidatesData(res);
         } catch (error) {
-            console.error('Failed to fetch candidates:', error);
+            message.error('Không thể tải danh sách ứng viên');
         } finally {
             setIsLoading(false);
         }
     }, [searchText, activeTab]);
 
+    const fetchInterviewers = async () => {
+        try {
+            const res = await http.get<{ data?: Array<Record<string, unknown>>; hits?: Array<Record<string, unknown>> }>(
+                '/users'
+            );
+            const source = (res?.data || res?.hits || []) as Array<Record<string, unknown>>;
+            const normalized = source
+                .map((u) => ({
+                    id: String(u.id || ''),
+                    fullName: String(u.fullName || u.name || ''),
+                    role: String(u.role || '').toLowerCase()
+                }))
+                .filter((u) => u.id && u.fullName)
+                .filter((u) => ['mentor', 'hr', 'director', 'admin'].includes(u.role || ''));
+            setInterviewers(normalized);
+        } catch {
+            setInterviewers([]);
+        }
+    };
+
     useEffect(() => {
         fetchSummary();
+        fetchInterviewers();
     }, []);
 
     useEffect(() => {
@@ -216,7 +251,7 @@ export const InterviewSchedule = () => {
 
     const formattedDate = date ? date.format('DD/MM/YYYY') : '{Interview_Date}';
 
-    const candidates = candidatesData?.hits || candidatesData?.data || [];
+    const candidates: ICandidate[] = candidatesData?.hits || candidatesData?.data || [];
 
     const toggleCandidate = (id: string) => {
         setSelectedCandidates((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
@@ -237,8 +272,12 @@ export const InterviewSchedule = () => {
             .replace(/{Candidate_Name}/g, candidateNames)
             .replace(/{Interview_Date}/g, formattedDate)
             .replace(/{Interview_Time}/g, calculateTime(0))
-            .replace(/{Role}/g, 'Business Analyst')
-            .replace(/{Department}/g, 'DnA');
+            .replace(/{Role}/g, (candidates.find((c: ICandidate) => selectedCandidates.includes(c.id))?.job?.title as string) || 'Vị trí ứng tuyển')
+            .replace(
+                /{Department}/g,
+                (candidates.find((c: ICandidate) => selectedCandidates.includes(c.id))?.job as Record<string, string>)
+                    ?.department || 'N/A'
+            );
     };
 
     const handleSendInvites = async () => {
@@ -253,34 +292,45 @@ export const InterviewSchedule = () => {
             return;
         }
 
-        const selectedCandsInfo = candidates.filter((c: Record<string, string>) => selectedCandidates.includes(c.id));
+        if (needsTime && !locationLink.trim()) {
+            message.warning('Vui lòng nhập link/phòng phỏng vấn.');
+            return;
+        }
+
+        const selectedCandsInfo = candidates.filter((c) => selectedCandidates.includes(c.id));
+
+        if (selectedCandsInfo.length === 0) {
+            message.warning('Không tìm thấy ứng viên hợp lệ để gửi. Vui lòng chọn lại danh sách ứng viên.');
+            return;
+        }
 
         try {
             setIsProcessing(true);
             message.loading({ content: 'Đang xử lý...', key: 'inviting' });
 
             // 1. Chuẩn bị danh sách recipients với nội dung render sẵn
-            const emailRecipients = selectedCandsInfo.map(
-                (cand: Record<string, string | Record<string, string>>, index: number) => {
+            const emailRecipients = selectedCandsInfo.map((cand: ICandidate, index: number) => {
                     const candTime = calculateTime(index);
-                    const role =
-                        (cand.job as Record<string, string>)?.title || cand.appliedForTitle || 'Business Analyst';
-                    const department = 'DnA'; // Mock, có thể lấy từ cand.job.department nếu có
+                    const role = String(
+                        (cand.job as Record<string, unknown> | undefined)?.title || cand.appliedForTitle || 'Business Analyst'
+                    );
+                    const department = String(
+                        (cand.job as Record<string, unknown> | undefined)?.department || 'N/A'
+                    );
 
                     const candBody = emailHtml
-                        .replace(/{Candidate_Name}/g, cand.fullName || cand.name)
-                        .replace(/{Interview_Date}/g, date ? date.format('DD/MM/YYYY') : '')
+                        .replace(/{Candidate_Name}/g, String(cand.fullName || cand.name || 'Ứng viên'))
+                        .replace(/{Interview_Date}/g, String(date ? date.format('DD/MM/YYYY') : ''))
                         .replace(/{Interview_Time}/g, candTime)
                         .replace(/{Role}/g, role)
                         .replace(/{Department}/g, department);
 
                     return {
                         email: cand.email,
-                        fullName: cand.fullName || cand.name,
+                        fullName: cand.fullName || cand.name || 'Ứng viên',
                         htmlBody: candBody
                     };
-                }
-            );
+                });
 
             // Tiêu đề sử dụng ứng viên đầu tiên an toàn
             const firstCandRole =
@@ -289,10 +339,11 @@ export const InterviewSchedule = () => {
 
             // 2. Gửi request Schedule Interview nếu template là phỏng vấn / họp
             if (needsTime) {
-                const jobId =
-                    selectedCandsInfo[0]?.job?.id ||
-                    selectedCandsInfo[0]?.jobId ||
-                    '00000000-0000-0000-0000-000000000000';
+                const jobId = selectedCandsInfo[0]?.job?.id || selectedCandsInfo[0]?.jobId;
+                if (!jobId) {
+                    message.warning('Không tìm thấy vị trí ứng tuyển để lên lịch phỏng vấn.');
+                    return;
+                }
                 await http.post('/interviews/batch', {
                     candidateIds: selectedCandsInfo.map((c: ICandidate) => c.id),
                     jobId: jobId,
@@ -300,8 +351,18 @@ export const InterviewSchedule = () => {
                     startTime: startTime.format('HH:mm'),
                     intervalMinutes: intervalMinutes,
                     format: format,
-                    location: locationLink
+                    location: locationLink,
+                    interviewerId
                 });
+            } else {
+                await Promise.all(
+                    selectedCandsInfo.map((c: ICandidate) => {
+                        const baseStatus = c.status || activeTab;
+                        const rejectionStatus =
+                            baseStatus === 'interview_scheduled' ? 'rejected_interview' : 'rejected_cv';
+                        return http.patch(`/candidates/${c.id}`, { status: rejectionStatus });
+                    })
+                );
             }
 
             // 3. Gọi API gửi mail hàng loạt
@@ -316,7 +377,10 @@ export const InterviewSchedule = () => {
             });
             setSelectedCandidates([]);
             fetchCandidates();
+            fetchSummary();
         } catch {
+            fetchCandidates();
+            fetchSummary();
             message.error({ content: t('interview.send_failed'), key: 'inviting' });
         } finally {
             setIsProcessing(false);
@@ -379,7 +443,10 @@ export const InterviewSchedule = () => {
                         >
                             <Tabs
                                 activeKey={activeTab}
-                                onChange={setActiveTab}
+                                onChange={(value) => {
+                                    setActiveTab(value);
+                                    setSelectedCandidates([]);
+                                }}
                                 items={tabItems}
                                 size='small'
                                 tabBarStyle={{ padding: '0 12px', margin: 0 }}
@@ -389,7 +456,10 @@ export const InterviewSchedule = () => {
                                 <Input
                                     prefix={<SearchOutlined />}
                                     placeholder={t('candidate.search_placeholder')}
-                                    onChange={(e) => setSearchText(e.target.value)}
+                                    onChange={(e) => {
+                                        setSearchText(e.target.value);
+                                        setSelectedCandidates([]);
+                                    }}
                                 />
                             </div>
 
@@ -401,9 +471,7 @@ export const InterviewSchedule = () => {
                                 ) : (
                                     <List
                                         dataSource={candidates}
-                                        renderItem={(
-                                            item: Record<string, string | Record<string, string> | number>
-                                        ) => (
+                                        renderItem={(item: ICandidate) => (
                                             <List.Item
                                                 style={{
                                                     padding: '12px 16px',
@@ -416,10 +484,18 @@ export const InterviewSchedule = () => {
                                                 onClick={() => toggleCandidate(item.id)}
                                             >
                                                 <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                                    <Checkbox
-                                                        checked={selectedCandidates.includes(item.id)}
+                                                    <span
                                                         style={{ marginRight: '12px' }}
-                                                    />
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                        }}
+                                                    >
+                                                        <Checkbox
+                                                            checked={selectedCandidates.includes(item.id)}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            onChange={() => toggleCandidate(item.id)}
+                                                        />
+                                                    </span>
                                                     <Avatar
                                                         src={item.avatarUrl || item.avatar}
                                                         style={{ marginRight: '12px' }}
@@ -432,17 +508,19 @@ export const InterviewSchedule = () => {
                                                             {item.job?.title || item.appliedForTitle || 'No Title'}
                                                         </Text>
                                                     </div>
+                                                    {typeof item.matchScore === 'number' && (
                                                     <Tag
                                                         color={
-                                                            (item.matchScore || 0) >= 90
+                                                            item.matchScore >= 90
                                                                 ? 'success'
-                                                                : (item.matchScore || 0) >= 80
+                                                                : item.matchScore >= 80
                                                                   ? 'processing'
                                                                   : 'warning'
                                                         }
                                                     >
-                                                        {item.matchScore || 0}%
+                                                        {item.matchScore}%
                                                     </Tag>
+                                                    )}
                                                 </div>
                                             </List.Item>
                                         )}
@@ -571,6 +649,22 @@ export const InterviewSchedule = () => {
                                                 style={{ marginTop: '8px' }}
                                                 value={locationLink}
                                                 onChange={(e) => setLocationLink(e.target.value)}
+                                            />
+                                        </Col>
+                                    </Row>
+                                    <Row style={{ marginTop: '16px' }}>
+                                        <Col span={24}>
+                                            <Text strong>Người phỏng vấn</Text>
+                                            <Select
+                                                allowClear
+                                                style={{ width: '100%', marginTop: '8px' }}
+                                                placeholder='Chọn người phỏng vấn (tuỳ chọn)'
+                                                value={interviewerId}
+                                                onChange={setInterviewerId}
+                                                options={interviewers.map((u) => ({
+                                                    value: u.id,
+                                                    label: `${u.fullName}${u.role ? ` (${u.role})` : ''}`
+                                                }))}
                                             />
                                         </Col>
                                     </Row>
