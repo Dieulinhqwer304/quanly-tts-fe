@@ -3,6 +3,7 @@ import * as candidatesService from '../../services/Recruitment/candidates';
 import {
     GetCandidatesParams,
     CreateCandidateParams,
+    CreateCandidateWithCvParams,
     UpdateCandidateParams,
     ShortlistCandidateParams,
     RejectCandidateParams
@@ -69,6 +70,27 @@ export const useCreateCandidate = () => {
         setIsLoading(true);
         try {
             const result = await candidatesService.createCandidate(params);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return { mutate, isLoading, error };
+};
+
+export const useCreateCandidateWithCv = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const mutate = async (params: CreateCandidateWithCvParams) => {
+        setIsLoading(true);
+        try {
+            const result = await candidatesService.createCandidateWithCv(params);
             setError(null);
             return result;
         } catch (err) {

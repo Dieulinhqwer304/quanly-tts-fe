@@ -32,7 +32,7 @@ export const useJobPositions = (params?: GetJobPositionsParams) => {
     return { data, isLoading, error, refetch: fetchData };
 };
 
-export const useJobPosition = (id: string) => {
+export const useJobPosition = (id: string, publicOnly?: boolean) => {
     const [data, setData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<any>(null);
@@ -41,7 +41,7 @@ export const useJobPosition = (id: string) => {
         if (!id) return;
         setIsLoading(true);
         try {
-            const result = await jobPositionsService.getJobPosition(id);
+            const result = await jobPositionsService.getJobPosition(id, publicOnly);
             setData(result);
             setError(null);
         } catch (err) {
@@ -49,7 +49,7 @@ export const useJobPosition = (id: string) => {
         } finally {
             setIsLoading(false);
         }
-    }, [id]);
+    }, [id, publicOnly]);
 
     useEffect(() => {
         fetchData();
