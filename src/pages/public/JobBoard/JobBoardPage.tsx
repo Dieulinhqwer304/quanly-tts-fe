@@ -21,7 +21,7 @@ export const JobBoardPage = () => {
 
     const { data: jobPositionsData, isLoading } = useJobPositions({
         searcher: searchText ? { keyword: searchText, field: 'title' } : undefined,
-        status: 'Open' // Only show open positions on public job board
+        publicOnly: true
     });
 
     const jobs = jobPositionsData?.data || [];
@@ -181,7 +181,7 @@ export const JobBoardPage = () => {
                                                 {job.department}
                                             </Tag>
                                             <Text type='secondary' style={{ fontSize: '13px' }}>
-                                                Đăng ngày {job.postedDate}
+                                                Đăng ngày {job.postedDate || 'N/A'}
                                             </Text>
                                         </div>
 
@@ -214,7 +214,7 @@ export const JobBoardPage = () => {
                                                     fontSize: '13px'
                                                 }}
                                             >
-                                                <DollarOutlined /> {job.salary}
+                                                <DollarOutlined /> {job.salaryRange || 'Thỏa thuận'}
                                             </div>
                                             <div
                                                 style={{
@@ -227,7 +227,7 @@ export const JobBoardPage = () => {
                                                     fontSize: '13px'
                                                 }}
                                             >
-                                                <FieldTimeOutlined /> {job.level}
+                                                <FieldTimeOutlined /> Cần {job.required || job.requiredQuantity || 0} vị trí
                                             </div>
                                         </Space>
 
@@ -249,7 +249,7 @@ export const JobBoardPage = () => {
                                             }}
                                         >
                                             <Text style={{ color: '#1E40AF', fontWeight: 600 }}>
-                                                {job.filled} / {job.required} suất đã nhận
+                                                {job.filled || job.filledQuantity || 0} / {job.required || job.requiredQuantity || 0} suất đã nhận
                                             </Text>
                                             <Button type='primary' shape='round' icon={<ArrowRightOutlined />}>
                                                 Chi tiết

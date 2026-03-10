@@ -7,7 +7,6 @@ import {
     FieldTimeOutlined,
     GlobalOutlined,
     HourglassOutlined,
-    LaptopOutlined,
     MailOutlined,
     PhoneOutlined
 } from '@ant-design/icons';
@@ -16,8 +15,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useJobPosition } from '../../../hooks/Recruitment/useJobPositions';
-import { useCreateCandidate } from '../../../hooks/Recruitment/useCandidates';
+import { useCreateCandidateWithCv } from '../../../hooks/Recruitment/useCandidates';
 import { RouteConfig } from '../../../constants';
+import type { UploadFile } from 'antd/es/upload/interface';
 
 const { Header, Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -27,13 +27,21 @@ export const JobDetailPage = () => {
     const navigate = useNavigate();
     useTranslation();
     const [form] = Form.useForm();
-    const { mutate: applyJob, isLoading: isApplying } = useCreateCandidate();
+    const { mutate: applyJob, isLoading: isApplying } = useCreateCandidateWithCv();
+    const [fileList, setFileList] = useState<UploadFile[]>([]);
 
-    const { data: jobRes, isLoading } = useJobPosition(id || '');
+    const { data: jobRes, isLoading } = useJobPosition(id || '', true);
     const job = jobRes?.data;
 
-    const onFinish = async (values: any) => {
+    const onFinish = async (values: { fullName: string; email: string; phone: string }) => {
         if (!id) return;
+        if (!fileList[0]?.originFileObj) {
+            Modal.warning({
+                title: 'Thiếu CV',
+                content: 'Vui lòng tải lên CV trước khi nộp hồ sơ.'
+            });
+            return;
+        }
 
         try {
             await applyJob({
@@ -41,8 +49,7 @@ export const JobDetailPage = () => {
                 email: values.email,
                 phone: values.phone,
                 jobId: id,
-                // In real app, we handle file upload to get URL or use FormData
-                resumeUrl: 'https://example.com/cv.pdf'
+                cv: fileList[0].originFileObj as File
             });
 
             Modal.success({
@@ -54,6 +61,7 @@ export const JobDetailPage = () => {
             });
 
             form.resetFields();
+            setFileList([]);
         } catch (err) {
             Modal.error({
                 title: 'Lỗi',
@@ -160,12 +168,17 @@ export const JobDetailPage = () => {
                                     </Title>
                                 </div>
 
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                                    {[
-                                        { icon: <LaptopOutlined />, text: 'Remote Friendly' },
-                                        { icon: <DollarOutlined />, text: 'Paid Internship' },
-                                        { icon: <FieldTimeOutlined />, text: job.level }
-                                    ].map((item, index) => (
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                                        {[
+                                            {
+                                                icon: <DollarOutlined />,
+                                                text: job.salaryRange || 'Thỏa thuận'
+                                            },
+                                            {
+                                                icon: <FieldTimeOutlined />,
+                                                text: `${job.required || job.requiredQuantity || 0} vị trí`
+                                            }
+                                        ].map((item, index) => (
                                         <div
                                             key={index}
                                             style={{
@@ -185,9 +198,9 @@ export const JobDetailPage = () => {
                                             {item.text}
                                         </div>
                                     ))}
-                                    <div
-                                        style={{
-                                            display: 'flex',
+                                        <div
+                                            style={{
+                                                display: 'flex',
                                             alignItems: 'center',
                                             gap: '8px',
                                             padding: '8px 16px',
@@ -195,10 +208,10 @@ export const JobDetailPage = () => {
                                             borderRadius: '8px',
                                             fontSize: '14px',
                                             fontWeight: 700,
-                                            color: '#e11d48'
-                                        }}
-                                    >
-                                        <HourglassOutlined /> Hạn nộp: 30/10/2025
+                                                color: '#e11d48'
+                                            }}
+                                        >
+                                        <HourglassOutlined /> Hạn nộp: {job.deadline || 'Liên hệ HR'}
                                     </div>
                                 </div>
 
@@ -238,7 +251,7 @@ export const JobDetailPage = () => {
                                                 Lương
                                             </Text>
                                             <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px' }}>
-                                                {job.salary}
+                                                {job.salaryRange || 'Thỏa thuận'}
                                             </div>
                                         </Col>
                                         <Col span={8}>
@@ -253,7 +266,7 @@ export const JobDetailPage = () => {
                                                 Trình độ
                                             </Text>
                                             <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px' }}>
-                                                {job.level}
+                                                Intern/Trainee
                                             </div>
                                         </Col>
                                     </Row>
@@ -273,10 +286,9 @@ export const JobDetailPage = () => {
                                     </Title>
                                     <ul style={{ listStyle: 'none', padding: 0 }}>
                                         {[
-                                            'Được đào tạo bài bản bởi Mentor giàu kinh nghiệm.',
-                                            'Môi trường làm việc trẻ trung, năng động, nhiều hoạt động team building.',
-                                            'Cơ hội trở thành nhân viên chính thức sau kỳ thực tập.',
-                                            'Hỗ trợ dấu thực tập và báo cáo tốt nghiệp.'
+                                            job.benefits || 'Môi trường học tập thực tế với mentor.',
+                                            'Cơ hội phát triển lên vị trí chính thức.',
+                                            'Được hỗ trợ trong suốt quá trình thực tập.'
                                         ].map((item, i) => (
                                             <li key={i} style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
                                                 <CheckCircleOutlined style={{ color: '#1E40AF', marginTop: '6px' }} />
@@ -339,17 +351,17 @@ export const JobDetailPage = () => {
                                             />
                                         </Form.Item>
 
-                                        <Form.Item
-                                            label='Tải lên CV (PDF/DOCX)'
-                                            name='resume'
-                                            rules={[{ required: true, message: 'Vui lòng tải lên CV!' }]}
-                                        >
+                                        <Form.Item label='Tải lên CV (PDF/DOCX)'>
                                             <Upload.Dragger
                                                 style={{
                                                     padding: '24px',
                                                     background: '#f8fafc',
                                                     border: '2px dashed #e2e8f0'
                                                 }}
+                                                beforeUpload={() => false}
+                                                fileList={fileList}
+                                                onChange={(info) => setFileList(info.fileList.slice(-1))}
+                                                accept='.pdf,.doc,.docx'
                                                 maxCount={1}
                                             >
                                                 <p>
