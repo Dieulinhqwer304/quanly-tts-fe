@@ -100,6 +100,22 @@ const formatRelativeTime = (value?: string): string => {
     return dayjs(value).isValid() ? dayjs(value).fromNow() : 'N/A';
 };
 
+const getActionErrorMessage = (error: unknown): string => {
+    if (typeof error === 'object' && error !== null) {
+        const errorObject = error as {
+            message?: string;
+            response?: {
+                data?: {
+                    message?: string;
+                };
+            };
+        };
+        return errorObject.response?.data?.message || errorObject.message || 'Cập nhật yêu cầu thất bại. Vui lòng thử lại.';
+    }
+
+    return 'Cập nhật yêu cầu thất bại. Vui lòng thử lại.';
+};
+
 export const DirectorApprovals = () => {
     const { isMobile, isLaptop } = useResponsive();
 
@@ -154,8 +170,8 @@ export const DirectorApprovals = () => {
             message.success(`Đã cập nhật trạng thái: ${getStatusLabel(status)}`);
             setDirectorNote('');
             await refetch();
-        } catch {
-            message.error('Cập nhật yêu cầu thất bại. Vui lòng thử lại.');
+        } catch (error) {
+            message.error(getActionErrorMessage(error));
         }
     };
 
@@ -450,7 +466,7 @@ export const DirectorApprovals = () => {
                                         rows={2}
                                         value={directorNote}
                                         onChange={(e) => setDirectorNote(e.target.value)}
-                                        placeholder='Nhập ghi chú xử lý (bắt buộc khi từ chối/chỉnh sửa)'
+                                        placeholder='Nhập ghi chú xử lý (không bắt buộc)'
                                         style={{ marginTop: 8, marginBottom: 12 }}
                                     />
 

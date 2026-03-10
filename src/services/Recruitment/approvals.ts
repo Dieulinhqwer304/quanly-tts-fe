@@ -77,7 +77,15 @@ export interface UpdateApprovalParams {
 }
 
 export const updateApproval = async (params: UpdateApprovalParams): Promise<ResponseDetailSuccess<Approval>> => {
-    const { id, ...data } = params;
-    const result = await http.patch<ResponseDetailSuccess<Approval>>(`/approvals/${id}`, data);
+    const { id, status, notes } = params;
+    const trimmedNotes = typeof notes === 'string' ? notes.trim() : undefined;
+    const payload: { status: ApprovalStatus; notes?: string; note?: string } = { status };
+
+    if (trimmedNotes) {
+        payload.notes = trimmedNotes;
+        payload.note = trimmedNotes;
+    }
+
+    const result = await http.patch<ResponseDetailSuccess<Approval>>(`/approvals/${id}`, payload);
     return result;
 };
