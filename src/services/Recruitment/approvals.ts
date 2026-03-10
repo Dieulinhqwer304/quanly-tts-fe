@@ -6,9 +6,27 @@ import {
     PaginateParams
 } from '../../utils/types/ServiceResponse';
 
+export type ApprovalType = 'Conversion' | 'Recruitment';
+export type ApprovalStatus = 'Pending' | 'Approved' | 'Rejected' | 'Adjusting';
+
+export interface ApprovalPositionDetail {
+    title: string;
+    count: number;
+    requirements?: string;
+    level?: string;
+}
+
+export interface ApprovalDetails {
+    positions?: ApprovalPositionDetail[];
+    totalPositions?: number;
+    expectedStart?: string;
+    justification?: string;
+    [key: string]: unknown;
+}
+
 export interface Approval {
     id: string;
-    type: 'Conversion' | 'Recruitment';
+    type: ApprovalType;
     name: string;
     title: string;
     currentRole?: string;
@@ -20,29 +38,30 @@ export interface Approval {
     department?: string;
     hr?: string;
     priority?: 'High' | 'Normal' | 'Low';
-    status: 'Pending' | 'Approved' | 'Rejected' | 'Adjusting';
+    status: ApprovalStatus;
     createdAt: string;
     updatedAt: string;
-    details?: any;
+    notes?: string;
+    details?: ApprovalDetails | null;
 }
 
 export interface GetApprovalsParams {
     pagination?: PaginateParams;
     searcher?: SearchParams;
-    type?: string;
-    status?: string;
+    type?: ApprovalType | 'all';
+    status?: ApprovalStatus;
 }
 
 export const getApprovals = async (params?: GetApprovalsParams): Promise<ResponseListSuccess<Approval>> => {
-    const queryParams: any = {
-        q: params?.searcher?.keyword,
-        page: params?.pagination?.page || 1,
-        limit: params?.pagination?.pageSize || 10,
-        status: params?.status,
-        type: params?.type
-    };
+    const queryParams: Record<string, string | number> = {};
 
-    const result = await http.get<any>('/approvals', { params: queryParams });
+    if (params?.searcher?.keyword) queryParams.q = params.searcher.keyword;
+    if (params?.pagination?.page) queryParams.page = params.pagination.page;
+    if (params?.pagination?.pageSize) queryParams.limit = params.pagination.pageSize;
+    if (params?.status) queryParams.status = params.status;
+    if (params?.type) queryParams.type = params.type;
+
+    const result = await http.get<ResponseListSuccess<Approval>>('/approvals', { params: queryParams });
     return result;
 };
 
@@ -53,7 +72,7 @@ export const getApproval = async (id: string): Promise<ResponseDetailSuccess<App
 
 export interface UpdateApprovalParams {
     id: string;
-    status: 'Approved' | 'Rejected' | 'Adjusting';
+    status: ApprovalStatus;
     notes?: string;
 }
 
