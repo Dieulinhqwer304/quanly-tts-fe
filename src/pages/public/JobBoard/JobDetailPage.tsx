@@ -33,23 +33,17 @@ export const JobDetailPage = () => {
     const { data: jobRes, isLoading } = useJobPosition(id || '', true);
     const job = jobRes?.data;
 
-    const onFinish = async (values: { fullName: string; email: string; phone: string }) => {
+    const onFinish = async (values: { fullName: string; email: string; phone: string; coverLetter: string }) => {
         if (!id) return;
-        if (!fileList[0]?.originFileObj) {
-            Modal.warning({
-                title: 'Thiếu CV',
-                content: 'Vui lòng tải lên CV trước khi nộp hồ sơ.'
-            });
-            return;
-        }
 
         try {
             await applyJob({
                 fullName: values.fullName,
                 email: values.email,
                 phone: values.phone,
+                coverLetter: values.coverLetter,
                 jobId: id,
-                cv: fileList[0].originFileObj as File
+                cv: fileList[0]?.originFileObj as File | undefined
             });
 
             Modal.success({
@@ -351,7 +345,18 @@ export const JobDetailPage = () => {
                                             />
                                         </Form.Item>
 
-                                        <Form.Item label='Tải lên CV (PDF/DOCX)'>
+                                        <Form.Item
+                                            name='coverLetter'
+                                            label='Nội dung ứng tuyển'
+                                            rules={[{ required: true, message: 'Vui lòng nhập nội dung ứng tuyển!' }]}
+                                        >
+                                            <Input.TextArea
+                                                rows={4}
+                                                placeholder='Giới thiệu ngắn gọn về bản thân và lý do bạn phù hợp với vị trí này.'
+                                            />
+                                        </Form.Item>
+
+                                        <Form.Item label='Tải lên CV (PDF/DOCX) - Không bắt buộc'>
                                             <Upload.Dragger
                                                 style={{
                                                     padding: '24px',
