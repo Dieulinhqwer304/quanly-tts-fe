@@ -1,19 +1,23 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import * as approvalsService from '../../services/Recruitment/approvals';
-import { GetApprovalsParams, UpdateApprovalParams } from '../../services/Recruitment/approvals';
-import { MOCK_DATA } from '../../constants/MockData';
+import { Approval, GetApprovalsParams, UpdateApprovalParams } from '../../services/Recruitment/approvals';
+import { ResponseListSuccess, ResponseDetailSuccess } from '../../utils/types/ServiceResponse';
 
 export const useApprovals = (params?: GetApprovalsParams) => {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<ResponseListSuccess<Approval> | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const paramsString = JSON.stringify(params);
+    const stableParams = useMemo<GetApprovalsParams | undefined>(() => {
+        if (!paramsString) return undefined;
+        return JSON.parse(paramsString) as GetApprovalsParams;
+    }, [paramsString]);
 
     const fetchData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const result = await approvalsService.getApprovals(params);
+            const result = await approvalsService.getApprovals(stableParams);
             setData(result);
             setError(null);
         } catch (err) {
@@ -21,7 +25,7 @@ export const useApprovals = (params?: GetApprovalsParams) => {
         } finally {
             setIsLoading(false);
         }
-    }, [paramsString]);
+    }, [stableParams]);
 
     useEffect(() => {
         fetchData();
@@ -31,9 +35,9 @@ export const useApprovals = (params?: GetApprovalsParams) => {
 };
 
 export const useApproval = (id: string) => {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<ResponseDetailSuccess<Approval> | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const fetchData = useCallback(async () => {
         if (!id) return;
@@ -58,7 +62,7 @@ export const useApproval = (id: string) => {
 
 export const useUpdateApproval = () => {
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const mutate = async (params: UpdateApprovalParams) => {
         setIsLoading(true);
@@ -74,5 +78,5 @@ export const useUpdateApproval = () => {
         }
     };
 
-    return { mutate, isLoading: isLoading, error };
+    return { mutate, isLoading, error };
 };

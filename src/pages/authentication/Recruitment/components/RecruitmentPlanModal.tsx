@@ -17,6 +17,20 @@ interface RecruitmentPlanModalProps {
     viewOnly?: boolean;
 }
 
+interface PlanFormValues {
+    name: string;
+    batch: string;
+    department: string;
+    description?: string;
+    period?: [dayjs.Dayjs, dayjs.Dayjs];
+    status?: string;
+    positions?: Array<{
+        title: string;
+        count: number;
+        requirements?: string;
+    }>;
+}
+
 export const RecruitmentPlanModal = ({
     open,
     onCancel,
@@ -29,11 +43,21 @@ export const RecruitmentPlanModal = ({
     const [form] = Form.useForm();
     const [isLoading, setIsLoading] = useState(false);
 
+    const normalizePlanStatus = (value?: string) => {
+        const normalized = (value || '').toLowerCase().replace(/\s+/g, '_');
+        if (normalized === 'pending') return 'pending_approval';
+        if (normalized === 'active') return 'pending_approval';
+        if (normalized === 'rejected') return 'pending_approval';
+        if (normalized === 'on_hold' || normalized === 'closed' || normalized === 'pending_approval') return normalized;
+        return 'pending_approval';
+    };
+
     useEffect(() => {
         if (open) {
             if (initialValues) {
                 form.setFieldsValue({
                     ...initialValues,
+                    status: normalizePlanStatus(initialValues.status),
                     positions: initialValues.jobPositions?.map((jp) => ({
                         title: jp.title,
                         count: jp.requiredQuantity,
@@ -50,7 +74,7 @@ export const RecruitmentPlanModal = ({
         }
     }, [open, initialValues, form]);
 
-    const onFinish = async (values: any) => {
+    const onFinish = async (values: PlanFormValues) => {
         setIsLoading(true);
         try {
             const formData = {
@@ -60,7 +84,7 @@ export const RecruitmentPlanModal = ({
                 description: values.description,
                 startDate: values.period ? values.period[0].format('YYYY-MM-DD') : '',
                 endDate: values.period ? values.period[1].format('YYYY-MM-DD') : '',
-                status: values.status?.toLowerCase() || 'pending_approval',
+                status: normalizePlanStatus(values.status),
                 jobPositions: values.positions || []
             };
 
@@ -108,7 +132,7 @@ export const RecruitmentPlanModal = ({
                 onFinish={onFinish}
                 disabled={viewOnly}
                 initialValues={{
-                    status: 'active',
+                    status: 'pending_approval',
                     department: 'Engineering'
                 }}
             >
@@ -253,8 +277,8 @@ export const RecruitmentPlanModal = ({
                                 <Form.Item label={t('common.status')} name='status'>
                                     <Select
                                         options={[
-                                            { value: 'active', label: t('recruitment.active_hiring') },
                                             { value: 'pending_approval', label: t('recruitment.pending_approval') },
+                                            { value: 'on_hold', label: t('recruitment.on_hold') },
                                             { value: 'closed', label: t('recruitment.closed') }
                                         ]}
                                     />

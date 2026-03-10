@@ -6,6 +6,53 @@ class Http {
     instance: AxiosInstance;
     private instancePublic: AxiosInstance;
 
+    private normalizeSuccessResponse(res: {
+        errorCode?: number;
+        traceId?: string;
+        data?: unknown;
+    }) {
+        const payload = res?.data;
+
+        if (Array.isArray(payload)) {
+            return {
+                errorCode: res?.errorCode,
+                traceId: res?.traceId,
+                data: payload,
+                hits: payload
+            };
+        }
+
+        if (payload && typeof payload === 'object') {
+            const payloadRecord = payload as Record<string, unknown>;
+            const hits = payloadRecord.hits;
+
+            if (Array.isArray(hits)) {
+                return {
+                    ...payloadRecord,
+                    errorCode: res?.errorCode,
+                    traceId: res?.traceId,
+                    data: hits,
+                    hits,
+                    pagination: payloadRecord.pagination
+                };
+            }
+
+            return {
+                ...payloadRecord,
+                errorCode: res?.errorCode,
+                traceId: res?.traceId,
+                data: payloadRecord
+            };
+        }
+
+        return {
+            errorCode: res?.errorCode,
+            traceId: res?.traceId,
+            data: payload,
+            value: payload
+        };
+    }
+
     constructor() {
         // Instance cho các API cần authentication
         this.instance = axios.create({
@@ -34,7 +81,7 @@ class Http {
                     message.error(res.message || 'Có lỗi xảy ra');
                     return Promise.reject(res);
                 }
-                return res.data;
+                return this.normalizeSuccessResponse(res);
             },
             (error) => {
                 if (error.response) {
@@ -72,7 +119,7 @@ class Http {
                     }
                     return Promise.reject(res);
                 }
-                return res.data;
+                return this.normalizeSuccessResponse(res);
             },
             (error) => {
                 // Xử lý các lỗi HTTP status codes (nếu có)
@@ -104,12 +151,12 @@ class Http {
 }
 
 export interface HttpClient {
-    get<T = any>(url: string, config?: any): Promise<T>;
-    post<T = any>(url: string, data?: any, config?: any): Promise<T>;
-    patch<T = any>(url: string, data?: any, config?: any): Promise<T>;
-    put<T = any>(url: string, data?: any, config?: any): Promise<T>;
-    delete<T = any>(url: string, config?: any): Promise<T>;
-    interceptors: any;
+    get<T = unknown>(url: string, config?: unknown): Promise<T>;
+    post<T = unknown>(url: string, data?: unknown, config?: unknown): Promise<T>;
+    patch<T = unknown>(url: string, data?: unknown, config?: unknown): Promise<T>;
+    put<T = unknown>(url: string, data?: unknown, config?: unknown): Promise<T>;
+    delete<T = unknown>(url: string, config?: unknown): Promise<T>;
+    interceptors: unknown;
 }
 
 // Xử lý type cast cho axios instance để khớp với interceptor return value

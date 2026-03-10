@@ -1,121 +1,181 @@
 import {
-    AuditOutlined,
     CheckCircleOutlined,
     CloseCircleOutlined,
     DollarOutlined,
     FileTextOutlined,
     HistoryOutlined,
     InfoCircleOutlined,
-    LineChartOutlined,
-    MessageOutlined,
+    LoadingOutlined,
     SearchOutlined,
-    UserOutlined,
-    WarningOutlined,
-    LoadingOutlined
+    WarningOutlined
 } from '@ant-design/icons';
 import {
-    Avatar,
     Button,
     Card,
     Col,
+    Empty,
     Input,
     Layout,
     List,
-    Progress,
     Row,
+    Select,
     Space,
+    Spin,
+    Table,
     Tag,
     Typography,
-    message,
-    Modal,
-    Spin,
-    Empty
+    message
 } from 'antd';
-import { useState, useEffect, useMemo } from 'react';
-import { useApprovals, useUpdateApproval } from '../../../hooks/Recruitment/useApprovals';
-import { Approval } from '../../../services/Recruitment/approvals';
-import { useTranslation } from 'react-i18next';
+import { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import { useApprovals, useUpdateApproval } from '../../../hooks/Recruitment/useApprovals';
+import { useDebounce } from '../../../hooks/useDebounce';
 import { useResponsive } from '../../../hooks/useResponsive';
+import { Approval, ApprovalPositionDetail, ApprovalStatus, ApprovalType } from '../../../services/Recruitment/approvals';
+
+dayjs.extend(relativeTime);
 
 const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
 
+const STATUS_OPTIONS: Array<ApprovalStatus | 'all'> = ['all', 'Pending', 'Approved', 'Rejected', 'Adjusting'];
+
+const STATUS_LABELS: Record<ApprovalStatus | 'all', string> = {
+    all: 'Tất cả',
+    Pending: 'Chờ duyệt',
+    Approved: 'Đã duyệt',
+    Rejected: 'Đã từ chối',
+    Adjusting: 'Yêu cầu chỉnh sửa'
+};
+
+const STATUS_COLORS: Record<ApprovalStatus, 'warning' | 'success' | 'error' | 'processing'> = {
+    Pending: 'warning',
+    Approved: 'success',
+    Rejected: 'error',
+    Adjusting: 'processing'
+};
+
+const normalizeStatus = (status: string): ApprovalStatus | null => {
+    const lower = status.toLowerCase();
+    if (lower === 'pending') return 'Pending';
+    if (lower === 'approved') return 'Approved';
+    if (lower === 'rejected') return 'Rejected';
+    if (lower === 'adjusting') return 'Adjusting';
+    return null;
+};
+
+const getStatusLabel = (status: string): string => {
+    const normalized = normalizeStatus(status);
+    return normalized ? STATUS_LABELS[normalized] : status;
+};
+
+const getStatusColor = (status: string): 'warning' | 'success' | 'error' | 'processing' | 'default' => {
+    const normalized = normalizeStatus(status);
+    return normalized ? STATUS_COLORS[normalized] : 'default';
+};
+
+const getSafeNumber = (value: unknown): number | null => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string') {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+};
+
+const formatCurrency = (value: unknown): string => {
+    const num = getSafeNumber(value);
+    if (num === null) return 'N/A';
+    return `$${num.toLocaleString()}`;
+};
+
+const formatDateTime = (value?: string): string => {
+    if (!value) return 'N/A';
+    return dayjs(value).isValid() ? dayjs(value).format('DD/MM/YYYY HH:mm') : 'N/A';
+};
+
+const formatRelativeTime = (value?: string): string => {
+    if (!value) return 'N/A';
+    return dayjs(value).isValid() ? dayjs(value).fromNow() : 'N/A';
+};
+
 export const DirectorApprovals = () => {
-    const { t } = useTranslation();
     const { isMobile, isLaptop } = useResponsive();
+
     const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
     const [directorNote, setDirectorNote] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
-    const [statusFilter, setStatusFilter] = useState<'Pending' | 'Approved' | 'Rejected' | 'Adjusting'>('Pending');
+    const [statusFilter, setStatusFilter] = useState<ApprovalStatus | 'all'>('Pending');
 
-    const {
-        data: approvalsRes,
-        isLoading,
-        refetch
-    } = useApprovals({
-        searcher: { keyword: searchKeyword, field: 'name' },
-        status: statusFilter
+    const debouncedSearchKeyword = useDebounce(searchKeyword, 300);
+
+    const { data: approvalsRes, isLoading, refetch } = useApprovals({
+        status: statusFilter === 'all' ? undefined : statusFilter,
+        type: 'Recruitment',
+        searcher: debouncedSearchKeyword ? { keyword: debouncedSearchKeyword, field: 'name' } : undefined
     });
 
     const updateApproval = useUpdateApproval();
 
-    const queue = useMemo<Approval[]>(() => {
-        return approvalsRes?.data || [];
-    }, [approvalsRes?.data]);
-    const selectedRequest =
-        queue.find((r) => r.id === selectedRequestId) || (queue.length > 0 && !selectedRequestId ? queue[0] : null);
+    const queue = useMemo<Approval[]>(() => approvalsRes?.data || [], [approvalsRes?.data]);
 
     useEffect(() => {
-        if (queue.length > 0 && !selectedRequestId) {
+        if (queue.length === 0) {
+            setSelectedRequestId(null);
+            return;
+        }
+
+        if (!selectedRequestId || !queue.some((item) => item.id === selectedRequestId)) {
             setSelectedRequestId(queue[0].id);
         }
     }, [queue, selectedRequestId]);
 
-    const handleAction = async (action: 'approve' | 'reject' | 'adjust') => {
+    const selectedRequest = useMemo<Approval | null>(
+        () => queue.find((item) => item.id === selectedRequestId) || null,
+        [queue, selectedRequestId]
+    );
+
+    const positions: ApprovalPositionDetail[] = selectedRequest?.details?.positions || [];
+    const totalPositions =
+        typeof selectedRequest?.details?.totalPositions === 'number'
+            ? selectedRequest.details.totalPositions
+            : positions.reduce((sum, item) => sum + (typeof item.count === 'number' ? item.count : 0), 0);
+
+    const runAction = async (status: ApprovalStatus) => {
         if (!selectedRequest) return;
-
-        const statusMap = {
-            approve: 'Approved',
-            reject: 'Rejected',
-            adjust: 'Adjusting'
-        } as const;
-
-        const newStatus = statusMap[action];
 
         try {
             await updateApproval.mutate({
                 id: selectedRequest.id,
-                status: newStatus,
-                notes: directorNote
+                status,
+                notes: directorNote.trim() || undefined
             });
-            message.success(`Yêu cầu của ${selectedRequest.name} đã được ${newStatus === 'Approved' ? 'phê duyệt' : newStatus === 'Rejected' ? 'từ chối' : 'yêu cầu chỉnh sửa'}`);
+            message.success(`Đã cập nhật trạng thái: ${getStatusLabel(status)}`);
             setDirectorNote('');
-            refetch();
-            if (queue.length <= 1) {
-                setSelectedRequestId(null);
-            }
-        } catch (err) {
+            await refetch();
+        } catch {
             message.error('Cập nhật yêu cầu thất bại. Vui lòng thử lại.');
         }
     };
 
-    const renderEmpty = () => (
-        <div style={{ padding: '100px 0', textAlign: 'center' }}>
-            <Empty
-                description={
-                    statusFilter === 'Pending' ? t('director.no_pending_requests') : t('director.no_approved_requests')
-                }
-            />
-        </div>
-    );
+    const selectedStatus = selectedRequest?.status ? normalizeStatus(selectedRequest.status) : null;
+    const canTakeAction = selectedStatus === 'Pending' || selectedStatus === 'Adjusting';
+
+    const salary = getSafeNumber(selectedRequest?.salary);
+    const budget = getSafeNumber(selectedRequest?.budget);
+    const exceedAmount = salary !== null && budget !== null ? salary - budget : null;
 
     return (
         <Layout
-            style={{ height: 'calc(100vh - 64px)', background: '#f6f7f8', flexDirection: isMobile ? 'column' : 'row' }}
+            style={{
+                height: 'calc(100vh - 64px)',
+                background: '#f6f7f8',
+                flexDirection: isMobile ? 'column' : 'row'
+            }}
         >
             <Sider
-                width={isMobile ? '100%' : 400}
+                width={isMobile ? '100%' : 380}
                 theme='light'
                 style={{
                     borderRight: isMobile ? 'none' : '1px solid #E2E8F0',
@@ -123,677 +183,320 @@ export const DirectorApprovals = () => {
                     overflowY: 'auto'
                 }}
             >
-                <div style={{ padding: '16px', borderBottom: '1px solid #E2E8F0' }}>
-                    <div
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginBottom: '16px'
-                        }}
-                    >
-                        <Title level={5} style={{ margin: 0 }}>
-                            {t('director.request_queue')}
-                        </Title>
-                        <Space wrap>
+                <div style={{ padding: 16, borderBottom: '1px solid #E2E8F0' }}>
+                    <Title level={5} style={{ margin: 0, marginBottom: 12 }}>
+                        Hàng đợi phê duyệt
+                    </Title>
+
+                    <Space wrap style={{ marginBottom: 12 }}>
+                        {STATUS_OPTIONS.map((status) => (
                             <Button
+                                key={status}
                                 size='small'
-                                type={statusFilter === 'Pending' ? 'primary' : 'text'}
-                                onClick={() => setStatusFilter('Pending')}
+                                type={statusFilter === status ? 'primary' : 'text'}
+                                onClick={() => setStatusFilter(status)}
                             >
-                                {t('director.pending')}
+                                {getStatusLabel(status)}
                             </Button>
-                            <Button
-                                size='small'
-                                type={statusFilter === 'Approved' ? 'primary' : 'text'}
-                                onClick={() => setStatusFilter('Approved')}
-                            >
-                                {t('director.approved')}
-                            </Button>
-                            <Button
-                                size='small'
-                                type={statusFilter === 'Rejected' ? 'primary' : 'text'}
-                                onClick={() => setStatusFilter('Rejected')}
-                            >
-                                {t('director.rejected')}
-                            </Button>
-                            <Button
-                                size='small'
-                                type={statusFilter === 'Adjusting' ? 'primary' : 'text'}
-                                onClick={() => setStatusFilter('Adjusting')}
-                            >
-                                {t('director.adjusting')}
-                            </Button>
-                        </Space>
-                    </div>
+                        ))}
+                    </Space>
+
                     <Input
-                        prefix={<SearchOutlined />}
-                        placeholder={t('director.search_requests')}
+                        value={searchKeyword}
                         onChange={(e) => setSearchKeyword(e.target.value)}
+                        prefix={<SearchOutlined />}
+                        placeholder='Tìm theo tên hoặc tiêu đề'
+                        style={{ marginBottom: 12 }}
                     />
+
+                    <Select value={'Recruitment' as ApprovalType} disabled style={{ width: '100%' }} options={[{ value: 'Recruitment', label: 'Kế hoạch tuyển dụng' }]} />
                 </div>
+
                 {isLoading ? (
-                    <Spin
-                        indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}
-                        tip={t('director.loading_queue')}
-                    >
-                        <div style={{ textAlign: 'center', padding: '100px 50px' }} />
-                    </Spin>
+                    <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} style={{ marginTop: 64 }} />
                 ) : (
                     <List
                         dataSource={queue}
-                        locale={{ emptyText: renderEmpty() }}
-                        renderItem={(item) => (
-                            <div
-                                style={{
-                                    padding: '16px',
-                                    borderBottom: '1px solid #E2E8F0',
-                                    borderLeft:
-                                        selectedRequestId === item.id ||
-                                            (!selectedRequestId && queue[0]?.id === item.id)
-                                            ? '4px solid #1E40AF'
-                                            : '4px solid transparent',
-                                    background:
-                                        selectedRequestId === item.id ||
-                                            (!selectedRequestId && queue[0]?.id === item.id)
-                                            ? 'rgba(19, 109, 236, 0.05)'
-                                            : '#fff',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.3s'
-                                }}
-                                onClick={() => setSelectedRequestId(item.id)}
-                            >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <Tag color={item.type === 'Conversion' ? 'purple' : 'blue'}>{item.type}</Tag>
-                                        <Text type='secondary' style={{ fontSize: '12px' }}>
-                                            {dayjs(item.createdAt).fromNow()}
-                                        </Text>
-                                    </div>
-                                    <Tag
-                                        color={
-                                            item.status === 'Pending'
-                                                ? 'orange'
-                                                : item.status === 'Approved'
-                                                    ? 'success'
-                                                    : 'error'
-                                        }
-                                    >
-                                        {item.status}
-                                    </Tag>
-                                </div>
-                                <div
-                                    style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}
-                                >
-                                    <Avatar
-                                        icon={item.type === 'Recruitment' ? <FileTextOutlined /> : <UserOutlined />}
-                                        size={40}
-                                        style={{ background: '#f0f2f4', color: '#64748B' }}
-                                    />
-                                    <div>
-                                        <div style={{ fontWeight: 600, color: '#111418' }}>{item.name}</div>
-                                        <div style={{ fontSize: '12px', color: '#64748B' }}>{item.title}</div>
-                                    </div>
-                                </div>
+                        locale={{ emptyText: <Empty description='Không có yêu cầu phù hợp' /> }}
+                        renderItem={(item) => {
+                            const active = item.id === selectedRequestId;
+
+                            return (
                                 <div
                                     style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        fontSize: '12px',
-                                        color: '#64748B'
+                                        padding: 16,
+                                        borderBottom: '1px solid #E2E8F0',
+                                        borderLeft: active ? '4px solid #1E40AF' : '4px solid transparent',
+                                        background: active ? 'rgba(30,64,175,0.06)' : '#fff',
+                                        cursor: 'pointer'
                                     }}
+                                    onClick={() => setSelectedRequestId(item.id)}
                                 >
-                                    {item.mentor ? (
-                                        <span>
-                                            <UserOutlined /> Mentor: {item.mentor}
-                                        </span>
-                                    ) : (
-                                        <span>
-                                            <UserOutlined /> HR: {item.hr || 'N/A'}
-                                        </span>
-                                    )}
-                                    {item.score ? (
-                                        <span style={{ color: '#10b981', fontWeight: 600 }}>Score: {item.score}/5</span>
-                                    ) : (
-                                        <span
-                                            style={{
-                                                color: item.priority === 'High' ? '#d97706' : '#64748B',
-                                                fontWeight: 600
-                                            }}
-                                        >
-                                            {item.priority === 'High' && <WarningOutlined />}{' '}
-                                            {item.priority === 'High' ? 'Cao' : 'Bình thường'} Ưu tiên
-                                        </span>
-                                    )}
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            marginBottom: 8
+                                        }}
+                                    >
+                                        <Tag color='blue'>Recruitment</Tag>
+                                        <Tag color={getStatusColor(item.status)}>{getStatusLabel(item.status)}</Tag>
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+                                        <FileTextOutlined style={{ color: '#1E40AF', marginTop: 2 }} />
+                                        <div>
+                                            <Text strong style={{ display: 'block' }}>{item.name}</Text>
+                                            <Text type='secondary' style={{ fontSize: 12 }}>{item.title}</Text>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            fontSize: 12
+                                        }}
+                                    >
+                                        <Text type='secondary'>{formatRelativeTime(item.createdAt)}</Text>
+                                        {item.priority === 'High' && (
+                                            <Text style={{ color: '#d97706' }}>
+                                                <WarningOutlined /> Ưu tiên cao
+                                            </Text>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            );
+                        }}
                     />
                 )}
             </Sider>
 
             <Content style={{ padding: 0, overflowY: 'auto', position: 'relative' }}>
-                {selectedRequest ? (
+                {!selectedRequest ? (
+                    <div
+                        style={{
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <Empty description='Chọn một yêu cầu ở danh sách bên trái' />
+                    </div>
+                ) : (
                     <>
                         <div
                             style={{
-                                padding: isMobile ? '12px' : isLaptop ? '18px 24px' : '24px 32px',
+                                padding: isMobile ? 12 : isLaptop ? '18px 24px' : '24px 32px',
                                 background: '#fff',
                                 borderBottom: '1px solid #E2E8F0',
                                 display: 'flex',
                                 justifyContent: 'space-between',
-                                alignItems: 'flex-start',
+                                alignItems: isMobile ? 'flex-start' : 'center',
                                 flexDirection: isMobile ? 'column' : 'row',
-                                gap: isMobile ? '10px' : 0
+                                gap: isMobile ? 8 : 0
                             }}
                         >
                             <div>
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        color: '#64748B',
-                                        fontSize: '12px',
-                                        marginBottom: '8px'
-                                    }}
-                                >
-                                    <span>{t('director.requests')}</span>
-                                </div>
-                                <Title level={2} style={{ margin: '0 0 8px 0' }}>
-                                    {selectedRequest.type} {t('director.proposal')}: {selectedRequest.name}
+                                <Title level={3} style={{ margin: 0 }}>
+                                    {selectedRequest.name}
                                 </Title>
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '16px',
-                                        fontSize: '14px',
-                                        color: '#64748B'
-                                    }}
-                                >
-                                    <Tag bordered={false} style={{ background: '#f3f4f6' }}>
-                                        {selectedRequest.department || 'Bộ phận chung'}
-                                    </Tag>
-                                    <span>|</span>
-                                    <span>
-                                        {t('director.submitted_on')}{' '}
-                                        {dayjs(selectedRequest.createdAt).format('MMM DD, YYYY')}
-                                    </span>
-                                </div>
+                                <Text type='secondary'>
+                                    {selectedRequest.title} • Gửi lúc {formatDateTime(selectedRequest.createdAt)}
+                                </Text>
                             </div>
-                            <Tag
-                                color={
-                                    selectedRequest.status === 'Pending'
-                                        ? 'warning'
-                                        : selectedRequest.status === 'Approved'
-                                            ? 'success'
-                                            : 'error'
-                                }
-                                style={{ fontSize: '14px', padding: '4px 12px', borderRadius: '16px' }}
-                            >
-                                {selectedRequest.status === 'Pending'
-                                    ? t('director.pending_review')
-                                    : selectedRequest.status === 'Approved'
-                                        ? t('director.approved_review')
-                                        : t('director.rejected_review')}
+
+                            <Tag color={getStatusColor(selectedRequest.status)} style={{ borderRadius: 16 }}>
+                                {getStatusLabel(selectedRequest.status)}
                             </Tag>
                         </div>
 
                         <div
                             style={{
-                                padding: isMobile ? '12px' : isLaptop ? '18px 24px' : '32px',
-                                paddingBottom: selectedRequest.status === 'Pending' ? '150px' : '24px',
-                                maxWidth: '1000px',
+                                padding: isMobile ? 12 : isLaptop ? '18px 24px' : '24px 32px',
+                                paddingBottom: canTakeAction ? 180 : 24,
+                                maxWidth: 1100,
                                 margin: '0 auto'
                             }}
                         >
-                            <Row gutter={24}>
+                            <Row gutter={[16, 16]}>
                                 <Col xs={24} lg={16}>
-                                    <Card
-                                        bordered={false}
-                                        style={{
-                                            marginBottom: '24px',
-                                            borderRadius: '12px',
-                                            border: '1px solid #E2E8F0'
-                                        }}
-                                    >
-                                        <Title
-                                            level={5}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                marginBottom: '24px'
-                                            }}
-                                        >
-                                            <AuditOutlined style={{ color: '#1E40AF' }} />{' '}
-                                            {selectedRequest.type === 'Recruitment'
-                                                ? t('director.proposal_summary') || 'Proposal Summary'
-                                                : t('director.candidate_summary')}
+                                    <Card bordered={false} style={{ border: '1px solid #E2E8F0' }}>
+                                        <Title level={5} style={{ marginTop: 0 }}>
+                                            <InfoCircleOutlined style={{ color: '#1E40AF' }} /> Thông tin kế hoạch
                                         </Title>
-                                        <div style={{ display: 'flex', gap: '24px' }}>
-                                            <Avatar size={96} shape='square' icon={<UserOutlined />} />
-                                            <Row gutter={[32, 16]} style={{ flex: 1 }}>
-                                                <Col xs={24} md={12}>
-                                                    <Text
-                                                        type='secondary'
-                                                        style={{
-                                                            fontSize: '12px',
-                                                            textTransform: 'uppercase',
-                                                            fontWeight: 600
-                                                        }}
-                                                    >
-                                                        {selectedRequest.type === 'Conversion'
-                                                            ? t('director.current_role')
-                                                            : t('director.role_name')}
-                                                    </Text>
-                                                    <div style={{ fontWeight: 500 }}>
-                                                        {selectedRequest.currentRole || selectedRequest.name}
-                                                    </div>
-                                                </Col>
-                                                <Col xs={24} md={12}>
-                                                    <Text
-                                                        type='secondary'
-                                                        style={{
-                                                            fontSize: '12px',
-                                                            textTransform: 'uppercase',
-                                                            fontWeight: 600
-                                                        }}
-                                                    >
-                                                        {selectedRequest.type === 'Conversion'
-                                                            ? t('director.proposed_role')
-                                                            : t('director.department')}
-                                                    </Text>
-                                                    <div style={{ fontWeight: 500 }}>
-                                                        {selectedRequest.proposedRole || selectedRequest.department}
-                                                    </div>
-                                                </Col>
-                                                <Col xs={24} md={12}>
-                                                    <Text
-                                                        type='secondary'
-                                                        style={{
-                                                            fontSize: '12px',
-                                                            textTransform: 'uppercase',
-                                                            fontWeight: 600
-                                                        }}
-                                                    >
-                                                        {selectedRequest.mentor
-                                                            ? t('director.mentor')
-                                                            : t('director.hr_owner')}
-                                                    </Text>
-                                                    <div style={{ fontWeight: 500 }}>
-                                                        {selectedRequest.mentor || selectedRequest.hr || 'N/A'}
-                                                    </div>
-                                                </Col>
-                                                <Col xs={24} md={12}>
-                                                    <Text
-                                                        type='secondary'
-                                                        style={{
-                                                            fontSize: '12px',
-                                                            textTransform: 'uppercase',
-                                                            fontWeight: 600
-                                                        }}
-                                                    >
-                                                        {t('director.submission_date')}
-                                                    </Text>
-                                                    <div style={{ fontWeight: 500 }}>
-                                                        {dayjs(selectedRequest.createdAt).format('MMM DD, YYYY')}
-                                                    </div>
-                                                </Col>
-                                            </Row>
-                                        </div>
-                                    </Card>
-                                </Col>
-                            </Row>
 
-                            {/* Recruitment Positions Detail */}
-                            {selectedRequest.type === 'Recruitment' && (
-                                <Card
-                                    bordered={false}
-                                    style={{
-                                        marginBottom: '24px',
-                                        borderRadius: '12px',
-                                        border: '1px solid #E2E8F0'
-                                    }}
-                                >
-                                    <Title
-                                        level={5}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px',
-                                            marginBottom: '24px'
-                                        }}
-                                    >
-                                        <FileTextOutlined style={{ color: '#1E40AF' }} /> Vị trí tuyển dụng &
-                                        Yêu cầu
-                                    </Title>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                        {selectedRequest.details?.positions ? (
-                                            selectedRequest.details.positions.map((pos: any, idx: number) => (
-                                                <div
-                                                    key={idx}
-                                                    style={{
-                                                        padding: '16px',
-                                                        background: '#F8FAFC',
-                                                        borderRadius: '8px',
-                                                        borderLeft:
-                                                            idx % 2 === 0 ? '3px solid #1E40AF' : '3px solid #10B981'
-                                                    }}
-                                                >
-                                                    <div
-                                                        style={{
-                                                            display: 'flex',
-                                                            justifyContent: 'space-between',
-                                                            marginBottom: '12px'
-                                                        }}
-                                                    >
-                                                        <Text strong style={{ fontSize: '15px' }}>
-                                                            {pos.title}
-                                                        </Text>
-                                                        <Tag color={idx % 2 === 0 ? 'blue' : 'green'}>
-                                                            {pos.count} {t('director.positions')}
-                                                        </Tag>
-                                                    </div>
-                                                    <div style={{ marginBottom: '8px' }}>
-                                                        <Text
-                                                            type='secondary'
-                                                            style={{
-                                                                fontSize: '12px',
-                                                                display: 'block',
-                                                                marginBottom: '4px'
-                                                            }}
-                                                        >
-                                                            {t('director.requirements')}:
-                                                        </Text>
-                                                        <Text style={{ fontSize: '13px' }}>{pos.requirements}</Text>
-                                                    </div>
-                                                    <Tag>{pos.level || 'Cấp độ thực tập sinh'}</Tag>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div
-                                                style={{
-                                                    padding: '16px',
-                                                    background: '#F8FAFC',
-                                                    borderRadius: '8px',
-                                                    borderLeft: '3px solid #1E40AF'
-                                                }}
-                                            >
-                                                <div
-                                                    style={{
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        marginBottom: '12px'
-                                                    }}
-                                                >
-                                                    <Text strong style={{ fontSize: '15px' }}>
-                                                        Thực tập sinh Lập trình viên Frontend
-                                                    </Text>
-                                                    <Tag color='blue'>5 {t('director.positions')}</Tag>
-                                                </div>
-                                                <div style={{ marginBottom: '8px' }}>
-                                                    <Text
-                                                        type='secondary'
-                                                        style={{
-                                                            fontSize: '12px',
-                                                            display: 'block',
-                                                            marginBottom: '4px'
-                                                        }}
-                                                    >
-                                                        {t('director.requirements')}:
-                                                    </Text>
-                                                    <Text style={{ fontSize: '13px' }}>
-                                                        ReactJS, TypeScript, HTML/CSS, Kinh nghiệm 6 tháng, kỹ năng làm việc nhóm
-                                                    </Text>
-                                                </div>
-                                                <Tag>Cấp độ thực tập sinh</Tag>
-                                            </div>
-                                        )}
-                                        <div style={{ padding: '12px', background: '#e6f7ff', borderRadius: '8px' }}>
-                                            <Text strong>
-                                                {t('director.total_positions')}:{' '}
-                                                {selectedRequest.details?.totalPositions || 1}
+                                        <Space direction='vertical' size={10} style={{ width: '100%' }}>
+                                            <Text>
+                                                <strong>Tên kế hoạch:</strong> {selectedRequest.name}
                                             </Text>
-                                            <Text type='secondary' style={{ marginLeft: '16px', fontSize: '12px' }}>
-                                                {t('director.expected_start')}:{' '}
-                                                {selectedRequest.details?.expectedStart ||
-                                                    dayjs(selectedRequest.createdAt)
-                                                        .add(1, 'month')
-                                                        .format('MMM DD, YYYY')}
+                                            <Text>
+                                                <strong>Đợt tuyển dụng:</strong> {selectedRequest.title || 'N/A'}
                                             </Text>
-                                        </div>
-                                    </div>
-                                </Card>
-                            )}
-
-                            <Row gutter={24}>
-                                <Col xs={24} lg={12}>
-                                    <Card
-                                        bordered={false}
-                                        style={{ borderRadius: '12px', border: '1px solid #E2E8F0', height: '100%' }}
-                                    >
-                                        <Title
-                                            level={5}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                marginBottom: '24px'
-                                            }}
-                                        >
-                                            <DollarOutlined style={{ color: '#1E40AF' }} />{' '}
-                                            {t('director.financial_impact')}
-                                        </Title>
-                                        <div
-                                            style={{
-                                                padding: '16px',
-                                                background: '#F8FAFC',
-                                                borderRadius: '8px',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                gap: '16px'
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    borderBottom: '1px solid #E2E8F0',
-                                                    paddingBottom: '12px'
-                                                }}
-                                            >
-                                                <Text type='secondary'>{t('director.allocated_budget')}</Text>
-                                                <Text strong>${selectedRequest.budget?.toLocaleString() || '0'}</Text>
-                                            </div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                <Text type='secondary'>{t('director.proposed_salary')}</Text>
-                                                <Text strong style={{ fontSize: '18px' }}>
-                                                    ${selectedRequest.salary?.toLocaleString() || '0'}
-                                                </Text>
-                                            </div>
-                                            {selectedRequest.salary &&
-                                                selectedRequest.budget &&
-                                                selectedRequest.salary > selectedRequest.budget && (
-                                                    <div
-                                                        style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: '8px',
-                                                            background: '#fff7ed',
-                                                            padding: '8px 12px',
-                                                            borderRadius: '4px',
-                                                            color: '#d97706',
-                                                            fontSize: '12px'
-                                                        }}
-                                                    >
-                                                        <WarningOutlined /> Vượt ngân sách $
-                                                        {(
-                                                            selectedRequest.salary - selectedRequest.budget
-                                                        ).toLocaleString()}{' '}
-                                                        (
-                                                        {Math.round(
-                                                            ((selectedRequest.salary - selectedRequest.budget) /
-                                                                selectedRequest.budget) *
-                                                            100
-                                                        )}
-                                                        %)
-                                                    </div>
+                                            <Text>
+                                                <strong>Phòng ban:</strong> {selectedRequest.department || 'N/A'}
+                                            </Text>
+                                            <Text>
+                                                <strong>Số vị trí:</strong> {totalPositions}
+                                            </Text>
+                                            <Text>
+                                                <strong>Dự kiến bắt đầu:</strong>{' '}
+                                                {formatDateTime(
+                                                    typeof selectedRequest.details?.expectedStart === 'string'
+                                                        ? selectedRequest.details.expectedStart
+                                                        : undefined
                                                 )}
-                                        </div>
+                                            </Text>
+                                        </Space>
                                     </Card>
                                 </Col>
-                                <Col xs={24} lg={12}>
-                                    <Card
-                                        bordered={false}
-                                        style={{ borderRadius: '12px', border: '1px solid #E2E8F0', height: '100%' }}
-                                    >
-                                        <Title
-                                            level={5}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                marginBottom: '24px'
-                                            }}
-                                        >
-                                            <MessageOutlined style={{ color: '#1E40AF' }} />{' '}
-                                            {t('director.stakeholder_justification')}
+
+                                <Col xs={24} lg={8}>
+                                    <Card bordered={false} style={{ border: '1px solid #E2E8F0', height: '100%' }}>
+                                        <Title level={5} style={{ marginTop: 0 }}>
+                                            <DollarOutlined style={{ color: '#1E40AF' }} /> Tài chính (nếu có)
                                         </Title>
-                                        <div
-                                            style={{ position: 'relative', paddingLeft: '16px', marginBottom: '16px' }}
-                                        >
-                                            <span
-                                                style={{
-                                                    position: 'absolute',
-                                                    left: 0,
-                                                    top: -8,
-                                                    fontSize: '32px',
-                                                    color: '#E2E8F0',
-                                                    fontFamily: 'serif'
-                                                }}
-                                            >
-                                                "
-                                            </span>
-                                            <Paragraph
-                                                style={{ fontStyle: 'italic', color: '#64748B', lineHeight: 1.6 }}
-                                            >
-                                                {selectedRequest.details?.justification ||
-                                                    'Hiệu suất của ứng viên liên tục vượt mức kỳ vọng trong vai trò hiện tại. Các chỉ số hiệu suất cho thấy năng khiếu kỹ thuật cao và khả năng hòa nhập nhóm tốt.'}
-                                            </Paragraph>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <Avatar size='small' icon={<UserOutlined />} />
-                                            <Text strong style={{ fontSize: '12px' }}>
-                                                {selectedRequest.mentor || selectedRequest.hr || 'Manager'}
+
+                                        <Space direction='vertical' size={10} style={{ width: '100%' }}>
+                                            <Text>
+                                                <strong>Ngân sách:</strong> {formatCurrency(selectedRequest.budget)}
                                             </Text>
-                                        </div>
+                                            <Text>
+                                                <strong>Lương đề xuất:</strong> {formatCurrency(selectedRequest.salary)}
+                                            </Text>
+
+                                            {exceedAmount !== null && exceedAmount > 0 && (
+                                                <div
+                                                    style={{
+                                                        background: '#fff7ed',
+                                                        color: '#b45309',
+                                                        border: '1px solid #fed7aa',
+                                                        borderRadius: 8,
+                                                        padding: '8px 10px'
+                                                    }}
+                                                >
+                                                    <WarningOutlined /> Vượt ngân sách {formatCurrency(exceedAmount)}
+                                                </div>
+                                            )}
+                                        </Space>
+                                    </Card>
+                                </Col>
+
+                                <Col span={24}>
+                                    <Card bordered={false} style={{ border: '1px solid #E2E8F0' }}>
+                                        <Title level={5} style={{ marginTop: 0 }}>
+                                            <FileTextOutlined style={{ color: '#1E40AF' }} /> Danh sách vị trí tuyển
+                                        </Title>
+
+                                        {positions.length === 0 ? (
+                                            <Empty description='Chưa có thông tin vị trí' />
+                                        ) : (
+                                            <Table
+                                                rowKey={(_, index) => String(index)}
+                                                pagination={false}
+                                                dataSource={positions}
+                                                columns={[
+                                                    {
+                                                        title: 'Vị trí',
+                                                        dataIndex: 'title',
+                                                        key: 'title'
+                                                    },
+                                                    {
+                                                        title: 'Số lượng',
+                                                        dataIndex: 'count',
+                                                        key: 'count',
+                                                        width: 120
+                                                    },
+                                                    {
+                                                        title: 'Yêu cầu',
+                                                        dataIndex: 'requirements',
+                                                        key: 'requirements',
+                                                        render: (value?: string) => value || '—'
+                                                    }
+                                                ]}
+                                            />
+                                        )}
+                                    </Card>
+                                </Col>
+
+                                <Col span={24}>
+                                    <Card bordered={false} style={{ border: '1px solid #E2E8F0' }}>
+                                        <Title level={5} style={{ marginTop: 0 }}>
+                                            <InfoCircleOutlined style={{ color: '#1E40AF' }} /> Giải trình
+                                        </Title>
+
+                                        <Paragraph style={{ marginBottom: 8 }}>
+                                            {(selectedRequest.details?.justification as string) ||
+                                                selectedRequest.notes ||
+                                                'Chưa có nội dung giải trình.'}
+                                        </Paragraph>
+
+                                        <Text type='secondary'>
+                                            Cập nhật gần nhất: {formatDateTime(selectedRequest.updatedAt)}
+                                        </Text>
                                     </Card>
                                 </Col>
                             </Row>
                         </div>
 
-                        {selectedRequest.status === 'Pending' && (
-                            <div
-                                style={{
-                                    position: 'absolute',
-                                    bottom: 0,
-                                    left: 0,
-                                    width: '100%',
-                                    background: '#fff',
-                                    borderTop: '1px solid #E2E8F0',
-                                    padding: isMobile ? '12px' : isLaptop ? '18px 24px' : '24px 32px',
-                                    boxShadow: '0 -4px 6px -1px rgba(0, 0, 0, 0.05)',
-                                    zIndex: 10
-                                }}
-                            >
-                                <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-                                    <div style={{ marginBottom: '16px' }}>
-                                        <Text strong>{t('director.directors_notes')}</Text>
-                                        <Input.TextArea
-                                            rows={2}
-                                            placeholder={t('director.add_comment')}
-                                            style={{ marginTop: '8px' }}
-                                            value={directorNote}
-                                            onChange={(e) => setDirectorNote(e.target.value)}
-                                        />
-                                    </div>
+                        {canTakeAction && (
+                            <div style={{ padding: isMobile ? 12 : '0 24px 24px' }}>
+                                <Card bordered={false} style={{ border: '1px solid #E2E8F0', maxWidth: 1100, margin: '0 auto' }}>
+                                    <Text strong>Ghi chú của giám đốc</Text>
+                                    <Input.TextArea
+                                        rows={2}
+                                        value={directorNote}
+                                        onChange={(e) => setDirectorNote(e.target.value)}
+                                        placeholder='Nhập ghi chú xử lý (bắt buộc khi từ chối/chỉnh sửa)'
+                                        style={{ marginTop: 8, marginBottom: 12 }}
+                                    />
+
                                     <div
                                         style={{
                                             display: 'flex',
                                             justifyContent: 'space-between',
                                             alignItems: isMobile ? 'flex-start' : 'center',
                                             flexDirection: isMobile ? 'column' : 'row',
-                                            gap: isMobile ? '10px' : 0
+                                            gap: 10
                                         }}
                                     >
-                                        <div
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                color: '#64748B',
-                                                fontSize: '12px'
-                                            }}
-                                        >
-                                            <InfoCircleOutlined /> {t('director.only_visible')}
-                                        </div>
+                                        <Text type='secondary'>
+                                            <InfoCircleOutlined /> Thao tác này sẽ cập nhật trực tiếp trạng thái đề xuất.
+                                        </Text>
+
                                         <Space wrap>
                                             <Button
                                                 danger
                                                 icon={<CloseCircleOutlined />}
                                                 loading={updateApproval.isLoading}
-                                                onClick={() =>
-                                                    Modal.confirm({
-                                                        title: t('director.confirm_rejection'),
-                                                        content: `${t('director.confirm_rejection_msg')} ${selectedRequest.name}?`,
-                                                        onOk: () => handleAction('reject')
-                                                    })
-                                                }
+                                                onClick={() => void runAction('Rejected')}
                                             >
-                                                {t('director.reject')}
+                                                Từ chối
                                             </Button>
                                             <Button
                                                 icon={<HistoryOutlined />}
                                                 loading={updateApproval.isLoading}
-                                                onClick={() => handleAction('adjust')}
+                                                onClick={() => void runAction('Adjusting')}
                                             >
-                                                {t('director.request_adjustment')}
+                                                Yêu cầu chỉnh sửa
                                             </Button>
                                             <Button
                                                 type='primary'
                                                 icon={<CheckCircleOutlined />}
-                                                style={{ background: '#1E40AF' }}
                                                 loading={updateApproval.isLoading}
-                                                onClick={() =>
-                                                    Modal.confirm({
-                                                        title: t('director.confirm_approval'),
-                                                        content: `${t('director.confirm_approval_msg')} ${selectedRequest.name}?`,
-                                                        onOk: () => handleAction('approve')
-                                                    })
-                                                }
+                                                onClick={() => void runAction('Approved')}
                                             >
-                                                {t('director.approve_request')}
+                                                Phê duyệt
                                             </Button>
                                         </Space>
                                     </div>
-                                </div>
+                                </Card>
                             </div>
                         )}
                     </>
-                ) : (
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            height: '100%',
-                            color: '#8c8c8c'
-                        }}
-                    >
-                        <Empty description={t('director.select_request')} />
-                    </div>
                 )}
             </Content>
         </Layout>
