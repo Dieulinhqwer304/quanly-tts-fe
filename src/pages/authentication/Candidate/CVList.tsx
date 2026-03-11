@@ -6,6 +6,9 @@ import {
     Button,
     Card,
     Input,
+    Modal,
+    Form,
+    Select,
     Tabs,
     Tag,
     Typography,
@@ -96,6 +99,7 @@ const getTabForStatus = (status: AllowedActionStatus) => {
 export const CVList = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const [convertForm] = Form.useForm();
 
     const [searchText, setSearchText] = useState('');
     const [activeTab, setActiveTab] = useState('all');
@@ -115,6 +119,10 @@ export const CVList = () => {
         rejected_cv: 0,
         rejected_interview: 0
     });
+    const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
+    const [isConverting, setIsConverting] = useState(false);
+    const [convertingCandidate, setConvertingCandidate] = useState<Candidate | null>(null);
+    const [mentorOptions, setMentorOptions] = useState<Array<{ label: string; value: string }>>([]);
 
     const fetchSummary = async () => {
         try {
@@ -202,6 +210,68 @@ export const CVList = () => {
             fetchSummary();
         } catch {
             message.error(t('common.error'));
+        }
+    };
+
+    const fetchMentors = async () => {
+        try {
+            const res = await http.get('/users');
+            const source = (res?.data || res?.hits || []) as Array<Record<string, unknown>>;
+            const normalized = source
+                .map((u) => {
+                    const rolesRaw = Array.isArray(u.roles) ? (u.roles as Array<Record<string, unknown>>) : [];
+                    const roleNames = rolesRaw.map((r) => String(r?.name || '').toLowerCase());
+                    const legacyRole = String(u.role || '').toLowerCase();
+                    const hasMentorRole = roleNames.includes('mentor') || legacyRole === 'mentor';
+                    return {
+                        value: String(u.id || ''),
+                        label: String(u.fullName || u.name || ''),
+                        hasMentorRole
+                    };
+                })
+                .filter((u) => u.value && u.label && u.hasMentorRole)
+                .map((u) => ({ value: u.value, label: u.label }));
+            setMentorOptions(normalized);
+        } catch {
+            message.error('Không tải được danh sách mentor');
+        }
+    };
+
+    const openConvertModal = async (candidate: Candidate) => {
+        setConvertingCandidate(candidate);
+        setIsConvertModalOpen(true);
+        convertForm.setFieldsValue({
+            mentorId: undefined,
+            track: candidate.job?.title || ''
+        });
+        await fetchMentors();
+    };
+
+    const handleConfirmConvert = async () => {
+        if (!convertingCandidate) return;
+        try {
+            const values = await convertForm.validateFields();
+            setIsConverting(true);
+            await http.post(`/candidates/${convertingCandidate.id}/convert-to-intern`, {
+                mentorId: values.mentorId,
+                track: values.track
+            });
+            message.success(`Đã chuyển ${convertingCandidate.fullName} thành thực tập sinh`);
+            setIsConvertModalOpen(false);
+            setConvertingCandidate(null);
+            convertForm.resetFields();
+            setActiveTab('all');
+            setPage(1);
+            fetchCandidates();
+            fetchSummary();
+        } catch (error: unknown) {
+            const formError = (error as { errorFields?: unknown })?.errorFields;
+            if (!formError) {
+                const errorMessage = (error as { message?: string })?.message;
+                message.error(errorMessage || t('common.error'));
+            }
+        } finally {
+            setIsConverting(false);
         }
     };
 
@@ -301,6 +371,12 @@ export const CVList = () => {
                                 disabled: record.status === status,
                                 onClick: () => handleChangeStatus(record.id, record.fullName, status)
                             }))
+                        },
+                        {
+                            key: 'convert-to-intern',
+                            label: 'Chuyển thành thực tập sinh',
+                            disabled: record.status !== 'offer',
+                            onClick: () => openConvertModal(record as Candidate)
                         },
                         { type: 'divider' },
                         {
@@ -470,6 +546,38 @@ export const CVList = () => {
                     fetchSummary();
                 }}
             />
+
+            <Modal
+                title='Chuyển thành thực tập sinh'
+                open={isConvertModalOpen}
+                okText='Xác nhận chuyển'
+                cancelText={t('common.cancel')}
+                confirmLoading={isConverting}
+                onCancel={() => {
+                    setIsConvertModalOpen(false);
+                    setConvertingCandidate(null);
+                    convertForm.resetFields();
+                }}
+                onOk={handleConfirmConvert}
+            >
+                <Form form={convertForm} layout='vertical'>
+                    <Form.Item
+                        label='Mentor phụ trách'
+                        name='mentorId'
+                        rules={[{ required: true, message: 'Vui lòng chọn mentor' }]}
+                    >
+                        <Select
+                            showSearch
+                            placeholder='Chọn mentor'
+                            options={mentorOptions}
+                            optionFilterProp='label'
+                        />
+                    </Form.Item>
+                    <Form.Item label='Track' name='track'>
+                        <Input placeholder='VD: Frontend Intern' />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };
