@@ -1,5 +1,28 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined, SaveOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Form, Input, List, Modal, Row, Select, Space, Typography, message } from 'antd';
+import {
+  ArrowDownOutlined,
+  ArrowUpOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SaveOutlined,
+} from '@ant-design/icons';
+import {
+  Button,
+  Card,
+  Col,
+  Empty,
+  Form,
+  Input,
+  InputNumber,
+  List,
+  Modal,
+  Popconfirm,
+  Row,
+  Select,
+  Space,
+  Typography,
+  message,
+} from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { http } from '../../../utils/http';
 
@@ -31,22 +54,24 @@ interface LearningPathItem {
 export const MentorLearningPath = () => {
   const [paths, setPaths] = useState<LearningPathItem[]>([]);
   const [selectedPathId, setSelectedPathId] = useState<string>('');
-  const [selectedPath, setSelectedPath] = useState<LearningPathItem | null>(null);
 
   const [modules, setModules] = useState<LearningModuleItem[]>([]);
   const [selectedModuleId, setSelectedModuleId] = useState<string>('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingPath, setIsSavingPath] = useState(false);
+  const [isCreatingPath, setIsCreatingPath] = useState(false);
 
   const [moduleModalOpen, setModuleModalOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<LearningModuleItem | null>(null);
   const [contentModalOpen, setContentModalOpen] = useState(false);
   const [editingContent, setEditingContent] = useState<ModuleContentItem | null>(null);
+  const [pathModalOpen, setPathModalOpen] = useState(false);
 
   const [pathForm] = Form.useForm();
   const [moduleForm] = Form.useForm();
   const [contentForm] = Form.useForm();
+  const [createPathForm] = Form.useForm();
 
   const selectedModule = useMemo(
     () => modules.find((module) => module.id === selectedModuleId) || null,
@@ -60,9 +85,15 @@ export const MentorLearningPath = () => {
       const records = res?.hits || res?.data || [];
       setPaths(records);
 
-      const nextId = selectedPathId || records[0]?.id;
+      const hasCurrentPath = records.some((path) => path.id === selectedPathId);
+      const nextId = hasCurrentPath ? selectedPathId : records[0]?.id;
       if (nextId) {
         setSelectedPathId(nextId);
+      } else {
+        setSelectedPathId('');
+        setModules([]);
+        setSelectedModuleId('');
+        pathForm.resetFields();
       }
     } catch {
       message.error('Không tải được danh sách lộ trình đào tạo');
@@ -76,7 +107,6 @@ export const MentorLearningPath = () => {
     setIsLoading(true);
     try {
       const detail = await http.get<any>(`/learning-paths/${pathId}`);
-      setSelectedPath(detail);
       setModules((detail?.modules || []).sort((a: LearningModuleItem, b: LearningModuleItem) => a.orderIndex - b.orderIndex));
       setSelectedModuleId((detail?.modules || [])[0]?.id || '');
 
@@ -87,6 +117,8 @@ export const MentorLearningPath = () => {
       });
     } catch {
       message.error('Không tải được chi tiết lộ trình đào tạo');
+      setModules([]);
+      setSelectedModuleId('');
     } finally {
       setIsLoading(false);
     }
@@ -117,6 +149,34 @@ export const MentorLearningPath = () => {
     }
   };
 
+  const openCreatePath = () => {
+    createPathForm.resetFields();
+    setPathModalOpen(true);
+  };
+
+  const submitCreatePath = async () => {
+    try {
+      const values = await createPathForm.validateFields();
+      setIsCreatingPath(true);
+      const created = await http.post<{ id?: string; data?: { id?: string } }>('/learning-paths', values);
+      const createdId = created?.id || created?.data?.id;
+
+      message.success('Tạo lộ trình đào tạo thành công');
+      setPathModalOpen(false);
+      await loadPaths();
+
+      if (createdId) {
+        setSelectedPathId(createdId);
+      }
+    } catch (error: any) {
+      if (!error?.errorFields) {
+        message.error('Không thể tạo lộ trình đào tạo');
+      }
+    } finally {
+      setIsCreatingPath(false);
+    }
+  };
+
   const openCreateModule = () => {
     setEditingModule(null);
     moduleForm.resetFields();
@@ -144,8 +204,10 @@ export const MentorLearningPath = () => {
       message.success('Lưu học phần thành công');
       setModuleModalOpen(false);
       await loadPathDetail(selectedPathId);
-    } catch {
-      message.error('Không thể lưu học phần');
+    } catch (error: any) {
+      if (!error?.errorFields) {
+        message.error('Không thể lưu học phần');
+      }
     }
   };
 
@@ -220,8 +282,10 @@ export const MentorLearningPath = () => {
       message.success('Lưu bài giảng thành công');
       setContentModalOpen(false);
       await loadPathDetail(selectedPathId);
-    } catch {
-      message.error('Không thể lưu bài giảng');
+    } catch (error: any) {
+      if (!error?.errorFields) {
+        message.error('Không thể lưu bài giảng');
+      }
     }
   };
 
@@ -244,38 +308,49 @@ export const MentorLearningPath = () => {
 
         <Card loading={isLoading}>
           <Row gutter={16}>
-            <Col span={8}>
+            <Col xs={24} md={10} lg={8}>
               <Text strong>Chọn lộ trình</Text>
-              <Select
-                style={{ width: '100%', marginTop: 8 }}
-                value={selectedPathId}
-                onChange={setSelectedPathId}
-                options={paths.map((path) => ({
-                  value: path.id,
-                  label: `${path.title} (${path.track})`,
-                }))}
-              />
+              <Space.Compact style={{ width: '100%', marginTop: 8 }}>
+                <Select
+                  style={{ width: '100%' }}
+                  value={selectedPathId}
+                  onChange={setSelectedPathId}
+                  options={paths.map((path) => ({
+                    value: path.id,
+                    label: `${path.title} (${path.track})`,
+                  }))}
+                />
+                <Button icon={<PlusOutlined />} type='primary' onClick={openCreatePath}>
+                  Thêm
+                </Button>
+              </Space.Compact>
             </Col>
-            <Col span={16}>
+            <Col xs={24} md={14} lg={16}>
               <Form form={pathForm} layout='vertical'>
                 <Row gutter={12}>
-                  <Col span={10}>
+                  <Col xs={24} md={10}>
                     <Form.Item label='Tên lộ trình' name='title' rules={[{ required: true, message: 'Bắt buộc' }]}>
                       <Input />
                     </Form.Item>
                   </Col>
-                  <Col span={6}>
+                  <Col xs={24} md={6}>
                     <Form.Item label='Track' name='track' rules={[{ required: true, message: 'Bắt buộc' }]}>
                       <Input />
                     </Form.Item>
                   </Col>
-                  <Col span={8}>
+                  <Col xs={24} md={8}>
                     <Form.Item label='Mô tả' name='description'>
                       <Input />
                     </Form.Item>
                   </Col>
                 </Row>
-                <Button type='primary' icon={<SaveOutlined />} onClick={savePathMetadata} loading={isSavingPath}>
+                <Button
+                  type='primary'
+                  icon={<SaveOutlined />}
+                  onClick={savePathMetadata}
+                  loading={isSavingPath}
+                  disabled={!selectedPathId}
+                >
                   Lưu thông tin lộ trình
                 </Button>
               </Form>
@@ -284,9 +359,9 @@ export const MentorLearningPath = () => {
         </Card>
 
         <Row gutter={16}>
-          <Col span={10}>
+          <Col xs={24} lg={10}>
             <Card
-              title='Danh sách học phần'
+              title={`Danh sách học phần (${modules.length})`}
               extra={
                 <Button icon={<PlusOutlined />} type='primary' onClick={openCreateModule} disabled={!selectedPathId}>
                   Thêm học phần
@@ -307,14 +382,28 @@ export const MentorLearningPath = () => {
                       paddingLeft: 12,
                     }}
                     actions={[
-                      <Button size='small' onClick={() => moveModule(module.id, 'up')} disabled={index === 0}>
-                        Up
-                      </Button>,
-                      <Button size='small' onClick={() => moveModule(module.id, 'down')} disabled={index === modules.length - 1}>
-                        Down
-                      </Button>,
+                      <Button
+                        size='small'
+                        icon={<ArrowUpOutlined />}
+                        onClick={() => moveModule(module.id, 'up')}
+                        disabled={index === 0}
+                      />,
+                      <Button
+                        size='small'
+                        icon={<ArrowDownOutlined />}
+                        onClick={() => moveModule(module.id, 'down')}
+                        disabled={index === modules.length - 1}
+                      />,
                       <Button type='text' icon={<EditOutlined />} onClick={() => openEditModule(module)} />,
-                      <Button danger type='text' icon={<DeleteOutlined />} onClick={() => removeModule(module.id)} />,
+                      <Popconfirm
+                        title='Xóa học phần này?'
+                        description='Dữ liệu bài giảng trong học phần có thể bị ảnh hưởng.'
+                        okText='Xóa'
+                        cancelText='Hủy'
+                        onConfirm={() => removeModule(module.id)}
+                      >
+                        <Button danger type='text' icon={<DeleteOutlined />} />
+                      </Popconfirm>,
                     ]}
                   >
                     <List.Item.Meta
@@ -327,7 +416,7 @@ export const MentorLearningPath = () => {
             </Card>
           </Col>
 
-          <Col span={14}>
+          <Col xs={24} lg={14}>
             <Card
               title={selectedModule ? `Bài giảng của: ${selectedModule.title}` : 'Bài giảng'}
               extra={
@@ -337,34 +426,66 @@ export const MentorLearningPath = () => {
               }
               loading={isLoading}
             >
-              <List
-                dataSource={selectedModule?.contents || []}
-                locale={{ emptyText: 'Chưa có bài giảng trong học phần này' }}
-                renderItem={(content) => (
-                  <List.Item
-                    actions={[
-                      <Button type='text' icon={<EditOutlined />} onClick={() => openEditContent(content)} />,
-                      <Button danger type='text' icon={<DeleteOutlined />} onClick={() => removeContent(content.id)} />,
-                    ]}
-                  >
-                    <List.Item.Meta
-                      title={`${content.title} (${content.type})`}
-                      description={
-                        <Space direction='vertical' size={2}>
-                          <Text type='secondary'>{content.contentUrl || 'Không có URL'}</Text>
-                          {content.metadata?.durationMinutes ? (
-                            <Text type='secondary'>Thời lượng: {content.metadata.durationMinutes} phút</Text>
-                          ) : null}
-                        </Space>
-                      }
-                    />
-                  </List.Item>
-                )}
-              />
+              {!selectedModule ? (
+                <Empty description='Hãy chọn học phần để quản lý bài giảng' />
+              ) : (
+                <List
+                  dataSource={selectedModule.contents || []}
+                  locale={{ emptyText: 'Chưa có bài giảng trong học phần này' }}
+                  renderItem={(content) => (
+                    <List.Item
+                      actions={[
+                        <Button type='text' icon={<EditOutlined />} onClick={() => openEditContent(content)} />,
+                        <Popconfirm
+                          title='Xóa bài giảng này?'
+                          okText='Xóa'
+                          cancelText='Hủy'
+                          onConfirm={() => removeContent(content.id)}
+                        >
+                          <Button danger type='text' icon={<DeleteOutlined />} />
+                        </Popconfirm>,
+                      ]}
+                    >
+                      <List.Item.Meta
+                        title={`${content.title} (${content.type})`}
+                        description={
+                          <Space direction='vertical' size={2}>
+                            <Text type='secondary'>{content.contentUrl || 'Không có URL'}</Text>
+                            {content.metadata?.durationMinutes ? (
+                              <Text type='secondary'>Thời lượng: {content.metadata.durationMinutes} phút</Text>
+                            ) : null}
+                          </Space>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              )}
             </Card>
           </Col>
         </Row>
       </Space>
+
+      <Modal
+        title='Thêm lộ trình đào tạo'
+        open={pathModalOpen}
+        onCancel={() => setPathModalOpen(false)}
+        onOk={submitCreatePath}
+        confirmLoading={isCreatingPath}
+        destroyOnClose
+      >
+        <Form form={createPathForm} layout='vertical'>
+          <Form.Item label='Tên lộ trình' name='title' rules={[{ required: true, message: 'Bắt buộc' }]}>
+            <Input placeholder='Ví dụ: Lộ trình Backend' />
+          </Form.Item>
+          <Form.Item label='Track' name='track' rules={[{ required: true, message: 'Bắt buộc' }]}>
+            <Input placeholder='Ví dụ: Backend Development' />
+          </Form.Item>
+          <Form.Item label='Mô tả' name='description'>
+            <Input.TextArea rows={3} placeholder='Mô tả ngắn về mục tiêu đào tạo' />
+          </Form.Item>
+        </Form>
+      </Modal>
 
       <Modal
         title={editingModule ? 'Cập nhật học phần' : 'Thêm học phần'}
@@ -381,10 +502,10 @@ export const MentorLearningPath = () => {
             <Input.TextArea rows={3} />
           </Form.Item>
           <Form.Item label='Thứ tự' name='orderIndex' rules={[{ required: true, message: 'Bắt buộc' }]}>
-            <Input type='number' min={1} />
+            <InputNumber style={{ width: '100%' }} min={1} />
           </Form.Item>
           <Form.Item label='Điểm qua môn' name='passingScore' initialValue={80}>
-            <Input type='number' min={0} max={100} />
+            <InputNumber style={{ width: '100%' }} min={0} max={100} />
           </Form.Item>
         </Form>
       </Modal>
@@ -413,7 +534,7 @@ export const MentorLearningPath = () => {
             <Input />
           </Form.Item>
           <Form.Item label='Thời lượng (phút)' name='durationMinutes'>
-            <Input type='number' min={0} />
+            <InputNumber style={{ width: '100%' }} min={0} />
           </Form.Item>
         </Form>
       </Modal>
