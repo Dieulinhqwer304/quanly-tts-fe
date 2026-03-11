@@ -6,11 +6,7 @@ class Http {
     instance: AxiosInstance;
     private instancePublic: AxiosInstance;
 
-    private normalizeSuccessResponse(res: {
-        errorCode?: number;
-        traceId?: string;
-        data?: unknown;
-    }) {
+    private normalizeSuccessResponse(res: { errorCode?: number; traceId?: string; data?: unknown }) {
         const payload = res?.data;
 
         if (Array.isArray(payload)) {
@@ -56,7 +52,7 @@ class Http {
     constructor() {
         // Instance cho các API cần authentication
         this.instance = axios.create({
-            baseURL: import.meta.env.VITE_API_BASE_URL,
+            baseURL: 'http://103.249.200.85:3002/',
             timeout: 10000,
             headers: {
                 'Content-Type': 'application/json'
@@ -66,7 +62,7 @@ class Http {
 
         // Instance cho các API public không cần authentication
         this.instancePublic = axios.create({
-            baseURL: import.meta.env.VITE_API_BASE_URL,
+            baseURL: 'http://103.249.200.85:3002/',
             timeout: 10000,
             headers: {
                 'Content-Type': 'application/json'
