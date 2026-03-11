@@ -97,7 +97,13 @@ export const UserManagement: FC = () => {
                     await http.patch(`/users/${editingUser.key}`, values);
                     message.success('Cập nhật người dùng thành công');
                 } else {
-                    message.info('Tính năng tạo user mới chưa được hỗ trợ');
+                    await http.post('/users', {
+                        fullName: values.name,
+                        email: values.email,
+                        password: values.password,
+                        role: values.role
+                    });
+                    message.success('Tạo người dùng thành công');
                 }
                 setIsModalOpen(false);
                 fetchUsers();
@@ -326,6 +332,18 @@ export const UserManagement: FC = () => {
                         >
                             <Input placeholder='example@company.com' />
                         </Form.Item>
+                        {!editingUser && (
+                            <Form.Item
+                                name='password'
+                                label='Mật khẩu'
+                                rules={[
+                                    { required: true, message: 'Vui lòng nhập mật khẩu' },
+                                    { min: 6, message: 'Mật khẩu tối thiểu 6 ký tự' }
+                                ]}
+                            >
+                                <Input.Password placeholder='Nhập mật khẩu đăng nhập' />
+                            </Form.Item>
+                        )}
                         <Form.Item
                             name='role'
                             label='Vai trò'
