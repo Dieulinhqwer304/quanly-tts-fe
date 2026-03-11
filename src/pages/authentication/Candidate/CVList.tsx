@@ -65,6 +65,34 @@ const STATUS_TAG: Record<string, { color: string; label: string }> = {
     converted_to_intern: { color: 'purple', label: 'candidate.converted_to_intern' }
 };
 
+type AllowedActionStatus =
+    | 'pending_review'
+    | 'shortlisted'
+    | 'interview_scheduled'
+    | 'offer'
+    | 'rejected_cv'
+    | 'rejected_interview';
+
+const STATUS_ACTIONS: AllowedActionStatus[] = [
+    'pending_review',
+    'shortlisted',
+    'interview_scheduled',
+    'offer',
+    'rejected_cv',
+    'rejected_interview'
+];
+
+const isStatusInTab = (tab: string, status: AllowedActionStatus) => {
+    if (tab === 'all') return true;
+    if (tab === 'cv_dat') return status === 'shortlisted';
+    return tab === status;
+};
+
+const getTabForStatus = (status: AllowedActionStatus) => {
+    if (status === 'shortlisted') return 'cv_dat';
+    return status;
+};
+
 export const CVList = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -129,26 +157,31 @@ export const CVList = () => {
         setIsDetailModalOpen(true);
     };
 
-    const handleShortlist = async (id: string, name: string) => {
+    const handleChangeStatus = async (id: string, name: string, status: AllowedActionStatus) => {
         try {
-            await http.patch(`/candidates/${id}`, { status: 'shortlisted' });
-            message.success(`${t('candidate.shortlisted')} ${name}`);
-            fetchCandidates();
+            await http.patch(`/candidates/${id}`, { status });
+            const statusLabel = STATUS_TAG[status]?.label ? t(STATUS_TAG[status].label) : status;
+            message.success(`Đã chuyển trạng thái ${name} -> ${statusLabel}`);
+
+            const nextTab = getTabForStatus(status);
+            if (isStatusInTab(activeTab, status)) {
+                fetchCandidates();
+            } else {
+                setActiveTab(nextTab);
+                setPage(1);
+            }
             fetchSummary();
         } catch {
             message.error(t('common.error'));
         }
     };
 
+    const handleShortlist = async (id: string, name: string) => {
+        await handleChangeStatus(id, name, 'shortlisted');
+    };
+
     const handleReject = async (id: string, name: string) => {
-        try {
-            await http.patch(`/candidates/${id}`, { status: 'rejected_cv' });
-            message.success(`${t('candidate.rejected')} ${name}`);
-            fetchCandidates();
-            fetchSummary();
-        } catch {
-            message.error(t('common.error'));
-        }
+        await handleChangeStatus(id, name, 'rejected_cv');
     };
 
     const handleBulkAction = async (status: 'shortlisted' | 'rejected_cv') => {
@@ -158,7 +191,14 @@ export const CVList = () => {
             await Promise.all(selectedRowKeys.map((id) => http.patch(`/candidates/${id}`, { status })));
             message.success(status === 'shortlisted' ? 'Đã shortlist các hồ sơ đã chọn.' : 'Đã từ chối các hồ sơ đã chọn.');
             setSelectedRowKeys([]);
-            fetchCandidates();
+
+            const nextTab = getTabForStatus(status);
+            if (isStatusInTab(activeTab, status)) {
+                fetchCandidates();
+            } else {
+                setActiveTab(nextTab);
+                setPage(1);
+            }
             fetchSummary();
         } catch {
             message.error(t('common.error'));
@@ -251,6 +291,16 @@ export const CVList = () => {
                             icon: <CalendarOutlined />,
                             disabled: record.status !== 'shortlisted',
                             onClick: () => navigate('/recruitment/interviews')
+                        },
+                        {
+                            key: 'change-status',
+                            label: 'Chuyển trạng thái',
+                            children: STATUS_ACTIONS.map((status) => ({
+                                key: `status-${status}`,
+                                label: STATUS_TAG[status]?.label ? t(STATUS_TAG[status].label) : status,
+                                disabled: record.status === status,
+                                onClick: () => handleChangeStatus(record.id, record.fullName, status)
+                            }))
                         },
                         { type: 'divider' },
                         {
