@@ -53,8 +53,13 @@ export interface UpdateInternParams {
     id: string;
     progress?: number;
     status?: string;
+    userId?: string;
     mentorId?: string;
+    learningPathId?: string;
     track?: string;
+    department?: string;
+    startDate?: string;
+    endDate?: string;
 }
 
 export const updateIntern = async (params: UpdateInternParams): Promise<ResponseDetailSuccess<Intern>> => {

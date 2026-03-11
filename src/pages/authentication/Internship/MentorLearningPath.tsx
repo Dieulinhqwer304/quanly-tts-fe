@@ -1,529 +1,422 @@
-import {
-    DeleteOutlined,
-    DragOutlined,
-    EditOutlined,
-    FilePdfOutlined,
-    FileTextOutlined,
-    PlusOutlined,
-    QuestionCircleOutlined,
-    SettingOutlined,
-    VideoCameraOutlined,
-    CheckCircleOutlined,
-    LoadingOutlined
-} from '@ant-design/icons';
-import { Button, Card, Col, Input, Layout, Row, Space, Tag, Typography, Spin } from 'antd';
-import { useState, useEffect, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import { DeleteOutlined, EditOutlined, PlusOutlined, SaveOutlined } from '@ant-design/icons';
+import { Button, Card, Col, Form, Input, List, Modal, Row, Select, Space, Typography, message } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
 import { http } from '../../../utils/http';
-import { useResponsive } from '../../../hooks/useResponsive';
 
-const { Content, Sider } = Layout;
 const { Title, Text } = Typography;
-const { TextArea } = Input;
+
+interface ModuleContentItem {
+  id: string;
+  title: string;
+  type: string;
+  contentUrl?: string;
+  metadata?: { durationMinutes?: number };
+}
+
+interface LearningModuleItem {
+  id: string;
+  title: string;
+  description?: string;
+  orderIndex: number;
+  contents?: ModuleContentItem[];
+}
+
+interface LearningPathItem {
+  id: string;
+  title: string;
+  track: string;
+  description?: string;
+}
 
 export const MentorLearningPath = () => {
-    const { t } = useTranslation();
-    const { isMobile, isLaptop } = useResponsive();
-    const track = 'Frontend Development';
-    const [learningPathData, setLearningPathData] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(false);
+  const [paths, setPaths] = useState<LearningPathItem[]>([]);
+  const [selectedPathId, setSelectedPathId] = useState<string>('');
+  const [selectedPath, setSelectedPath] = useState<LearningPathItem | null>(null);
 
-    const fetchLearningPath = async () => {
-        setIsLoading(true);
-        try {
-            const res = await http.get(`/learning-paths/track/${track}`);
-            setLearningPathData(res);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const [modules, setModules] = useState<LearningModuleItem[]>([]);
+  const [selectedModuleId, setSelectedModuleId] = useState<string>('');
 
-    useEffect(() => {
-        fetchLearningPath();
-    }, [track]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSavingPath, setIsSavingPath] = useState(false);
 
-    const handleUpdate = async (id: string, data: any) => {
-        try {
-            await http.patch(`/learning-paths/${id}`, data);
-            fetchLearningPath();
-        } catch (error) {
-            console.error(error);
-        }
-    };
+  const [moduleModalOpen, setModuleModalOpen] = useState(false);
+  const [editingModule, setEditingModule] = useState<LearningModuleItem | null>(null);
+  const [contentModalOpen, setContentModalOpen] = useState(false);
+  const [editingContent, setEditingContent] = useState<ModuleContentItem | null>(null);
 
-    const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
+  const [pathForm] = Form.useForm();
+  const [moduleForm] = Form.useForm();
+  const [contentForm] = Form.useForm();
 
-    const learningPath = learningPathData;
-    const modules = useMemo(() => {
-        if (!learningPath?.modules) return [];
-        return (learningPath.modules as any[]).map((m: any) => ({
-            ...m,
-            items: [...(m.contents || []), ...(m.quizzes || [])].sort(
-                (a, b) => (a.orderIndex || 0) - (b.orderIndex || 0)
-            )
-        }));
-    }, [learningPath?.modules]);
-    const selectedModule = modules.find((m) => m.id === (selectedModuleId || modules[0]?.id));
+  const selectedModule = useMemo(
+    () => modules.find((module) => module.id === selectedModuleId) || null,
+    [modules, selectedModuleId],
+  );
 
-    useEffect(() => {
-        if (modules.length > 0 && selectedModuleId === null) {
-            setSelectedModuleId(modules[0].id);
-        }
-    }, [modules, selectedModuleId]);
+  const loadPaths = async () => {
+    setIsLoading(true);
+    try {
+      const res = await http.get<{ hits?: LearningPathItem[]; data?: LearningPathItem[] }>('/learning-paths');
+      const records = res?.hits || res?.data || [];
+      setPaths(records);
 
-    const handleUpdateModuleTitle = (moduleId: number, newTitle: string) => {
-        if (!learningPath) return;
-
-        const updatedModules = modules.map((m) => (m.id === moduleId ? { ...m, title: newTitle } : m));
-
-        handleUpdate(learningPath.id, { modules: updatedModules });
-    };
-
-    if (isLoading) {
-        return (
-            <div style={{ padding: '40px', textAlign: 'center' }}>
-                <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} />
-                <div style={{ marginTop: '16px' }}>{t('common.loading')}</div>
-            </div>
-        );
+      const nextId = selectedPathId || records[0]?.id;
+      if (nextId) {
+        setSelectedPathId(nextId);
+      }
+    } catch {
+      message.error('Không tải được danh sách lộ trình đào tạo');
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    return (
-        <Layout
-            style={{ height: 'calc(100vh - 64px)', background: '#f6f7f8', flexDirection: isMobile ? 'column' : 'row' }}
-        >
-            <Sider
-                width={isMobile ? '100%' : 320}
-                theme='light'
-                style={{
-                    borderRight: isMobile ? 'none' : '1px solid #E2E8F0',
-                    borderBottom: isMobile ? '1px solid #E2E8F0' : 'none',
-                    overflowY: 'auto'
-                }}
+  const loadPathDetail = async (pathId: string) => {
+    if (!pathId) return;
+    setIsLoading(true);
+    try {
+      const detail = await http.get<any>(`/learning-paths/${pathId}`);
+      setSelectedPath(detail);
+      setModules((detail?.modules || []).sort((a: LearningModuleItem, b: LearningModuleItem) => a.orderIndex - b.orderIndex));
+      setSelectedModuleId((detail?.modules || [])[0]?.id || '');
+
+      pathForm.setFieldsValue({
+        title: detail?.title,
+        track: detail?.track,
+        description: detail?.description,
+      });
+    } catch {
+      message.error('Không tải được chi tiết lộ trình đào tạo');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPaths();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedPathId) return;
+    loadPathDetail(selectedPathId);
+  }, [selectedPathId]);
+
+  const savePathMetadata = async () => {
+    if (!selectedPathId) return;
+    try {
+      const values = await pathForm.validateFields();
+      setIsSavingPath(true);
+      await http.patch(`/learning-paths/${selectedPathId}`, values);
+      message.success('Cập nhật thông tin lộ trình thành công');
+      await loadPaths();
+      await loadPathDetail(selectedPathId);
+    } catch {
+      message.error('Không thể cập nhật lộ trình');
+    } finally {
+      setIsSavingPath(false);
+    }
+  };
+
+  const openCreateModule = () => {
+    setEditingModule(null);
+    moduleForm.resetFields();
+    moduleForm.setFieldValue('orderIndex', modules.length + 1);
+    setModuleModalOpen(true);
+  };
+
+  const openEditModule = (module: LearningModuleItem) => {
+    setEditingModule(module);
+    moduleForm.setFieldsValue(module);
+    setModuleModalOpen(true);
+  };
+
+  const submitModule = async () => {
+    if (!selectedPathId) return;
+
+    try {
+      const values = await moduleForm.validateFields();
+      if (editingModule) {
+        await http.patch(`/modules/${editingModule.id}`, { ...values, learningPathId: selectedPathId });
+      } else {
+        await http.post('/modules', { ...values, learningPathId: selectedPathId });
+      }
+
+      message.success('Lưu học phần thành công');
+      setModuleModalOpen(false);
+      await loadPathDetail(selectedPathId);
+    } catch {
+      message.error('Không thể lưu học phần');
+    }
+  };
+
+  const removeModule = async (moduleId: string) => {
+    try {
+      await http.delete(`/modules/${moduleId}`);
+      message.success('Đã xóa học phần');
+      await loadPathDetail(selectedPathId);
+    } catch {
+      message.error('Không thể xóa học phần');
+    }
+  };
+
+  const moveModule = async (moduleId: string, direction: 'up' | 'down') => {
+    const currentIndex = modules.findIndex((module) => module.id === moduleId);
+    if (currentIndex < 0) return;
+
+    const nextIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (nextIndex < 0 || nextIndex >= modules.length) return;
+
+    const reordered = [...modules];
+    const [item] = reordered.splice(currentIndex, 1);
+    reordered.splice(nextIndex, 0, item);
+
+    const payload = reordered.map((module, index) => ({
+      id: module.id,
+      orderIndex: index + 1,
+    }));
+
+    try {
+      await http.put(`/modules/learning-path/${selectedPathId}/order`, { modules: payload });
+      setModules(
+        reordered.map((module, index) => ({
+          ...module,
+          orderIndex: index + 1,
+        })),
+      );
+      message.success('Đã cập nhật thứ tự học phần');
+    } catch {
+      message.error('Không thể cập nhật thứ tự học phần');
+    }
+  };
+
+  const openCreateContent = () => {
+    setEditingContent(null);
+    contentForm.resetFields();
+    contentForm.setFieldValue('type', 'video');
+    setContentModalOpen(true);
+  };
+
+  const openEditContent = (content: ModuleContentItem) => {
+    setEditingContent(content);
+    contentForm.setFieldsValue({
+      title: content.title,
+      type: content.type,
+      contentUrl: content.contentUrl,
+      durationMinutes: content.metadata?.durationMinutes,
+    });
+    setContentModalOpen(true);
+  };
+
+  const submitContent = async () => {
+    if (!selectedModuleId) return;
+
+    try {
+      const values = await contentForm.validateFields();
+      if (editingContent) {
+        await http.patch(`/training-content/contents/${editingContent.id}`, { ...values, moduleId: selectedModuleId });
+      } else {
+        await http.post('/training-content/contents', { ...values, moduleId: selectedModuleId });
+      }
+      message.success('Lưu bài giảng thành công');
+      setContentModalOpen(false);
+      await loadPathDetail(selectedPathId);
+    } catch {
+      message.error('Không thể lưu bài giảng');
+    }
+  };
+
+  const removeContent = async (contentId: string) => {
+    try {
+      await http.delete(`/training-content/contents/${contentId}`);
+      message.success('Đã xóa bài giảng');
+      await loadPathDetail(selectedPathId);
+    } catch {
+      message.error('Không thể xóa bài giảng');
+    }
+  };
+
+  return (
+    <div style={{ padding: 24 }}>
+      <Space direction='vertical' style={{ width: '100%' }} size={16}>
+        <Title level={3} style={{ margin: 0 }}>
+          Quản lý lộ trình đào tạo
+        </Title>
+
+        <Card loading={isLoading}>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Text strong>Chọn lộ trình</Text>
+              <Select
+                style={{ width: '100%', marginTop: 8 }}
+                value={selectedPathId}
+                onChange={setSelectedPathId}
+                options={paths.map((path) => ({
+                  value: path.id,
+                  label: `${path.title} (${path.track})`,
+                }))}
+              />
+            </Col>
+            <Col span={16}>
+              <Form form={pathForm} layout='vertical'>
+                <Row gutter={12}>
+                  <Col span={10}>
+                    <Form.Item label='Tên lộ trình' name='title' rules={[{ required: true, message: 'Bắt buộc' }]}>
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                  <Col span={6}>
+                    <Form.Item label='Track' name='track' rules={[{ required: true, message: 'Bắt buộc' }]}>
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                  <Col span={8}>
+                    <Form.Item label='Mô tả' name='description'>
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Button type='primary' icon={<SaveOutlined />} onClick={savePathMetadata} loading={isSavingPath}>
+                  Lưu thông tin lộ trình
+                </Button>
+              </Form>
+            </Col>
+          </Row>
+        </Card>
+
+        <Row gutter={16}>
+          <Col span={10}>
+            <Card
+              title='Danh sách học phần'
+              extra={
+                <Button icon={<PlusOutlined />} type='primary' onClick={openCreateModule} disabled={!selectedPathId}>
+                  Thêm học phần
+                </Button>
+              }
+              loading={isLoading}
             >
-                <div style={{ padding: isMobile ? '12px' : '24px', borderBottom: '1px solid #E2E8F0' }}>
-                    <div style={{ marginBottom: '16px' }}>
-                        <Text strong style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B' }}>
-                            {t('learning_path.path_title')}
-                        </Text>
-                        <Input
-                            value={learningPath?.track}
-                            onChange={(e) => {
-                                if (!learningPath) return;
-                                handleUpdate(learningPath.id, { track: e.target.value });
-                            }}
-                            style={{ marginTop: '8px', fontWeight: 500 }}
-                        />
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Title level={5} style={{ margin: 0 }}>
-                            {t('learning_path.modules')}
-                        </Title>
-                        <Button type='link' icon={<PlusOutlined />} size='small'>
-                            {t('learning_path.add_module')}
-                        </Button>
-                    </div>
-                </div>
-
-                <div style={{ padding: isMobile ? '12px' : '16px', background: '#F8FAFC', minHeight: '100%' }}>
-                    <Space direction='vertical' style={{ width: '100%' }}>
-                        {modules.map((module) => (
-                            <Card
-                                key={module.id}
-                                hoverable
-                                style={{
-                                    borderRadius: '8px',
-                                    border: selectedModuleId === module.id ? '2px solid #1E40AF' : '1px solid #E2E8F0',
-                                    borderLeft:
-                                        selectedModuleId === module.id ? '2px solid #1E40AF' : '4px solid transparent',
-                                    cursor: 'pointer'
-                                }}
-                                bodyStyle={{ padding: '12px' }}
-                                onClick={() => setSelectedModuleId(module.id)}
-                            >
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        marginBottom: '8px'
-                                    }}
-                                >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <DragOutlined style={{ color: '#d1d5db', cursor: 'grab' }} />
-                                        <Text strong>
-                                            {module.id}. {module.title}
-                                        </Text>
-                                    </div>
-                                    <Tag
-                                        color={
-                                            module.status === 'Ready'
-                                                ? 'green'
-                                                : module.status === 'In Progress'
-                                                  ? 'blue'
-                                                  : 'default'
-                                        }
-                                    >
-                                        {module.status === 'Ready'
-                                            ? t('learning_path.ready')
-                                            : module.status === 'In Progress'
-                                              ? t('learning_path.in_progress')
-                                              : t('learning_path.locked')}
-                                    </Tag>
-                                </div>
-                                <div style={{ paddingLeft: '24px', fontSize: '12px', color: '#64748B' }}>
-                                    {module.items?.length > 0 ? (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                            {module.items.slice(0, 2).map((item) => (
-                                                <span
-                                                    key={item.id}
-                                                    style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
-                                                >
-                                                    {item.type === 'video' ? (
-                                                        <VideoCameraOutlined />
-                                                    ) : (
-                                                        <FileTextOutlined />
-                                                    )}{' '}
-                                                    {item.title}
-                                                </span>
-                                            ))}
-                                            {module.items.length > 2 && (
-                                                <span>+ {module.items.length - 2} more items</span>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <span style={{ fontStyle: 'italic' }}>{t('learning_path.no_content')}</span>
-                                    )}
-                                </div>
-                            </Card>
-                        ))}
-
-                        <Card
-                            hoverable
-                            style={{
-                                borderRadius: '8px',
-                                border: '1px solid #c7d2fe',
-                                background: '#eef2ff'
-                            }}
-                            bodyStyle={{ padding: '12px' }}
-                        >
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    marginBottom: '8px'
-                                }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1E40AF' }}>
-                                    <CheckCircleOutlined />
-                                    <Text strong style={{ color: '#1E40AF' }}>
-                                        {t('learning_path.final_assessment')}
-                                    </Text>
-                                </div>
-                                <Tag color='geekblue'>Quiz</Tag>
-                            </div>
-                            <div style={{ paddingLeft: '24px', fontSize: '12px', color: '#1E40AF' }}>
-                                {t('learning_path.passing_score')}: 80%
-                            </div>
-                        </Card>
-                    </Space>
-                </div>
-            </Sider>
-
-            {/* Main Content: Editor Panel */}
-            <Content style={{ display: 'flex', flexDirection: 'column', background: '#fff' }}>
-                <div
+              <List
+                dataSource={modules}
+                locale={{ emptyText: 'Chưa có học phần' }}
+                renderItem={(module, index) => (
+                  <List.Item
+                    onClick={() => setSelectedModuleId(module.id)}
                     style={{
-                        padding: isMobile ? '12px' : '0 32px',
-                        minHeight: '64px',
-                        borderBottom: '1px solid #E2E8F0',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: isMobile ? 'flex-start' : 'center',
-                        flexDirection: isMobile ? 'column' : 'row',
-                        gap: isMobile ? '10px' : 0
+                      cursor: 'pointer',
+                      background: selectedModuleId === module.id ? '#f0f5ff' : 'transparent',
+                      borderRadius: 8,
+                      paddingLeft: 12,
                     }}
-                >
-                    <div>
-                        <Title
-                            level={4}
-                            style={{ margin: 0 }}
-                            editable={{
-                                onChange: (val) => handleUpdateModuleTitle(selectedModule?.id || 0, val)
-                            }}
-                        >
-                            {t('learning_path.modules')} {selectedModule?.id}: {selectedModule?.title}
-                        </Title>
-                        <Text type='secondary' style={{ fontSize: '12px' }}>
-                            {t('learning_path.desc')}
-                        </Text>
-                    </div>
-                    <Space wrap>
-                        <Button icon={<SettingOutlined />}>{t('menu.settings')}</Button>
-                        <Button danger icon={<DeleteOutlined />}>
-                            {t('learning_path.delete_module')}
-                        </Button>
-                    </Space>
-                </div>
+                    actions={[
+                      <Button size='small' onClick={() => moveModule(module.id, 'up')} disabled={index === 0}>
+                        Up
+                      </Button>,
+                      <Button size='small' onClick={() => moveModule(module.id, 'down')} disabled={index === modules.length - 1}>
+                        Down
+                      </Button>,
+                      <Button type='text' icon={<EditOutlined />} onClick={() => openEditModule(module)} />,
+                      <Button danger type='text' icon={<DeleteOutlined />} onClick={() => removeModule(module.id)} />,
+                    ]}
+                  >
+                    <List.Item.Meta
+                      title={`#${module.orderIndex} - ${module.title}`}
+                      description={module.description || 'Không có mô tả'}
+                    />
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </Col>
 
-                <div
-                    style={{
-                        padding: isMobile ? '12px' : isLaptop ? '18px' : '32px',
-                        maxWidth: '800px',
-                        margin: '0 auto',
-                        width: '100%',
-                        overflowY: 'auto'
-                    }}
-                >
-                    <div style={{ marginBottom: '32px' }}>
-                        <Text
-                            type='secondary'
-                            style={{
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                textTransform: 'uppercase',
-                                marginBottom: '16px',
-                                display: 'block'
-                            }}
-                        >
-                            {t('learning_path.module_content')}
-                        </Text>
-                        <Space direction='vertical' style={{ width: '100%' }}>
-                            {selectedModule?.items?.map((item: any) => (
-                                <Card key={item.id} style={{ borderRadius: '12px' }} bodyStyle={{ padding: '16px' }}>
-                                    <div style={{ display: 'flex', gap: '16px' }}>
-                                        <div
-                                            style={{
-                                                width: 40,
-                                                height: 40,
-                                                background: item.type === 'video' ? '#fef2f2' : '#eff6ff',
-                                                borderRadius: '8px',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                color: item.type === 'video' ? '#ef4444' : '#3b82f6'
-                                            }}
-                                        >
-                                            {item.type === 'video' ? <VideoCameraOutlined /> : <FilePdfOutlined />}
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'start'
-                                                }}
-                                            >
-                                                <div>
-                                                    <Text strong style={{ display: 'block' }}>
-                                                        {item.title}
-                                                    </Text>
-                                                    <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                        {item.meta}
-                                                    </Text>
-                                                </div>
-                                                <Space>
-                                                    <Button type='text' icon={<EditOutlined />} />
-                                                    <Button type='text' icon={<DragOutlined />} />
-                                                </Space>
-                                            </div>
-                                            {item.type === 'video' && (
-                                                <div
-                                                    style={{
-                                                        marginTop: '12px',
-                                                        background: '#000',
-                                                        borderRadius: '8px',
-                                                        height: '160px',
-                                                        width: '100%',
-                                                        maxWidth: '280px',
-                                                        position: 'relative',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center'
-                                                    }}
-                                                >
-                                                    <div
-                                                        style={{
-                                                            width: 40,
-                                                            height: 40,
-                                                            background: 'rgba(255,255,255,0.2)',
-                                                            borderRadius: '50%',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center'
-                                                        }}
-                                                    >
-                                                        <div
-                                                            style={{
-                                                                width: 0,
-                                                                height: 0,
-                                                                borderTop: '8px solid transparent',
-                                                                borderBottom: '8px solid transparent',
-                                                                borderLeft: '14px solid white',
-                                                                marginLeft: '4px'
-                                                            }}
-                                                        ></div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </Card>
-                            ))}
+          <Col span={14}>
+            <Card
+              title={selectedModule ? `Bài giảng của: ${selectedModule.title}` : 'Bài giảng'}
+              extra={
+                <Button icon={<PlusOutlined />} type='primary' onClick={openCreateContent} disabled={!selectedModuleId}>
+                  Thêm bài giảng
+                </Button>
+              }
+              loading={isLoading}
+            >
+              <List
+                dataSource={selectedModule?.contents || []}
+                locale={{ emptyText: 'Chưa có bài giảng trong học phần này' }}
+                renderItem={(content) => (
+                  <List.Item
+                    actions={[
+                      <Button type='text' icon={<EditOutlined />} onClick={() => openEditContent(content)} />,
+                      <Button danger type='text' icon={<DeleteOutlined />} onClick={() => removeContent(content.id)} />,
+                    ]}
+                  >
+                    <List.Item.Meta
+                      title={`${content.title} (${content.type})`}
+                      description={
+                        <Space direction='vertical' size={2}>
+                          <Text type='secondary'>{content.contentUrl || 'Không có URL'}</Text>
+                          {content.metadata?.durationMinutes ? (
+                            <Text type='secondary'>Thời lượng: {content.metadata.durationMinutes} phút</Text>
+                          ) : null}
                         </Space>
-                    </div>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </Col>
+        </Row>
+      </Space>
 
-                    <Card style={{ borderRadius: '12px', border: '1px dashed #E2E8F0', background: '#fafafa' }}>
-                        <Title level={5} style={{ marginTop: 0 }}>
-                            {t('learning_path.add_resource')}
-                        </Title>
-                        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
-                            <Button
-                                style={{
-                                    flex: 1,
-                                    height: '80px',
-                                    borderColor: '#1E40AF',
-                                    color: '#1E40AF',
-                                    background: '#fff'
-                                }}
-                                icon={
-                                    <VideoCameraOutlined
-                                        style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}
-                                    />
-                                }
-                            >
-                                {t('learning_path.video_link')}
-                            </Button>
-                            <Button
-                                style={{ flex: 1, height: '80px' }}
-                                icon={
-                                    <FileTextOutlined
-                                        style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}
-                                    />
-                                }
-                            >
-                                {t('learning_path.file_upload')}
-                            </Button>
-                            <Button
-                                style={{ flex: 1, height: '80px' }}
-                                icon={
-                                    <QuestionCircleOutlined
-                                        style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}
-                                    />
-                                }
-                            >
-                                {t('learning_path.add_quiz')}
-                            </Button>
-                        </div>
+      <Modal
+        title={editingModule ? 'Cập nhật học phần' : 'Thêm học phần'}
+        open={moduleModalOpen}
+        onCancel={() => setModuleModalOpen(false)}
+        onOk={submitModule}
+        destroyOnClose
+      >
+        <Form form={moduleForm} layout='vertical'>
+          <Form.Item label='Tên học phần' name='title' rules={[{ required: true, message: 'Bắt buộc' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item label='Mô tả' name='description'>
+            <Input.TextArea rows={3} />
+          </Form.Item>
+          <Form.Item label='Thứ tự' name='orderIndex' rules={[{ required: true, message: 'Bắt buộc' }]}>
+            <Input type='number' min={1} />
+          </Form.Item>
+          <Form.Item label='Điểm qua môn' name='passingScore' initialValue={80}>
+            <Input type='number' min={0} max={100} />
+          </Form.Item>
+        </Form>
+      </Modal>
 
-                        <div
-                            style={{
-                                background: '#fff',
-                                padding: '24px',
-                                borderRadius: '12px',
-                                border: '1px solid #E2E8F0'
-                            }}
-                        >
-                            <Row gutter={16} style={{ marginBottom: '16px' }}>
-                                <Col xs={24} md={12}>
-                                    <Text strong>{t('learning_path.resource_title')}</Text>
-                                    <Input placeholder='e.g. Introduction Video' style={{ marginTop: '8px' }} />
-                                </Col>
-                                <Col xs={24} md={12}>
-                                    <Text strong>{t('learning_path.video_url')}</Text>
-                                    <Input placeholder='https://youtube.com/...' style={{ marginTop: '8px' }} />
-                                </Col>
-                            </Row>
-                            <div style={{ marginBottom: '16px' }}>
-                                <Text strong>{t('learning_path.description_optional')}</Text>
-                                <TextArea rows={3} style={{ marginTop: '8px' }} />
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <Button type='primary' icon={<PlusOutlined />}>
-                                    {t('learning_path.add_video')}
-                                </Button>
-                            </div>
-                        </div>
-                    </Card>
-
-                    <div style={{ marginTop: '32px', paddingTop: '32px', borderTop: '1px solid #E2E8F0' }}>
-                        <div
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                marginBottom: '16px'
-                            }}
-                        >
-                            <div>
-                                <Text
-                                    type='secondary'
-                                    style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}
-                                >
-                                    {t('learning_path.checkpoints')}
-                                </Text>
-                                <Text type='secondary' style={{ display: 'block', fontSize: '12px' }}>
-                                    {t('learning_path.checkpoints_desc')}
-                                </Text>
-                            </div>
-                            <Button type='link' icon={<PlusOutlined />}>
-                                {t('learning_path.new_question')}
-                            </Button>
-                        </div>
-
-                        <Card style={{ borderRadius: '12px', border: '1px solid #e0e7ff', background: '#eef2ff' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                                <Text strong>Q1: What is the primary mission of our company?</Text>
-                                <Space>
-                                    <EditOutlined style={{ color: '#64748B', cursor: 'pointer' }} />
-                                    <DeleteOutlined style={{ color: '#64748B', cursor: 'pointer' }} />
-                                </Space>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <div
-                                    style={{
-                                        background: '#fff',
-                                        padding: '8px 12px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #10B981',
-                                        display: 'flex',
-                                        gap: '8px',
-                                        alignItems: 'center'
-                                    }}
-                                >
-                                    <CheckCircleOutlined style={{ color: '#10B981' }} /> To enable digital
-                                    transformation for everyone.
-                                </div>
-                                <div
-                                    style={{
-                                        background: 'rgba(255,255,255,0.6)',
-                                        padding: '8px 12px',
-                                        borderRadius: '8px',
-                                        border: '1px solid transparent',
-                                        display: 'flex',
-                                        gap: '8px',
-                                        alignItems: 'center',
-                                        color: '#64748B'
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            width: 14,
-                                            height: 14,
-                                            borderRadius: '50%',
-                                            border: '1px solid #E2E8F0'
-                                        }}
-                                    ></div>{' '}
-                                    To sell software.
-                                </div>
-                            </div>
-                        </Card>
-                    </div>
-                </div>
-            </Content>
-        </Layout>
-    );
+      <Modal
+        title={editingContent ? 'Cập nhật bài giảng' : 'Thêm bài giảng'}
+        open={contentModalOpen}
+        onCancel={() => setContentModalOpen(false)}
+        onOk={submitContent}
+        destroyOnClose
+      >
+        <Form form={contentForm} layout='vertical'>
+          <Form.Item label='Tên bài giảng' name='title' rules={[{ required: true, message: 'Bắt buộc' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item label='Loại nội dung' name='type' rules={[{ required: true, message: 'Bắt buộc' }]}>
+            <Select
+              options={[
+                { value: 'video', label: 'Video' },
+                { value: 'document', label: 'Document' },
+                { value: 'file', label: 'File' },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item label='URL nội dung' name='contentUrl' rules={[{ required: true, message: 'Bắt buộc' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item label='Thời lượng (phút)' name='durationMinutes'>
+            <Input type='number' min={0} />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
+  );
 };
