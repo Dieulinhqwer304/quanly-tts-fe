@@ -90,7 +90,7 @@ export const InternList = () => {
     };
 
     const isMentorModule = location.pathname.startsWith('/training/mentor');
-    const dataSource = internsData?.data || [];
+    const dataSource = internsData?.hits || internsData?.data || [];
 
     return (
         <div style={{ padding: '24px' }}>
