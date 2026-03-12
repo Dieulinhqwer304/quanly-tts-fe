@@ -65,7 +65,7 @@ export const InternTaskBoard = () => {
         const fetchIntern = async () => {
             setIsLoadingIntern(true);
             try {
-                const res = await http.get('/interns/me');
+                const res = await http.get<{ id?: string; mentor?: { fullName?: string } }>('/interns/me');
                 setInternData(res);
                 if (res?.id) {
                     fetchTasks(res.id);
@@ -86,7 +86,7 @@ export const InternTaskBoard = () => {
     const moveTask = async (task: Task, newStatus: Task['status']) => {
         setIsMutating(true);
         try {
-            await http.patch(`/tasks/${task.id}`, { status: newStatus });
+            await http.patch(`/tasks/${task.id}/status`, { status: newStatus });
             message.success(t('common.success'));
             if (internId) fetchTasks(internId);
             if (selectedTask?.id === task.id) {
@@ -536,7 +536,7 @@ export const InternTaskBoard = () => {
                                     onClick={async () => {
                                         setIsMutating(true);
                                         try {
-                                            await http.post(`/tasks/${selectedTask.id}/comments`, { comment });
+                                            await http.post(`/tasks/${selectedTask.id}/comments`, { content: comment });
                                             message.success(t('common.success'));
                                             setComment('');
                                             if (internId) fetchTasks(internId);

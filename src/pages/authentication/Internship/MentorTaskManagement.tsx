@@ -1,12 +1,8 @@
 import {
     PlusOutlined,
-    CheckCircleOutlined,
     ClockCircleOutlined,
-    TeamOutlined,
     ProjectOutlined,
     EllipsisOutlined,
-    UserOutlined,
-    HistoryOutlined,
     CheckOutlined,
     CloseOutlined,
     EyeOutlined
@@ -38,18 +34,11 @@ import { Task } from '../../../services/Internship/tasks';
 
 const { Title, Text } = Typography;
 
-const STATUS_MAP_TO_BACKEND: any = {
-    'In Progress': 'in_progress',
-    'Under Review': 'under_review',
-    Completed: 'completed',
-    'To Do': 'to_do'
-};
-
 export const MentorTaskManagement = () => {
     const { t } = useTranslation();
     const { message: messageApi } = App.useApp();
     const [searchText, setSearchText] = useState('');
-    const [statusFilter, setStatusFilter] = useState('All');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [internFilter, setInternFilter] = useState<string | undefined>(undefined);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
@@ -59,14 +48,14 @@ export const MentorTaskManagement = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
 
+    const internRecords = internsData?.hits || internsData?.data || [];
+
     const fetchTasks = async () => {
         setIsLoading(true);
         try {
             const params: any = {};
-            if (searchText) {
-                params.searcher = JSON.stringify({ keyword: searchText, field: 'title' });
-            }
-            if (statusFilter !== 'All Statuses' && statusFilter !== 'All') {
+            if (searchText.trim()) params.q = searchText.trim();
+            if (statusFilter !== 'all') {
                 params.status = statusFilter;
             }
             if (internFilter && internFilter !== 'All Interns') {
@@ -74,8 +63,8 @@ export const MentorTaskManagement = () => {
             }
             const res = await http.get('/tasks', { params });
             setTasksData(res);
-        } catch (error) {
-            console.error(error);
+        } catch {
+            messageApi.error(t('common.error'));
         } finally {
             setIsLoading(false);
         }
@@ -85,8 +74,8 @@ export const MentorTaskManagement = () => {
         try {
             const res = await http.get('/interns');
             setInternsData(res);
-        } catch (error) {
-            console.error(error);
+        } catch {
+            messageApi.error(t('common.error'));
         }
     };
 
@@ -101,11 +90,16 @@ export const MentorTaskManagement = () => {
     const handleAddTask = async (values: any) => {
         setIsProcessing(true);
         try {
-            const selectedIntern = internsData?.data?.find((i: any) => i.id === values.internId);
+            const selectedIntern = internRecords.find((i: any) => i.id === values.internId);
+            if (!selectedIntern?.mentorId) {
+                messageApi.error('Không tìm thấy mentor của thực tập sinh đã chọn');
+                return;
+            }
+
             await http.post('/tasks', {
                 title: values.title,
                 internId: values.internId,
-                mentorId: selectedIntern?.mentorId || '93086eb4-a316-431b-a53c-1349f280a8f8', // Fallback to mentor from intern or default
+                mentorId: selectedIntern.mentorId,
                 priority: values.priority.toLowerCase() as any,
                 dueDate: values.dueDate.format('YYYY-MM-DD'),
                 description: values.description || ''
@@ -121,10 +115,9 @@ export const MentorTaskManagement = () => {
         }
     };
 
-    const handleUpdateStatus = (id: string, newStatus: string) => {
-        const backendStatus = STATUS_MAP_TO_BACKEND[newStatus] || newStatus.toLowerCase().replace(' ', '_');
-        http.patch(`/tasks/${id}`, {
-            status: backendStatus
+    const handleUpdateStatus = (id: string, newStatus: Task['status']) => {
+        http.patch(`/tasks/${id}/status`, {
+            status: newStatus
         }).then(() => {
             messageApi.success(t('common.success'));
             fetchTasks();
@@ -132,7 +125,7 @@ export const MentorTaskManagement = () => {
     };
 
     const responseData = tasksData;
-    const dataSource = responseData?.data || [];
+    const dataSource = responseData?.hits || responseData?.data || [];
 
     const getActionMenu = (record: Task): MenuProps => ({
         items: [
@@ -293,15 +286,15 @@ export const MentorTaskManagement = () => {
                                     onChange={setInternFilter}
                                     options={[
                                         { value: 'All Interns', label: t('task_mgmt.all_interns') },
-                                        ...(internsData?.data?.map((i: any) => ({ value: i.id, label: i.name })) || [])
+                                        ...(internRecords.map((i: any) => ({ value: i.id, label: i.name || i.fullName })) || [])
                                     ]}
                                 />
                                 <Select
-                                    defaultValue='All Statuses'
+                                    value={statusFilter}
                                     style={{ width: 150 }}
                                     onChange={setStatusFilter}
                                     options={[
-                                        { value: 'All Statuses', label: t('task_mgmt.all_statuses') },
+                                        { value: 'all', label: t('task_mgmt.all_statuses') },
                                         { value: 'in_progress', label: t('task_mgmt.in_progress') },
                                         { value: 'under_review', label: t('task_mgmt.under_review') },
                                         { value: 'completed', label: t('task_mgmt.completed') },
@@ -360,7 +353,7 @@ export const MentorTaskManagement = () => {
                             >
                                 <Select
                                     placeholder={t('task_mgmt.choose_intern')}
-                                    options={internsData?.data?.map((i: any) => ({ value: i.id, label: i.name }))}
+                                    options={internRecords.map((i: any) => ({ value: i.id, label: i.name || i.fullName }))}
                                 />
                             </Form.Item>
                         </Col>
