@@ -35,6 +35,7 @@ export const InternDashboard = () => {
     const [internData, setInternData] = useState<any>(null);
     const [tasksData, setTasksData] = useState<any>(null);
     const [learningPathData, setLearningPathData] = useState<any>(null);
+    const [progressData, setProgressData] = useState<any>(null);
     const [isLoadingIntern, setIsLoadingIntern] = useState(true);
     const [isLoadingTasks, setIsLoadingTasks] = useState(false);
     const [isLoadingLP, setIsLoadingLP] = useState(false);
@@ -51,17 +52,25 @@ export const InternDashboard = () => {
                     setIsLoadingTasks(true);
                     setIsLoadingLP(true);
 
-                    // Fetch tasks and learning path in parallel
-                    const [tasksRes, lpRes] = await Promise.all([
+                    const [tasksRes, progressRes] = await Promise.all([
                         http.get(`/tasks`, { params: { internId: internObj.id } }),
-                        http.get(`/learning-paths/track/${internObj.track || ''}`)
+                        http.get(`/interns/me/progress`)
                     ]);
+
+                    let lpRes = null;
+                    if (progressRes?.learningPathId) {
+                        lpRes = await http.get(`/learning-paths/${progressRes.learningPathId}`);
+                    } else if (internObj.track) {
+                        lpRes = await http.get(`/learning-paths/track/${internObj.track}`);
+                    }
 
                     setTasksData(tasksRes);
                     setLearningPathData(lpRes);
+                    setProgressData(progressRes);
                 }
             } catch (error) {
                 console.error(error);
+                messageApi.error(t('common.error'));
             } finally {
                 setIsLoadingIntern(false);
                 setIsLoadingTasks(false);
@@ -74,16 +83,23 @@ export const InternDashboard = () => {
 
     const intern = internData;
 
-    const tasks = tasksData?.data || [];
+    const tasks = tasksData?.hits || tasksData?.data || [];
     const learningPath = learningPathData;
     const modules = useMemo(() => {
         if (!learningPath?.modules) return [];
-        return (learningPath.modules as any[]).map((m: any) => ({
-            ...m,
-            items: [...(m.contents || []), ...(m.quizzes || [])],
-            progress: m.progress || 0
-        }));
-    }, [learningPath?.modules]);
+        const completedSet = new Set(progressData?.modulesCompleted || []);
+        const currentModuleId = progressData?.currentModuleId;
+
+        return (learningPath.modules as any[]).map((m: any) => {
+            const status = completedSet.has(m.id) ? 'Ready' : currentModuleId === m.id ? 'In Progress' : 'Locked';
+            return {
+                ...m,
+                status,
+                items: [...(m.contents || []), ...(m.quizzes || [])],
+                progress: status === 'In Progress' ? progressData?.overallProgress || 0 : status === 'Ready' ? 100 : 0
+            };
+        });
+    }, [learningPath?.modules, progressData]);
 
     // Find the nearest upcoming deadline
     const upcomingTask = useMemo(() => {
@@ -174,11 +190,11 @@ export const InternDashboard = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                             <Text strong>{t('intern_dashboard.overall_progress')}</Text>
                             <Text strong color='#1E40AF'>
-                                {intern?.progress || 0}%
+                                {progressData?.overallProgress ?? intern?.overallProgress ?? 0}%
                             </Text>
                         </div>
                         <Progress
-                            percent={intern?.progress || 0}
+                            percent={progressData?.overallProgress ?? intern?.overallProgress ?? 0}
                             showInfo={false}
                             strokeColor={{
                                 '0%': '#1E40AF',
@@ -353,7 +369,9 @@ export const InternDashboard = () => {
                                                                 borderRadius: '8px',
                                                                 border: '1px solid #E2E8F0',
                                                                 background:
-                                                                    task.status === 'In Progress' ? '#e6f7ff' : '#fff',
+                                                                    task.status?.toLowerCase() === 'in_progress'
+                                                                        ? '#e6f7ff'
+                                                                        : '#fff',
                                                                 cursor: 'pointer'
                                                             }}
                                                             onClick={() => navigate(RouteConfig.InternTaskBoard.path)}
@@ -393,7 +411,8 @@ export const InternDashboard = () => {
                                                                         strong
                                                                         style={{
                                                                             color:
-                                                                                task.status === 'In Progress'
+                                                                                task.status?.toLowerCase() ===
+                                                                                'in_progress'
                                                                                     ? '#1E40AF'
                                                                                     : 'inherit'
                                                                         }}
