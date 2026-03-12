@@ -41,12 +41,15 @@ export const MentorTaskManagement = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [internFilter, setInternFilter] = useState<string | undefined>(undefined);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [taskDetail, setTaskDetail] = useState<Task | null>(null);
     const [form] = Form.useForm();
 
     const [tasksData, setTasksData] = useState<any>(null);
     const [internsData, setInternsData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isLoadingDetail, setIsLoadingDetail] = useState(false);
 
     const internRecords = internsData?.hits || internsData?.data || [];
 
@@ -124,6 +127,20 @@ export const MentorTaskManagement = () => {
         });
     };
 
+    const handleViewDetail = async (id: string) => {
+        setIsLoadingDetail(true);
+        setIsDetailModalOpen(true);
+        try {
+            const detail = await http.get<Task>(`/tasks/${id}`);
+            setTaskDetail(detail);
+        } catch {
+            messageApi.error(t('common.error'));
+            setIsDetailModalOpen(false);
+        } finally {
+            setIsLoadingDetail(false);
+        }
+    };
+
     const responseData = tasksData;
     const dataSource = responseData?.hits || responseData?.data || [];
 
@@ -133,8 +150,7 @@ export const MentorTaskManagement = () => {
                 key: 'view',
                 label: t('task_mgmt.view_details'),
                 icon: <EyeOutlined />,
-                onClick: () =>
-                    Modal.info({ title: record.title, content: record.description || 'No description provided.' })
+                onClick: () => handleViewDetail(record.id)
             },
             {
                 key: 'approve',
@@ -385,6 +401,41 @@ export const MentorTaskManagement = () => {
                         <Input.TextArea rows={3} placeholder={t('learning_path.description_optional')} />
                     </Form.Item>
                 </Form>
+            </Modal>
+
+            <Modal
+                title={taskDetail?.title || t('task_mgmt.view_details')}
+                open={isDetailModalOpen}
+                onCancel={() => {
+                    setIsDetailModalOpen(false);
+                    setTaskDetail(null);
+                }}
+                footer={null}
+                confirmLoading={isLoadingDetail}
+            >
+                <Space direction='vertical' style={{ width: '100%' }}>
+                    <Text type='secondary'>
+                        {t('task_mgmt.task_id')}: {taskDetail?.id || 'N/A'}
+                    </Text>
+                    <Text>
+                        {t('task_mgmt.intern')}: {taskDetail?.internName || 'N/A'}
+                    </Text>
+                    <Text>
+                        {t('task_mgmt.priority')}:{' '}
+                        {(taskDetail?.priority || '').toLowerCase() === 'high'
+                            ? t('task_mgmt.high')
+                            : (taskDetail?.priority || '').toLowerCase() === 'medium'
+                              ? t('task_mgmt.medium')
+                              : t('task_mgmt.low')}
+                    </Text>
+                    <Text>
+                        {t('task_mgmt.due_date')}: {taskDetail?.dueDate || 'N/A'}
+                    </Text>
+                    <Text>
+                        {t('common.status')}: {taskDetail?.status || 'N/A'}
+                    </Text>
+                    <Text>{taskDetail?.description || 'No description provided.'}</Text>
+                </Space>
             </Modal>
         </div>
     );
