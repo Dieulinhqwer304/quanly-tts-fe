@@ -1,6 +1,4 @@
 import {
-  ArrowDownOutlined,
-  ArrowUpOutlined,
   DeleteOutlined,
   EditOutlined,
   PlusOutlined,
@@ -382,18 +380,6 @@ export const MentorLearningPath = () => {
                       paddingLeft: 12,
                     }}
                     actions={[
-                      <Button
-                        size='small'
-                        icon={<ArrowUpOutlined />}
-                        onClick={() => moveModule(module.id, 'up')}
-                        disabled={index === 0}
-                      />,
-                      <Button
-                        size='small'
-                        icon={<ArrowDownOutlined />}
-                        onClick={() => moveModule(module.id, 'down')}
-                        disabled={index === modules.length - 1}
-                      />,
                       <Button type='text' icon={<EditOutlined />} onClick={() => openEditModule(module)} />,
                       <Popconfirm
                         title='Xóa học phần này?'
