@@ -1,8 +1,9 @@
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { Row, Col, Card, Typography } from 'antd';
 import { TeamOutlined, BookOutlined, SettingOutlined, RightOutlined, GlobalOutlined, CrownOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
+import { getProfile } from '../../../services/auth/profile';
 
 const { Title, Text } = Typography;
 
@@ -71,6 +72,39 @@ const ModuleCard: FC<ModuleCardProps> = ({ title, description, icon, color, onCl
 
 export const ModuleSelectionPage: FC = () => {
     const navigate = useNavigate();
+    const [currentRole, setCurrentRole] = useState('');
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchProfile = async () => {
+            try {
+                const response = await getProfile();
+                const profileData = (response as any)?.data || {};
+                const roleFromSingleField = String(profileData.role || '').toLowerCase();
+                const roleFromRolesArray = Array.isArray(profileData.roles)
+                    ? String(profileData.roles[0]?.name || '').toLowerCase()
+                    : '';
+
+                if (isMounted) {
+                    setCurrentRole(roleFromSingleField || roleFromRolesArray);
+                }
+            } catch {
+                if (isMounted) {
+                    setCurrentRole('');
+                }
+            }
+        };
+
+        void fetchProfile();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const trainingEntryPath =
+        currentRole === 'intern' ? RouteConfig.InternDashboard.path : RouteConfig.TrainingInternList.path;
 
     const modules = [
         {
@@ -85,7 +119,7 @@ export const ModuleSelectionPage: FC = () => {
             description: 'Quản lý lộ trình học tập, giao task thực tế và đánh giá thực tập sinh.',
             icon: <BookOutlined />,
             color: '#0D9488',
-            path: RouteConfig.InternDashboard.path
+            path: trainingEntryPath
         },
         {
             title: 'Giám đốc',
