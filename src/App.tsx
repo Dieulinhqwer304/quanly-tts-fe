@@ -209,7 +209,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.InternDashboard.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={['intern']}>
                 <InternDashboard />
             </ProtectRoute>
         )
@@ -217,7 +217,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.InternTest.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={['intern']}>
                 <InternTest />
             </ProtectRoute>
         )
@@ -225,7 +225,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.InternTaskBoard.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={['intern']}>
                 <InternTaskBoard />
             </ProtectRoute>
         )
