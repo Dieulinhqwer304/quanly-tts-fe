@@ -30,7 +30,7 @@ export const LoginPage = () => {
     } = useForm<LoginSchema>({
         resolver: zodResolver(loginSchema),
         defaultValues: {
-            email: 'admin@system.com',
+            email: 'superadmin@system.com',
             password: '123456'
         }
     });
@@ -143,7 +143,7 @@ export const LoginPage = () => {
                         }}
                     >
                         <Text style={{ fontSize: '14px', color: token.colorPrimaryText }}>
-                            Tài khoản demo: <strong>admin@system.com</strong> / <strong>123456</strong>
+                            Tài khoản demo: <strong>superadmin@system.com</strong> / <strong>123456</strong>
                         </Text>
                     </div>
 
