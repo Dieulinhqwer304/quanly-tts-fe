@@ -6,10 +6,12 @@ export interface DashboardStats {
     activeUsers: number;
     todayVisits: number;
     openPositions: number;
+    totalApplications: number;
     pendingApplications: number;
     upcomingInterviews: number;
     activeInterns: number;
     pendingReviews: number;
+    convertedInterns: number;
     conversionRate: number;
 }
 
