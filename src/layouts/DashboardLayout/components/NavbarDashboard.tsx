@@ -11,10 +11,11 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '../../../components';
+import { getProfile } from '../../../services/auth/profile';
 
 const { Sider } = Layout;
 const { Text } = Typography;
@@ -50,6 +51,34 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
     const { logout } = useAuth();
     const { token } = theme.useToken();
     const { t } = useTranslation();
+    const [currentRoles, setCurrentRoles] = useState<string[]>([]);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadProfile = async () => {
+            try {
+                const response = await getProfile();
+                const roles = (response.data?.roles || [])
+                    .map((role) => String(role?.name || '').toLowerCase())
+                    .filter(Boolean);
+
+                if (isMounted) {
+                    setCurrentRoles(roles);
+                }
+            } catch {
+                if (isMounted) {
+                    setCurrentRoles([]);
+                }
+            }
+        };
+
+        void loadProfile();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const getCurrentModule = (): ModuleType => {
         const path = location.pathname;
@@ -61,6 +90,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
     };
 
     const currentModule = getCurrentModule();
+    const isIntern = currentRoles.includes('intern');
 
     const recruitmentItems: MenuItem[] = [
         {
@@ -103,16 +133,15 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
 
     const trainingItems: MenuItem[] = [
         {
-            key: 'train-interns',
-            icon: <TeamOutlined />,
-            label: t('menu.intern_list'),
-            onClick: () => navigate(RouteConfig.TrainingInternList.path)
-        },
-        {
             key: 'mentor',
             icon: <SolutionOutlined />,
             label: t('menu.mentor_portal'),
             children: [
+                {
+                    key: 'train-interns',
+                    label: t('menu.intern_list'),
+                    onClick: () => navigate(RouteConfig.TrainingInternList.path)
+                },
                 {
                     key: 'mentor-path',
                     label: t('menu.learning_path'),
@@ -130,23 +159,27 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                 }
             ]
         },
-        {
-            key: 'intern',
-            icon: <BookOutlined />,
-            label: t('menu.intern_portal'),
-            children: [
-                {
-                    key: 'intern-dash',
-                    label: 'Bài giảng',
-                    onClick: () => navigate(RouteConfig.InternDashboard.path)
-                },
-                {
-                    key: 'intern-tasks',
-                    label: t('menu.task_board'),
-                    onClick: () => navigate(RouteConfig.InternTaskBoard.path)
-                }
-            ]
-        }
+        ...(isIntern
+            ? [
+                  {
+                      key: 'intern',
+                      icon: <BookOutlined />,
+                      label: t('menu.intern_portal'),
+                      children: [
+                          {
+                              key: 'intern-dash',
+                              label: 'Bài giảng',
+                              onClick: () => navigate(RouteConfig.InternDashboard.path)
+                          },
+                          {
+                              key: 'intern-tasks',
+                              label: t('menu.task_board'),
+                              onClick: () => navigate(RouteConfig.InternTaskBoard.path)
+                          }
+                      ]
+                  }
+              ]
+            : [])
     ];
 
     const directorItems: MenuItem[] = [
@@ -211,9 +244,9 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
         if (path.includes('/training/mentor/evaluations')) return ['mentor', 'mentor-eval'];
         if (path.includes('/training/mentor/tasks')) return ['mentor', 'mentor-tasks'];
 
-        if (path.includes('/training/intern/dashboard')) return ['intern', 'intern-dash'];
-        if (path.includes('/training/intern/test')) return ['intern', 'intern-dash'];
-        if (path.includes('/training/intern/tasks')) return ['intern', 'intern-tasks'];
+        if (isIntern && path.includes('/training/intern/dashboard')) return ['intern', 'intern-dash'];
+        if (isIntern && path.includes('/training/intern/test')) return ['intern', 'intern-dash'];
+        if (isIntern && path.includes('/training/intern/tasks')) return ['intern', 'intern-tasks'];
 
         if (path.includes('/director/approvals')) return ['director', 'dir-approvals'];
         if (path.includes('/admin/users')) return ['user-management'];
