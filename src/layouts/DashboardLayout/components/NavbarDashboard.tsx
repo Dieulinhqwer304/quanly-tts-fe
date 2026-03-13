@@ -59,9 +59,12 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
         const loadProfile = async () => {
             try {
                 const response = await getProfile();
-                const roles = (response.data?.roles || [])
-                    .map((role) => String(role?.name || '').toLowerCase())
-                    .filter(Boolean);
+                const profileData = (response as any)?.data || {};
+                const rolesFromArray = Array.isArray(profileData.roles)
+                    ? profileData.roles.map((role: any) => String(role?.name || '').toLowerCase()).filter(Boolean)
+                    : [];
+                const roleFromSingleField = String(profileData.role || '').toLowerCase();
+                const roles = roleFromSingleField ? [roleFromSingleField, ...rolesFromArray] : rolesFromArray;
 
                 if (isMounted) {
                     setCurrentRoles(roles);

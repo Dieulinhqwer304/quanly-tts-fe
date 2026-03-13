@@ -28,6 +28,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { RouteConfig } from '../../../constants';
 import { http } from '../../../utils/http';
+import { getProfile } from '../../../services/auth/profile';
 
 import { InternModal } from './components/InternModal';
 import { PlusOutlined } from '@ant-design/icons';
@@ -44,6 +45,7 @@ export const InternList = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingIntern, setEditingIntern] = useState<any>(null);
     const [isViewOnly, setIsViewOnly] = useState(false);
+    const [currentRole, setCurrentRole] = useState<string>('');
 
     const [internsData, setInternsData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -71,6 +73,24 @@ export const InternList = () => {
         fetchInterns();
     }, [searchText, statusFilter]);
 
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const response = await getProfile();
+                const profileData = (response as any)?.data || {};
+                const roleFromSingleField = String(profileData.role || '').toLowerCase();
+                const roleFromRolesArray = Array.isArray(profileData.roles)
+                    ? String(profileData.roles[0]?.name || '').toLowerCase()
+                    : '';
+                setCurrentRole(roleFromSingleField || roleFromRolesArray);
+            } catch {
+                setCurrentRole('');
+            }
+        };
+
+        void fetchProfile();
+    }, []);
+
     const handleCreate = () => {
         setEditingIntern(null);
         setIsViewOnly(false);
@@ -90,6 +110,9 @@ export const InternList = () => {
     };
 
     const isMentorModule = location.pathname.startsWith('/training/mentor');
+    const isMentorRole = currentRole === 'mentor';
+    const canManageInterns = currentRole === 'admin' || currentRole === 'super_admin';
+    const isMentorView = isMentorModule || isMentorRole;
     const dataSource = internsData?.hits || internsData?.data || [];
 
     return (
@@ -98,7 +121,7 @@ export const InternList = () => {
                 <Breadcrumb
                     items={[
                         { title: location.pathname.startsWith('/training') ? t('menu.training_module') : t('menu.recruitment_management') },
-                        { title: isMentorModule ? t('menu.evaluations') : t('internship.intern_list') }
+                        { title: isMentorView ? t('menu.evaluations') : t('internship.intern_list') }
                     ]}
                 />
             </div>
@@ -113,14 +136,14 @@ export const InternList = () => {
             >
                 <div>
                     <Title level={3} style={{ margin: 0 }}>
-                        {isMentorModule ? t('menu.evaluations') : t('internship.management')}
+                        {isMentorView ? t('menu.evaluations') : t('internship.management')}
                     </Title>
                     <Text type='secondary'>
-                        {isMentorModule ? t('internship.eval_desc') : t('internship.management_desc')}
+                        {isMentorView ? t('internship.eval_desc') : t('internship.management_desc')}
                     </Text>
                 </div>
                 <Space>
-                    {!isMentorModule && (
+                    {canManageInterns && (
                         <Button icon={<PlusOutlined />} type='primary' onClick={handleCreate}>
                             {t('internship.add_intern')}
                         </Button>
@@ -172,7 +195,7 @@ export const InternList = () => {
                                 </Space>
                             )
                         },
-                        !isMentorModule ? {
+                        !isMentorView ? {
                             title: t('internship.contact'),
                             key: 'contact',
                             render: (_: any, record: any) => (
@@ -199,7 +222,7 @@ export const InternList = () => {
                                 </div>
                             )
                         },
-                        !isMentorModule ? {
+                        !isMentorView ? {
                             title: t('internship.duration'),
                             key: 'duration',
                             render: (_: any, record: any) => (
@@ -213,7 +236,7 @@ export const InternList = () => {
                                 </div>
                             )
                         } : null,
-                        isMentorModule ? {
+                        isMentorView ? {
                             title: 'GĐ 1 (Thử việc)',
                             key: 'eval_phase1',
                             render: (_: any, record: any) => {
@@ -229,7 +252,7 @@ export const InternList = () => {
                                 return <Button size='small' type='dashed' onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}>Đánh giá</Button>;
                             }
                         } : null,
-                        isMentorModule ? {
+                        isMentorView ? {
                             title: 'GĐ 2 (Dự án)',
                             key: 'eval_phase2',
                             render: (_: any, record: any) => {
@@ -245,7 +268,7 @@ export const InternList = () => {
                                 return <Button size='small' type='dashed' onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}>Đánh giá</Button>;
                             }
                         } : null,
-                        isMentorModule ? {
+                        isMentorView ? {
                             title: 'GĐ Cuối',
                             key: 'eval_final',
                             render: (_: any, record: any) => {
@@ -261,7 +284,7 @@ export const InternList = () => {
                                 return <Button size='small' type='dashed' onClick={() => navigate(RouteConfig.MentorEvaluation.getPath(record.id))}>Đánh giá</Button>;
                             }
                         } : null,
-                        isMentorModule ? {
+                        isMentorView ? {
                             title: t('internship.progress'),
                             dataIndex: 'overallProgress',
                             key: 'progress',
@@ -272,7 +295,7 @@ export const InternList = () => {
                                 </div>
                             )
                         } : null,
-                        !isMentorModule ? {
+                        !isMentorView ? {
                             title: t('common.status'),
                             dataIndex: 'status',
                             key: 'status',
@@ -296,7 +319,7 @@ export const InternList = () => {
                                     <Tooltip title={t('common.view')}>
                                         <Button type='text' icon={<EyeOutlined />} onClick={() => handleView(record)} />
                                     </Tooltip>
-                                    {!isMentorModule && (
+                                    {isMentorView && (
                                         <Tooltip title={t('menu.evaluations')}>
                                             <Button
                                                 type='text'
@@ -305,13 +328,15 @@ export const InternList = () => {
                                             />
                                         </Tooltip>
                                     )}
-                                    <Tooltip title={t('common.edit')}>
-                                        <Button
-                                            type='text'
-                                            icon={<EditOutlined />}
-                                            onClick={() => handleEdit(record)}
-                                        />
-                                    </Tooltip>
+                                    {canManageInterns && (
+                                        <Tooltip title={t('common.edit')}>
+                                            <Button
+                                                type='text'
+                                                icon={<EditOutlined />}
+                                                onClick={() => handleEdit(record)}
+                                            />
+                                        </Tooltip>
+                                    )}
                                 </Space>
                             )
                         }
