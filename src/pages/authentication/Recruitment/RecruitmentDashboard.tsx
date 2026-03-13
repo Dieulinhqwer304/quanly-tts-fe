@@ -2,20 +2,19 @@ import {
     TeamOutlined,
     FileTextOutlined,
     ClockCircleOutlined,
-    ArrowUpOutlined,
-    MoreOutlined,
-    CalendarOutlined,
-    CheckCircleOutlined
+    CheckCircleOutlined,
+    ArrowRightOutlined
 } from '@ant-design/icons';
-import { Card, Col, Row, Typography, Button, Dropdown, Space, Avatar, Tag, Progress } from 'antd';
-import { http } from '../../../utils/http';
-import { useTranslation } from 'react-i18next';
-import { useResponsive } from '../../../hooks/useResponsive';
+import { Card, Col, Row, Typography, Button, Space } from 'antd';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useResponsive } from '../../../hooks/useResponsive';
+import { getDashboardStats } from '../../../services/dashboard';
+import { RouteConfig } from '../../../constants';
 
 const { Title, Text, Paragraph } = Typography;
 
-const StatCard = ({ title, value, prefix, color, subValue, loading }: any) => (
+const StatCard = ({ title, value, prefix, color, note, loading }: any) => (
     <Card
         bordered={false}
         loading={loading}
@@ -25,30 +24,17 @@ const StatCard = ({ title, value, prefix, color, subValue, loading }: any) => (
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
             border: '1px solid #E2E8F0'
         }}
-        bodyStyle={{ padding: '24px' }}
+        styles={{ body: { padding: '24px' } }}
     >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
             <div>
                 <Text type='secondary' style={{ fontSize: '14px', fontWeight: 600, color: '#64748B' }}>
                     {title}
                 </Text>
-                <div style={{ marginTop: '12px', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                <div style={{ marginTop: '12px' }}>
                     <span style={{ fontSize: '32px', fontWeight: 800, color: '#1E293B' }}>{value}</span>
-                    {subValue && (
-                        <span
-                            style={{
-                                fontSize: '13px',
-                                color: '#10B981',
-                                display: 'flex',
-                                alignItems: 'center',
-                                fontWeight: 600
-                            }}
-                        >
-                            <ArrowUpOutlined style={{ marginRight: '4px' }} />
-                            {subValue}%
-                        </span>
-                    )}
                 </div>
+                <Text style={{ display: 'block', marginTop: '8px', fontSize: '13px', color: '#64748B' }}>{note}</Text>
             </div>
             <div
                 style={{
@@ -59,7 +45,7 @@ const StatCard = ({ title, value, prefix, color, subValue, loading }: any) => (
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: color,
+                    color,
                     fontSize: '24px'
                 }}
             >
@@ -70,8 +56,8 @@ const StatCard = ({ title, value, prefix, color, subValue, loading }: any) => (
 );
 
 export const RecruitmentDashboard = () => {
-    const { t } = useTranslation();
-    const { isMobile, isLaptop } = useResponsive();
+    const { isMobile } = useResponsive();
+    const navigate = useNavigate();
     const [statsRes, setStatsRes] = useState<any>(null);
     const [statsLoading, setStatsLoading] = useState(false);
 
@@ -79,7 +65,7 @@ export const RecruitmentDashboard = () => {
         const fetchStats = async () => {
             setStatsLoading(true);
             try {
-                const res = await http.get('/dashboard/stats');
+                const res = await getDashboardStats();
                 setStatsRes(res);
             } catch (error) {
                 console.error(error);
@@ -87,192 +73,160 @@ export const RecruitmentDashboard = () => {
                 setStatsLoading(false);
             }
         };
-        fetchStats();
+
+        void fetchStats();
     }, []);
 
     const stats = statsRes?.data;
-
-    const recentInterviews = [
-        { id: 1, name: 'Nguyễn Văn Nam', time: '09:00 - 10:00', type: 'Technical Round 1', status: 'Upcoming' },
-        { id: 2, name: 'Trần Thị Bình', time: '14:30 - 15:30', type: 'HR Interview', status: 'Scheduled' },
-        { id: 3, name: 'Hoàng Thu Hà', time: '11:00 - 12:00', type: 'Final Review', status: 'Ongoing' }
+    const actionItems = [
+        {
+            title: 'Xem danh sách CV',
+            description: 'Tập trung xử lý các hồ sơ mới và đánh dấu kết quả sàng lọc.',
+            onClick: () => navigate(RouteConfig.CVList.path)
+        },
+        {
+            title: 'Quản lý lịch phỏng vấn',
+            description: 'Theo dõi lịch sắp tới và chủ động sắp xếp interviewer.',
+            onClick: () => navigate(RouteConfig.InterviewSchedule.path)
+        },
+        {
+            title: 'Theo dõi kế hoạch tuyển dụng',
+            description: 'Rà soát nhu cầu và tiến độ mở vị trí theo từng kế hoạch.',
+            onClick: () => navigate(RouteConfig.RecruitmentPlanList.path)
+        }
     ];
 
     return (
-        <div style={{ padding: isMobile ? '16px' : '24px', maxWidth: '1600px', margin: '0 auto' }}>
-            <div
-                style={{
-                    marginBottom: '32px',
-                    display: 'flex',
-                    flexDirection: isMobile ? 'column' : 'row',
-                    justifyContent: 'space-between',
-                    alignItems: isMobile ? 'flex-start' : 'center',
-                    gap: '16px'
-                }}
-            >
-                <div>
-                    <Title level={2} style={{ marginBottom: '4px', marginTop: 0, fontWeight: 800 }}>
-                        Recruitment Dashboard
-                    </Title>
-                    <Text type='secondary' style={{ fontSize: '16px' }}>
-                        Chào mừng trở lại! Dưới đây là tóm tắt tình hình tuyển dụng Trainee hôm nay.
-                    </Text>
-                </div>
-                <Space>
-                    <Button icon={<CalendarOutlined />}>Lịch trình</Button>
-                    <Button type='primary' style={{ background: '#1E40AF', height: '40px', borderRadius: '8px' }}>
-                        Tạo kế hoạch mới
-                    </Button>
-                </Space>
+        <div style={{ padding: isMobile ? '16px' : '24px', maxWidth: '1280px', margin: '0 auto' }}>
+            <div style={{ marginBottom: '28px' }}>
+                <Title level={2} style={{ margin: 0, fontWeight: 800 }}>
+                    Tổng quan tuyển dụng
+                </Title>
+                <Text type='secondary' style={{ fontSize: '15px' }}>
+                    Theo dõi nhanh tình hình tuyển dụng và đi thẳng vào các công việc cần xử lý trong ngày.
+                </Text>
             </div>
 
-            <Row gutter={[24, 24]} style={{ marginBottom: '32px' }}>
-                <Col xs={24} sm={12} lg={8}>
+            <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
+                <Col xs={24} sm={12} lg={6}>
                     <StatCard
-                        title='Số vị trí đang tuyển'
-                        value={stats?.openPositions || '0'}
+                        title='Vị trí đang tuyển'
+                        value={stats?.openPositions || 0}
                         prefix={<TeamOutlined />}
                         color='#1E40AF'
-                        subValue={12}
+                        note='Tổng số job đang mở hiện tại.'
                         loading={statsLoading}
                     />
                 </Col>
-                <Col xs={24} sm={12} lg={8}>
+                <Col xs={24} sm={12} lg={6}>
                     <StatCard
-                        title='Tổng số hồ sơ ứng viên'
-                        value={stats?.pendingApplications ? stats.pendingApplications + 120 : '145'}
+                        title='Tổng hồ sơ ứng tuyển'
+                        value={stats?.totalApplications || 0}
                         prefix={<FileTextOutlined />}
-                        color='#10B981'
-                        subValue={8}
+                        color='#0F766E'
+                        note='Toàn bộ ứng viên đã nộp hồ sơ vào hệ thống.'
                         loading={statsLoading}
                     />
                 </Col>
-                <Col xs={24} sm={12} lg={8}>
+                <Col xs={24} sm={12} lg={6}>
                     <StatCard
-                        title='Hồ sơ chờ duyệt'
-                        value={stats?.pendingReviews || '10'}
+                        title='CV chờ sàng lọc'
+                        value={stats?.pendingApplications || 0}
                         prefix={<ClockCircleOutlined />}
-                        color='#F59E0B'
-                        subValue={5}
+                        color='#D97706'
+                        note='Số hồ sơ recruiter cần xem trước tiên.'
+                        loading={statsLoading}
+                    />
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
+                    <StatCard
+                        title='Phỏng vấn sắp tới'
+                        value={stats?.upcomingInterviews || 0}
+                        prefix={<CheckCircleOutlined />}
+                        color='#7C3AED'
+                        note='Các buổi phỏng vấn dự kiến diễn ra tiếp theo.'
                         loading={statsLoading}
                     />
                 </Col>
             </Row>
 
             <Row gutter={[24, 24]}>
-                <Col xs={24} lg={16}>
+                <Col xs={24} lg={14}>
                     <Card
-                        title={<span style={{ fontWeight: 700 }}>Tiến độ tuyển dụng theo phòng ban</span>}
+                        title={<span style={{ fontWeight: 700 }}>Bức tranh tuyển dụng hiện tại</span>}
                         bordered={false}
-                        style={{ borderRadius: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)' }}
-                        extra={<Button type='text' icon={<MoreOutlined />} />}
+                        style={{ borderRadius: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }}
                     >
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '16px 0' }}>
-                            {[
-                                { dept: 'Engineering', filled: 12, target: 20, color: '#1E40AF' },
-                                { dept: 'Product', filled: 8, target: 10, color: '#10B981' },
-                                { dept: 'Design', filled: 4, target: 5, color: '#F59E0B' },
-                                { dept: 'Marketing', filled: 2, target: 8, color: '#0D9488' }
-                            ].map((item) => (
-                                <div key={item.dept}>
-                                    <div
-                                        style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            marginBottom: '8px'
-                                        }}
-                                    >
-                                        <Text strong>{item.dept}</Text>
-                                        <Text type='secondary'>
-                                            {item.filled} / {item.target} positions
-                                        </Text>
-                                    </div>
-                                    <Progress
-                                        percent={Math.round((item.filled / item.target) * 100)}
-                                        strokeColor={item.color}
-                                        strokeWidth={10}
-                                        showInfo={false}
-                                    />
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={8}>
+                                <div style={{ padding: '18px', borderRadius: '14px', background: '#EFF6FF' }}>
+                                    <Text type='secondary'>Đã chuyển thành TTS</Text>
+                                    <Title level={3} style={{ margin: '8px 0 0', color: '#1D4ED8' }}>
+                                        {stats?.convertedInterns || 0}
+                                    </Title>
                                 </div>
-                            ))}
-                        </div>
+                            </Col>
+                            <Col xs={24} sm={8}>
+                                <div style={{ padding: '18px', borderRadius: '14px', background: '#F0FDF4' }}>
+                                    <Text type='secondary'>Tỷ lệ chuyển đổi</Text>
+                                    <Title level={3} style={{ margin: '8px 0 0', color: '#059669' }}>
+                                        {stats?.conversionRate || 0}%
+                                    </Title>
+                                </div>
+                            </Col>
+                            <Col xs={24} sm={8}>
+                                <div style={{ padding: '18px', borderRadius: '14px', background: '#FFF7ED' }}>
+                                    <Text type='secondary'>TTS đang hoạt động</Text>
+                                    <Title level={3} style={{ margin: '8px 0 0', color: '#EA580C' }}>
+                                        {stats?.activeInterns || 0}
+                                    </Title>
+                                </div>
+                            </Col>
+                        </Row>
+
+                        <Paragraph style={{ marginTop: '20px', marginBottom: 0, color: '#64748B' }}>
+                            Phần này giúp recruiter nhìn nhanh kết quả đầu ra của toàn bộ pipeline, từ ứng tuyển đến chuyển
+                            đổi thành thực tập sinh.
+                        </Paragraph>
                     </Card>
                 </Col>
-                <Col xs={24} lg={8}>
+                <Col xs={24} lg={10}>
                     <Card
-                        title={<span style={{ fontWeight: 700 }}>Lịch phỏng vấn sắp tới</span>}
+                        title={<span style={{ fontWeight: 700 }}>Tác vụ nhanh</span>}
                         bordered={false}
-                        style={{ height: '100%', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)' }}
+                        style={{ height: '100%', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }}
                     >
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            {recentInterviews.map((interview) => (
+                        <Space direction='vertical' size={16} style={{ width: '100%' }}>
+                            {actionItems.map((item) => (
                                 <div
-                                    key={interview.id}
+                                    key={item.title}
                                     style={{
                                         display: 'flex',
-                                        gap: '16px',
-                                        padding: '12px',
-                                        border: '1px solid #E2E8F0',
-                                        borderRadius: '12px',
-                                        background: '#F8FAFC'
+                                        justifyContent: 'space-between',
+                                        alignItems: isMobile ? 'flex-start' : 'center',
+                                        flexDirection: isMobile ? 'column' : 'row',
+                                        gap: '14px',
+                                        paddingBottom: '16px',
+                                        borderBottom: '1px solid #F1F5F9'
                                     }}
                                 >
-                                    <Avatar size={40} style={{ background: '#1E40AF' }}>
-                                        {interview.name[0]}
-                                    </Avatar>
                                     <div style={{ flex: 1 }}>
-                                        <Text strong style={{ display: 'block' }}>
-                                            {interview.name}
+                                        <Text strong style={{ display: 'block', fontSize: '15px' }}>
+                                            {item.title}
                                         </Text>
-                                        <Text type='secondary' style={{ fontSize: '12px' }}>
-                                            {interview.time} • {interview.type}
-                                        </Text>
-                                        <div style={{ marginTop: '4px' }}>
-                                            <Tag color={interview.status === 'Ongoing' ? 'processing' : 'blue'}>
-                                                {interview.status}
-                                            </Tag>
-                                        </div>
+                                        <Paragraph style={{ margin: '6px 0 0', color: '#64748B' }}>
+                                            {item.description}
+                                        </Paragraph>
                                     </div>
+                                    <Button type='default' icon={<ArrowRightOutlined />} onClick={item.onClick}>
+                                        Mở màn hình
+                                    </Button>
                                 </div>
                             ))}
-                            <Button block type='dashed' style={{ height: '40px', borderRadius: '8px' }}>
-                                Xem tất cả lịch hẹn
-                            </Button>
-                        </div>
+                        </Space>
                     </Card>
                 </Col>
             </Row>
-
-            <Card
-                style={{
-                    marginTop: '24px',
-                    borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #1E40AF 0%, #a855f7 100%)',
-                    border: 'none'
-                }}
-                bodyStyle={{ padding: '32px' }}
-            >
-                <Row align='middle' gutter={24}>
-                    <Col xs={24} md={16}>
-                        <Title level={3} style={{ color: '#fff', marginBottom: '8px', marginTop: 0 }}>
-                            Hệ thống tự động hóa tuyển dụng Trainee
-                        </Title>
-                        <Paragraph style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px', marginBottom: 0 }}>
-                            Sử dụng AI để sàng lọc hồ sơ và tự động gửi email mời phỏng vấn cho các ứng viên tiềm năng
-                            nhất.
-                        </Paragraph>
-                    </Col>
-                    <Col
-                        xs={24}
-                        md={8}
-                        style={{ textAlign: isMobile ? 'left' : 'right', marginTop: isMobile ? '24px' : 0 }}
-                    >
-                        <Button size='large' style={{ borderRadius: '8px', fontWeight: 600, color: '#1E40AF' }}>
-                            Khám phá ngay
-                        </Button>
-                    </Col>
-                </Row>
-            </Card>
         </div>
     );
 };
