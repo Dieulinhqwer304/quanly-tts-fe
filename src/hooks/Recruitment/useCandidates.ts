@@ -104,6 +104,27 @@ export const useCreateCandidateWithCv = () => {
     return { mutate, isLoading, error };
 };
 
+export const useUploadCandidateCv = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<unknown>(null);
+
+    const mutate = async (file: File) => {
+        setIsLoading(true);
+        try {
+            const result = await candidatesService.uploadCandidateCv(file);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return { mutate, isLoading, error };
+};
+
 export const useUpdateCandidate = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<any>(null);
@@ -112,6 +133,27 @@ export const useUpdateCandidate = () => {
         setIsLoading(true);
         try {
             const result = await candidatesService.updateCandidate(params);
+            setError(null);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return { mutate, isLoading, error };
+};
+
+export const useUpdateCandidateCv = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<unknown>(null);
+
+    const mutate = async (params: candidatesService.UpdateCandidateCvParams) => {
+        setIsLoading(true);
+        try {
+            const result = await candidatesService.updateCandidateCv(params);
             setError(null);
             return result;
         } catch (err) {
