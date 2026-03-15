@@ -52,7 +52,7 @@ class Http {
     constructor() {
         // Instance cho các API cần authentication
         this.instance = axios.create({
-            baseURL: 'http://localhost:3001/',
+            baseURL: 'http://localhost:10010/',
             timeout: 10000,
             headers: {
                 'Content-Type': 'application/json'
@@ -62,7 +62,7 @@ class Http {
 
         // Instance cho các API public không cần authentication
         this.instancePublic = axios.create({
-            baseURL: 'http://localhost:3001/',
+            baseURL: 'http://localhost:10010/',
             timeout: 10000,
             headers: {
                 'Content-Type': 'application/json'

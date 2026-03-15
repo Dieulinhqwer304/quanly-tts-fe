@@ -43,6 +43,11 @@ import { PermissionManagement } from './pages/authentication/Admin/PermissionMan
 import { MentorEvaluation } from './pages/authentication/Internship/MentorEvaluation';
 import SettingPage from './pages/authentication/SettingPage/SettingPage';
 
+const ADMIN_ROLES = ['admin', 'super_admin'];
+const RECRUITMENT_ROLES = ['hr', ...ADMIN_ROLES];
+const TRAINING_MENTOR_ROLES = ['mentor', ...ADMIN_ROLES];
+const DIRECTOR_ROLES = ['director', ...ADMIN_ROLES];
+
 const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.ModuleSelection.path,
@@ -55,7 +60,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.UserManagement.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={ADMIN_ROLES}>
                 <UserManagement />
             </ProtectRoute>
         )
@@ -63,7 +68,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.PermissionManagement.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={ADMIN_ROLES}>
                 <PermissionManagement />
             </ProtectRoute>
         )
@@ -71,7 +76,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.RecruitmentDashboard.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={RECRUITMENT_ROLES}>
                 <RecruitmentDashboard />
             </ProtectRoute>
         )
@@ -79,7 +84,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.RecruitmentPlanList.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={RECRUITMENT_ROLES}>
                 <RecruitmentPlanList />
             </ProtectRoute>
         )
@@ -87,7 +92,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.RecruitmentJobList.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={RECRUITMENT_ROLES}>
                 <RecruitmentJobList />
             </ProtectRoute>
         )
@@ -95,7 +100,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.CVList.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={RECRUITMENT_ROLES}>
                 <CVList />
             </ProtectRoute>
         )
@@ -103,7 +108,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.CVDetail.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={RECRUITMENT_ROLES}>
                 <CVDetail />
             </ProtectRoute>
         )
@@ -111,7 +116,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.InterviewSchedule.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={RECRUITMENT_ROLES}>
                 <InterviewSchedule />
             </ProtectRoute>
         )
@@ -119,7 +124,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.OnboardingList.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={RECRUITMENT_ROLES}>
                 <OnboardingList />
             </ProtectRoute>
         )
@@ -127,7 +132,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.InternList.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={RECRUITMENT_ROLES}>
                 <InternList />
             </ProtectRoute>
         )
@@ -136,7 +141,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.TrainingInternList.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={TRAINING_MENTOR_ROLES}>
                 <InternList />
             </ProtectRoute>
         )
@@ -144,7 +149,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.MentorRequestList.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={TRAINING_MENTOR_ROLES}>
                 <MentorRequestList />
             </ProtectRoute>
         )
@@ -152,7 +157,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.MentorInternList.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={TRAINING_MENTOR_ROLES}>
                 <InternList />
             </ProtectRoute>
         )
@@ -160,7 +165,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.MentorLearningPath.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={TRAINING_MENTOR_ROLES}>
                 <MentorLearningPath />
             </ProtectRoute>
         )
@@ -168,7 +173,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.MentorEvaluation.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={TRAINING_MENTOR_ROLES}>
                 <MentorEvaluation />
             </ProtectRoute>
         )
@@ -176,7 +181,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.MentorEvalPhase1.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={TRAINING_MENTOR_ROLES}>
                 <MentorEvalPhase1 />
             </ProtectRoute>
         )
@@ -184,7 +189,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.MentorTaskManagement.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={TRAINING_MENTOR_ROLES}>
                 <MentorTaskManagement />
             </ProtectRoute>
         )
@@ -192,7 +197,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.MentorEvalPhase2.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={TRAINING_MENTOR_ROLES}>
                 <MentorEvalPhase2 />
             </ProtectRoute>
         )
@@ -200,7 +205,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.MentorEvalFinal.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={TRAINING_MENTOR_ROLES}>
                 <MentorEvalFinal />
             </ProtectRoute>
         )
@@ -234,7 +239,7 @@ const dashboardRoutes: RouteObject[] = [
     {
         path: RouteConfig.DirectorApprovals.path,
         element: (
-            <ProtectRoute>
+            <ProtectRoute allowedRoles={DIRECTOR_ROLES}>
                 <DirectorApprovals />
             </ProtectRoute>
         )

@@ -3,7 +3,7 @@ import { Row, Col, Card, Typography } from 'antd';
 import { TeamOutlined, BookOutlined, SettingOutlined, RightOutlined, GlobalOutlined, CrownOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
-import { getProfile } from '../../../services/auth/profile';
+import { getProfile, UserProfile } from '../../../services/auth/profile';
 
 const { Title, Text } = Typography;
 
@@ -14,6 +14,20 @@ interface ModuleCardProps {
     color: string;
     onClick: () => void;
 }
+
+interface ModuleConfig {
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+    color: string;
+    path: string;
+    allowedRoles?: string[];
+}
+
+const ADMIN_ROLES = ['admin', 'super_admin'];
+const RECRUITMENT_ROLES = ['hr', ...ADMIN_ROLES];
+const TRAINING_ROLES = ['mentor', 'intern', ...ADMIN_ROLES];
+const DIRECTOR_ROLES = ['director', ...ADMIN_ROLES];
 
 const ModuleCard: FC<ModuleCardProps> = ({ title, description, icon, color, onClick }) => (
     <Card
@@ -72,7 +86,7 @@ const ModuleCard: FC<ModuleCardProps> = ({ title, description, icon, color, onCl
 
 export const ModuleSelectionPage: FC = () => {
     const navigate = useNavigate();
-    const [currentRole, setCurrentRole] = useState('');
+    const [currentRoles, setCurrentRoles] = useState<string[]>([]);
 
     useEffect(() => {
         let isMounted = true;
@@ -80,18 +94,19 @@ export const ModuleSelectionPage: FC = () => {
         const fetchProfile = async () => {
             try {
                 const response = await getProfile();
-                const profileData = (response as any)?.data || {};
+                const profileData = (response.data || {}) as UserProfile & { role?: string };
                 const roleFromSingleField = String(profileData.role || '').toLowerCase();
-                const roleFromRolesArray = Array.isArray(profileData.roles)
-                    ? String(profileData.roles[0]?.name || '').toLowerCase()
-                    : '';
+                const rolesFromArray = Array.isArray(profileData.roles)
+                    ? profileData.roles.map((role) => String(role?.name || '').toLowerCase()).filter(Boolean)
+                    : [];
+                const roles = Array.from(new Set([roleFromSingleField, ...rolesFromArray].filter(Boolean)));
 
                 if (isMounted) {
-                    setCurrentRole(roleFromSingleField || roleFromRolesArray);
+                    setCurrentRoles(roles);
                 }
             } catch {
                 if (isMounted) {
-                    setCurrentRole('');
+                    setCurrentRoles([]);
                 }
             }
         };
@@ -103,37 +118,41 @@ export const ModuleSelectionPage: FC = () => {
         };
     }, []);
 
-    const trainingEntryPath =
-        currentRole === 'intern' ? RouteConfig.InternDashboard.path : RouteConfig.TrainingInternList.path;
+    const isIntern = currentRoles.includes('intern');
+    const trainingEntryPath = isIntern ? RouteConfig.InternDashboard.path : RouteConfig.TrainingInternList.path;
 
-    const modules = [
+    const modules: ModuleConfig[] = [
         {
             title: 'Tuyển dụng',
             description: 'Quản lý kế hoạch, tin tuyển dụng, sàng lọc CV và lịch phỏng vấn ứng viên.',
             icon: <TeamOutlined />,
             color: '#1E40AF',
-            path: RouteConfig.RecruitmentDashboard.path
+            path: RouteConfig.RecruitmentDashboard.path,
+            allowedRoles: RECRUITMENT_ROLES
         },
         {
             title: 'Đào tạo',
             description: 'Quản lý lộ trình học tập, giao task thực tế và đánh giá thực tập sinh.',
             icon: <BookOutlined />,
             color: '#0D9488',
-            path: trainingEntryPath
+            path: trainingEntryPath,
+            allowedRoles: TRAINING_ROLES
         },
         {
             title: 'Giám đốc',
             description: 'Phê duyệt kế hoạch nhân sự, ngân sách và định hướng chiến lược.',
             icon: <CrownOutlined />,
             color: '#8B5CF6',
-            path: RouteConfig.DirectorApprovals.path
+            path: RouteConfig.DirectorApprovals.path,
+            allowedRoles: DIRECTOR_ROLES
         },
         {
             title: 'Quản trị',
             description: 'Cấu hình hệ thống, quản trị người dùng và phân quyền.',
             icon: <SettingOutlined />,
             color: '#F59E0B',
-            path: RouteConfig.UserManagement.path
+            path: RouteConfig.UserManagement.path,
+            allowedRoles: ADMIN_ROLES
         },
         {
             title: 'Trang tuyển dụng',
@@ -143,6 +162,14 @@ export const ModuleSelectionPage: FC = () => {
             path: RouteConfig.PublicJobBoard.path
         }
     ];
+
+    const visibleModules = modules.filter((module) => {
+        if (!module.allowedRoles?.length) {
+            return true;
+        }
+
+        return module.allowedRoles.some((role) => currentRoles.includes(role));
+    });
 
     return (
         <div
@@ -166,7 +193,7 @@ export const ModuleSelectionPage: FC = () => {
             </div>
 
             <Row gutter={[32, 32]} justify="center">
-                {modules.map((m) => (
+                {visibleModules.map((m) => (
                     <Col xs={24} md={12} lg={8} xl={6} key={m.title}>
                         <ModuleCard {...m} onClick={() => navigate(m.path)} />
                     </Col>
