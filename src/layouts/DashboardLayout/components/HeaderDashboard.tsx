@@ -24,10 +24,11 @@ import {
     Space,
     message
 } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { RouteConfig } from '../../../constants';
+import { getProfile, UserProfile } from '../../../services/auth/profile';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -39,12 +40,58 @@ interface HeaderDashboardProps {
     isLaptop: boolean;
 }
 
+type ProfileWithLegacyRole = UserProfile & { role?: string };
+
+const toDisplayRole = (roles: string[]): string => {
+    const primaryRole = roles[0] || '';
+
+    if (primaryRole === 'super_admin') return 'Super Admin';
+    if (primaryRole === 'admin') return 'Admin';
+    if (primaryRole === 'hr') return 'HR';
+    if (primaryRole === 'mentor') return 'Mentor';
+    if (primaryRole === 'director') return 'Giám đốc';
+    if (primaryRole === 'intern') return 'TTS';
+
+    return primaryRole || 'Người dùng';
+};
+
 export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop }: HeaderDashboardProps) => {
     const { token } = theme.useToken();
     const navigate = useNavigate();
     const { logout } = useAuth();
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [currentRoles, setCurrentRoles] = useState<string[]>([]);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadProfile = async () => {
+            try {
+                const response = await getProfile();
+                const profileData = (response.data || {}) as ProfileWithLegacyRole;
+                const rolesFromArray = Array.isArray(profileData.roles)
+                    ? profileData.roles.map((role) => String(role?.name || '').toLowerCase()).filter(Boolean)
+                    : [];
+                const roleFromSingleField = String(profileData.role || '').toLowerCase();
+                const roles = Array.from(new Set([roleFromSingleField, ...rolesFromArray].filter(Boolean)));
+
+                if (isMounted) {
+                    setCurrentRoles(roles);
+                }
+            } catch {
+                if (isMounted) {
+                    setCurrentRoles([]);
+                }
+            }
+        };
+
+        void loadProfile();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const notifications = [
         { title: 'Người dùng mới đăng ký', time: '5 phút trước', read: false },
@@ -197,7 +244,7 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop
                             size='default'
                             icon={<UserOutlined />}
                         />
-                        {!isMobile && <span style={{ fontWeight: 500, color: '#1E293B' }}>Quản trị viên</span>}
+                        {!isMobile && <span style={{ fontWeight: 500, color: '#1E293B' }}>{toDisplayRole(currentRoles)}</span>}
                     </div>
                 </Dropdown>
 

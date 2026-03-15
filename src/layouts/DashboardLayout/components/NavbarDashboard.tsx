@@ -15,7 +15,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '../../../components';
-import { getProfile } from '../../../services/auth/profile';
+import { getProfile, UserProfile } from '../../../services/auth/profile';
 
 const { Sider } = Layout;
 const { Text } = Typography;
@@ -45,6 +45,21 @@ interface SubMenuItem {
     onClick: () => void;
 }
 
+type ProfileWithLegacyRole = UserProfile & { role?: string };
+
+const toDisplayRole = (roles: string[]): string => {
+    const primaryRole = roles[0] || '';
+
+    if (primaryRole === 'super_admin') return 'Super Admin';
+    if (primaryRole === 'admin') return 'Admin';
+    if (primaryRole === 'hr') return 'HR';
+    if (primaryRole === 'mentor') return 'Mentor';
+    if (primaryRole === 'director') return 'Giám đốc';
+    if (primaryRole === 'intern') return 'TTS';
+
+    return primaryRole || 'Người dùng';
+};
+
 export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onMobileClose }: NavbarDashboardProps) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -52,6 +67,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
     const { token } = theme.useToken();
     const { t } = useTranslation();
     const [currentRoles, setCurrentRoles] = useState<string[]>([]);
+    const [displayEmail, setDisplayEmail] = useState('N/A');
 
     useEffect(() => {
         let isMounted = true;
@@ -59,19 +75,21 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
         const loadProfile = async () => {
             try {
                 const response = await getProfile();
-                const profileData = (response as any)?.data || {};
+                const profileData = (response.data || {}) as ProfileWithLegacyRole;
                 const rolesFromArray = Array.isArray(profileData.roles)
-                    ? profileData.roles.map((role: any) => String(role?.name || '').toLowerCase()).filter(Boolean)
+                    ? profileData.roles.map((role) => String(role?.name || '').toLowerCase()).filter(Boolean)
                     : [];
                 const roleFromSingleField = String(profileData.role || '').toLowerCase();
-                const roles = roleFromSingleField ? [roleFromSingleField, ...rolesFromArray] : rolesFromArray;
+                const roles = Array.from(new Set([roleFromSingleField, ...rolesFromArray].filter(Boolean)));
 
                 if (isMounted) {
                     setCurrentRoles(roles);
+                    setDisplayEmail(profileData.email || 'N/A');
                 }
             } catch {
                 if (isMounted) {
                     setCurrentRoles([]);
+                    setDisplayEmail('N/A');
                 }
             }
         };
@@ -296,7 +314,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                             ? 'G'
                             : currentModule === 'admin'
                               ? 'Q'
-                              : 'A'}
+                              : 'H'}
                 </div>
                 {!collapsed && (
                     <span
@@ -311,7 +329,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                                 ? 'Giám đốc'
                                 : currentModule === 'admin'
                                   ? 'Quản trị'
-                                  : 'Admin'}
+                                  : 'Hệ thống'}
                     </span>
                 )}
                 <div style={{ marginLeft: 'auto', paddingRight: collapsed ? 0 : '12px' }}>
@@ -377,10 +395,10 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                                     textOverflow: 'ellipsis'
                                 }}
                             >
-                                Quản trị viên
+                                {toDisplayRole(currentRoles)}
                             </Text>
                             <Text type='secondary' style={{ fontSize: '12px' }}>
-                                admin@example.com
+                                {displayEmail}
                             </Text>
                         </div>
                     )}
