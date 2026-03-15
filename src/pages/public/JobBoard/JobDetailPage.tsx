@@ -162,17 +162,17 @@ export const JobDetailPage = () => {
                                     </Title>
                                 </div>
 
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                                        {[
-                                            {
-                                                icon: <DollarOutlined />,
-                                                text: job.salaryRange || 'Thỏa thuận'
-                                            },
-                                            {
-                                                icon: <FieldTimeOutlined />,
-                                                text: `${job.required || job.requiredQuantity || 0} vị trí`
-                                            }
-                                        ].map((item, index) => (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                                    {[
+                                        {
+                                            icon: <DollarOutlined />,
+                                            text: job.salaryRange || 'Thỏa thuận'
+                                        },
+                                        {
+                                            icon: <FieldTimeOutlined />,
+                                            text: `${job.required || job.requiredQuantity || 0} vị trí`
+                                        }
+                                    ].map((item, index) => (
                                         <div
                                             key={index}
                                             style={{
@@ -192,9 +192,9 @@ export const JobDetailPage = () => {
                                             {item.text}
                                         </div>
                                     ))}
-                                        <div
-                                            style={{
-                                                display: 'flex',
+                                    <div
+                                        style={{
+                                            display: 'flex',
                                             alignItems: 'center',
                                             gap: '8px',
                                             padding: '8px 16px',
@@ -202,9 +202,9 @@ export const JobDetailPage = () => {
                                             borderRadius: '8px',
                                             fontSize: '14px',
                                             fontWeight: 700,
-                                                color: '#e11d48'
-                                            }}
-                                        >
+                                            color: '#e11d48'
+                                        }}
+                                    >
                                         <HourglassOutlined /> Hạn nộp: {job.deadline || 'Liên hệ HR'}
                                     </div>
                                 </div>
@@ -342,17 +342,6 @@ export const JobDetailPage = () => {
                                                 prefix={<PhoneOutlined style={{ color: '#94a3b8' }} />}
                                                 placeholder='09xxxxxxxx'
                                                 size='large'
-                                            />
-                                        </Form.Item>
-
-                                        <Form.Item
-                                            name='coverLetter'
-                                            label='Nội dung ứng tuyển'
-                                            rules={[{ required: true, message: 'Vui lòng nhập nội dung ứng tuyển!' }]}
-                                        >
-                                            <Input.TextArea
-                                                rows={4}
-                                                placeholder='Giới thiệu ngắn gọn về bản thân và lý do bạn phù hợp với vị trí này.'
                                             />
                                         </Form.Item>
 
