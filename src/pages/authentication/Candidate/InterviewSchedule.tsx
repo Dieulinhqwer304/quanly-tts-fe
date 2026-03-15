@@ -194,7 +194,7 @@ export const InterviewSchedule = () => {
             params.pageSize = '200';
             const res = await http.get<CandidateListResponse>('/candidates', { params });
             setCandidatesData(res);
-        } catch (error) {
+        } catch {
             message.error('Không thể tải danh sách ứng viên');
         } finally {
             setIsLoading(false);
@@ -442,19 +442,6 @@ export const InterviewSchedule = () => {
                                                             {item.job?.title || item.appliedForTitle || 'No Title'}
                                                         </Text>
                                                     </div>
-                                                    {typeof item.matchScore === 'number' && (
-                                                    <Tag
-                                                        color={
-                                                            item.matchScore >= 90
-                                                                ? 'success'
-                                                                : item.matchScore >= 80
-                                                                  ? 'processing'
-                                                                  : 'warning'
-                                                        }
-                                                    >
-                                                        {item.matchScore}%
-                                                    </Tag>
-                                                    )}
                                                 </div>
                                             </List.Item>
                                         )}
