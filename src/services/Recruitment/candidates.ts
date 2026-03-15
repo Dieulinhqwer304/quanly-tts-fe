@@ -147,6 +147,13 @@ export interface CreateCandidateWithCvParams {
     cv?: File;
 }
 
+export interface CandidateCvUploadResult {
+    fileName: string;
+    fileUrl: string;
+    mimeType: string;
+    size: number;
+}
+
 export const createCandidateWithCv = async (
     params: CreateCandidateWithCvParams
 ): Promise<ResponseDetailSuccess<Candidate>> => {
@@ -179,6 +186,37 @@ export const createCandidateWithCv = async (
             'Content-Type': 'multipart/form-data'
         }
     });
+    return result;
+};
+
+export const uploadCandidateCv = async (cv: File): Promise<ResponseDetailSuccess<CandidateCvUploadResult>> => {
+    const formData = new FormData();
+    formData.append('cv', cv);
+
+    const result = await http.post<ResponseDetailSuccess<CandidateCvUploadResult>>('/candidates/upload-cv', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+
+    return result;
+};
+
+export interface UpdateCandidateCvParams {
+    id: string;
+    cv: File;
+}
+
+export const updateCandidateCv = async (params: UpdateCandidateCvParams): Promise<ResponseDetailSuccess<Candidate>> => {
+    const formData = new FormData();
+    formData.append('cv', params.cv);
+
+    const result = await http.patch<ResponseDetailSuccess<Candidate>>(`/candidates/${params.id}/cv`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+
     return result;
 };
 
