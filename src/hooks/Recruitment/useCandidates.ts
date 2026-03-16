@@ -255,10 +255,10 @@ export const useConvertCandidateToIntern = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<any>(null);
 
-    const mutate = async (id: string, track: string, mentorId: string) => {
+    const mutate = async (id: string, mentorId: string, learningPathId: string) => {
         setIsLoading(true);
         try {
-            const result = await candidatesService.convertCandidateToIntern(id, track, mentorId);
+            const result = await candidatesService.convertCandidateToIntern(id, mentorId, learningPathId);
             setError(null);
             return result;
         } catch (err) {

@@ -50,7 +50,7 @@ export const CVDetail = () => {
     const [rejectReason, setRejectReason] = useState('');
     const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
 
-    const { data: candidateData, isLoading: isCandidateLoading } = useCandidate(id || '');
+    const { data: candidateData, isLoading: isCandidateLoading, refetch: refetchCandidate } = useCandidate(id || '');
     const shortlistMutation = useShortlistCandidate();
     const rejectMutation = useRejectCandidate();
     const passInterviewMutation = usePassInterviewCandidate();
@@ -178,6 +178,8 @@ export const CVDetail = () => {
                                             ? 'success'
                                             : status === 'shortlisted' || status === 'interview_scheduled'
                                                 ? 'processing'
+                                                : status === 'offer'
+                                                    ? 'cyan'
                                                 : status === 'rejected'
                                                     ? 'error'
                                                     : status === 'converted_to_intern'
@@ -190,6 +192,8 @@ export const CVDetail = () => {
                                         ? t('candidate.passed_interview')
                                         : status === 'interview_scheduled'
                                             ? t('candidate.interview_scheduled')
+                                            : status === 'offer'
+                                                ? t('candidate.offer')
                                             : status === 'shortlisted'
                                                 ? t('candidate.shortlisted')
                                                 : status === 'rejected'
@@ -201,7 +205,7 @@ export const CVDetail = () => {
                             </div>
                             <Space>
                                 <Button icon={<DownloadOutlined />}>{t('candidate.download_cv')}</Button>
-                                {status === 'passed_interview' && (
+                                {status === 'offer' && (
                                     <Button
                                         type='primary'
                                         onClick={() => setIsConvertModalOpen(true)}
@@ -212,6 +216,7 @@ export const CVDetail = () => {
                                 )}
                                 {status !== 'rejected' &&
                                     status !== 'passed_interview' &&
+                                    status !== 'offer' &&
                                     status !== 'converted_to_intern' && (
                                         <>
                                             <Button
@@ -427,11 +432,11 @@ export const CVDetail = () => {
                 <ConvertToInternModal
                     open={isConvertModalOpen}
                     onCancel={() => setIsConvertModalOpen(false)}
+                    onSuccess={async () => {
+                        await refetchCandidate();
+                    }}
                     candidateId={candidate.id}
                     candidateName={candidate.fullName}
-                    candidateAvatar={candidate.avatarUrl}
-                    candidateEmail={candidate.email}
-                    candidatePhone={candidate.phone}
                 />
             </Content>
         </Layout>
