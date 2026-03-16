@@ -35,6 +35,7 @@ import { MentorTaskManagement } from './pages/authentication/Internship/MentorTa
 import { MentorEvalPhase2 } from './pages/authentication/Internship/MentorEvalPhase2';
 import { MentorEvalFinal } from './pages/authentication/Internship/MentorEvalFinal';
 import { InternDashboard } from './pages/authentication/Internship/InternDashboard';
+import { InternLearningPath } from './pages/authentication/Internship/InternLearningPath';
 import { InternTest } from './pages/authentication/Internship/InternTest';
 import { InternTaskBoard } from './pages/authentication/Internship/InternTaskBoard';
 import { DirectorApprovals } from './pages/authentication/Director/DirectorApprovals';
@@ -211,6 +212,14 @@ const dashboardRoutes: RouteObject[] = [
         )
     },
 
+    {
+        path: RouteConfig.InternLearningPath.path,
+        element: (
+            <ProtectRoute allowedRoles={['intern']}>
+                <InternLearningPath />
+            </ProtectRoute>
+        )
+    },
     {
         path: RouteConfig.InternDashboard.path,
         element: (
