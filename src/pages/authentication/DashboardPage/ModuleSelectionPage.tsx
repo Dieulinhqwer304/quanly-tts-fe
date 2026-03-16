@@ -119,7 +119,7 @@ export const ModuleSelectionPage: FC = () => {
     }, []);
 
     const isIntern = currentRoles.includes('intern');
-    const trainingEntryPath = isIntern ? RouteConfig.InternDashboard.path : RouteConfig.TrainingInternList.path;
+    const trainingEntryPath = isIntern ? RouteConfig.InternLearningPath.path : RouteConfig.TrainingInternList.path;
 
     const modules: ModuleConfig[] = [
         {

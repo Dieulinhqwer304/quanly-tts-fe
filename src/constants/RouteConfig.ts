@@ -108,6 +108,9 @@ export const RouteConfig = {
     InternDashboard: {
         path: '/training/intern/dashboard'
     },
+    InternLearningPath: {
+        path: '/training/intern/learning-path'
+    },
     InternTest: {
         path: '/training/intern/test',
         getPath: (quizId?: string, moduleId?: string) => {
