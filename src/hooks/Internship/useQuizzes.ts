@@ -1,20 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as quizzesService from '../../services/Internship/quizzes';
-import { MOCK_DATA } from '../../constants/MockData';
+import { Quiz } from '../../services/Internship/quizzes';
+import { ResponseDetailSuccess, ResponseListSuccess } from '../../utils/types/ServiceResponse';
 
 export const useQuizzes = () => {
-    const [data, setData] = useState<any>({
-        code: 200,
-        data: {
-            hits: MOCK_DATA.quizzes,
-            pagination: {
-                totalPages: 1,
-                totalRows: MOCK_DATA.quizzes.length
-            }
-        }
-    });
+    const [data, setData] = useState<ResponseListSuccess<Quiz> | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const fetchData = useCallback(async () => {
         setIsLoading(true);
@@ -37,18 +29,9 @@ export const useQuizzes = () => {
 };
 
 export const useQuiz = (id: string) => {
-    const [data, setData] = useState<any>(() => {
-        const quiz = MOCK_DATA.quizzes.find((q) => q.id === id);
-        if (quiz) {
-            return {
-                code: 200,
-                data: quiz
-            };
-        }
-        return null;
-    });
+    const [data, setData] = useState<ResponseDetailSuccess<Quiz> | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const fetchData = useCallback(async () => {
         if (!id) return;
@@ -73,9 +56,9 @@ export const useQuiz = (id: string) => {
 
 export const useCreateQuiz = () => {
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
-    const mutate = async (params: any) => {
+    const mutate = async (params: unknown) => {
         setIsLoading(true);
         try {
             const result = await quizzesService.createQuiz(params);
@@ -94,9 +77,9 @@ export const useCreateQuiz = () => {
 
 export const useUpdateQuiz = () => {
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
-    const mutate = async ({ id, data }: { id: string; data: any }) => {
+    const mutate = async ({ id, data }: { id: string; data: unknown }) => {
         setIsLoading(true);
         try {
             const result = await quizzesService.updateQuiz(id, data);
@@ -115,7 +98,7 @@ export const useUpdateQuiz = () => {
 
 export const useSubmitQuiz = () => {
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const mutate = async (quizId: string, answers: Record<string, string>) => {
         setIsLoading(true);

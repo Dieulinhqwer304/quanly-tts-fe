@@ -1,21 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as learningPathService from '../../services/Internship/learningPath';
 import { LearningPath } from '../../services/Internship/learningPath';
-import { MOCK_DATA } from '../../constants/MockData';
+import { ResponseDetailSuccess, ResponseListSuccess } from '../../utils/types/ServiceResponse';
 
 export const useLearningPaths = () => {
-    const [data, setData] = useState<any>({
-        code: 200,
-        data: {
-            hits: MOCK_DATA.learningPaths,
-            pagination: {
-                totalPages: 1,
-                totalRows: MOCK_DATA.learningPaths.length
-            }
-        }
-    });
+    const [data, setData] = useState<ResponseListSuccess<LearningPath> | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const fetchData = useCallback(async () => {
         setIsLoading(true);
@@ -38,9 +29,9 @@ export const useLearningPaths = () => {
 };
 
 export const useLearningPath = (track: string) => {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<ResponseDetailSuccess<LearningPath> | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const fetchData = useCallback(async () => {
         if (!track) return;
@@ -65,7 +56,7 @@ export const useLearningPath = (track: string) => {
 
 export const useUpdateLearningPath = () => {
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const mutate = async ({ id, data }: { id: string; data: Partial<LearningPath> }) => {
         setIsLoading(true);

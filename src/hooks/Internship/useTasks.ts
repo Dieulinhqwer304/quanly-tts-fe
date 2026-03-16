@@ -1,14 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as tasksService from '../../services/Internship/tasks';
-import { GetTasksParams, CreateTaskParams, UpdateTaskParams } from '../../services/Internship/tasks';
-import { MOCK_DATA } from '../../constants/MockData';
+import { GetTasksParams, CreateTaskParams, UpdateTaskParams, Task } from '../../services/Internship/tasks';
+import { ResponseDetailSuccess, ResponseListSuccess } from '../../utils/types/ServiceResponse';
 
 export const useTasks = (params?: GetTasksParams) => {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<ResponseListSuccess<Task> | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
-
-    const paramsString = JSON.stringify(params);
+    const [error, setError] = useState<unknown>(null);
 
     const fetchData = useCallback(async () => {
         setIsLoading(true);
@@ -21,7 +19,7 @@ export const useTasks = (params?: GetTasksParams) => {
         } finally {
             setIsLoading(false);
         }
-    }, [paramsString]);
+    }, [params]);
 
     useEffect(() => {
         fetchData();
@@ -31,9 +29,9 @@ export const useTasks = (params?: GetTasksParams) => {
 };
 
 export const useTask = (id: string) => {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<ResponseDetailSuccess<Task> | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const fetchData = useCallback(async () => {
         if (!id) return;
@@ -58,7 +56,7 @@ export const useTask = (id: string) => {
 
 export const useCreateTask = () => {
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const mutate = async (params: CreateTaskParams) => {
         setIsLoading(true);
@@ -79,7 +77,7 @@ export const useCreateTask = () => {
 
 export const useUpdateTask = () => {
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const mutate = async (params: UpdateTaskParams) => {
         setIsLoading(true);
@@ -100,7 +98,7 @@ export const useUpdateTask = () => {
 
 export const useDeleteTask = () => {
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const mutate = async (id: string) => {
         setIsLoading(true);
@@ -121,7 +119,7 @@ export const useDeleteTask = () => {
 
 export const useAddTaskComment = () => {
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const mutate = async (taskId: string, content: string) => {
         setIsLoading(true);
