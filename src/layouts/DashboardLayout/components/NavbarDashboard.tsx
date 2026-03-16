@@ -195,7 +195,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                           {
                               key: 'intern-dash',
                               label: 'Bài giảng',
-                              onClick: () => navigate(RouteConfig.InternDashboard.path)
+                              onClick: () => navigate(RouteConfig.InternLearningPath.path)
                           },
                           {
                               key: 'intern-tasks',
@@ -270,6 +270,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
         if (path.includes('/training/mentor/evaluations')) return ['mentor', 'mentor-eval'];
         if (path.includes('/training/mentor/tasks')) return ['mentor', 'mentor-tasks'];
 
+        if (isIntern && path.includes('/training/intern/learning-path')) return ['intern', 'intern-dash'];
         if (isIntern && path.includes('/training/intern/dashboard')) return ['intern', 'intern-dash'];
         if (isIntern && path.includes('/training/intern/test')) return ['intern', 'intern-dash'];
         if (isIntern && path.includes('/training/intern/tasks')) return ['intern', 'intern-tasks'];

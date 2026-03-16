@@ -298,9 +298,9 @@ export const InternTest = () => {
                             key='dashboard'
                             type='primary'
                             icon={<DashboardOutlined />}
-                            onClick={() => navigate(RouteConfig.InternDashboard.path)}
+                            onClick={() => navigate(RouteConfig.InternLearningPath.path)}
                         >
-                            Quay lai trang ca nhan
+                            Quay lại bài giảng
                         </Button>
                     ]}
                 />
@@ -320,9 +320,9 @@ export const InternTest = () => {
                             type='primary'
                             key='dashboard'
                             icon={<DashboardOutlined />}
-                            onClick={() => navigate(RouteConfig.InternDashboard.path)}
+                            onClick={() => navigate(RouteConfig.InternLearningPath.path)}
                         >
-                            Quay lai trang ca nhan
+                            Quay lại bài giảng
                         </Button>,
                         <Button key='review' icon={<FileSearchOutlined />} onClick={() => setShowAnswers(true)}>
                             Xem lai dap an
