@@ -7,8 +7,9 @@ export interface User {
     fullName: string;
     phone?: string;
     avatarUrl?: string;
+    role?: string;
     status: 'active' | 'inactive' | 'suspended';
-    roles: Array<{
+    roles?: Array<{
         id: string;
         name: string;
         displayName?: string;

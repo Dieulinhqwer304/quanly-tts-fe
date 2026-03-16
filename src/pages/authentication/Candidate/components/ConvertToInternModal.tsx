@@ -1,50 +1,115 @@
-import { Modal, Form, Select, DatePicker, message } from 'antd';
-import { useState } from 'react';
+import { Form, Modal, Select, message } from 'antd';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { http } from '../../../../utils/http';
 import { useResponsive } from '../../../../hooks/useResponsive';
-
-const { RangePicker } = DatePicker;
+import { getLearningPaths, LearningPath } from '../../../../services/Internship/learningPath';
+import { convertCandidateToIntern } from '../../../../services/Recruitment/candidates';
+import { getUsers, User } from '../../../../services/System/users';
 
 interface ConvertToInternModalProps {
     open: boolean;
     onCancel: () => void;
+    onSuccess?: () => void | Promise<void>;
     candidateId: string;
     candidateName: string;
-    candidateAvatar?: string;
-    candidateEmail?: string;
-    candidatePhone?: string;
 }
 
-export const ConvertToInternModal = ({ open, onCancel, candidateId, candidateName }: ConvertToInternModalProps) => {
+type SelectOption = {
+    label: string;
+    value: string;
+};
+
+const mapMentorOptions = (users: User[]): SelectOption[] =>
+    users
+        .filter((user) => {
+            const legacyRole = user.role?.toLowerCase();
+            const roleNames = user.roles?.map((role) => role.name?.toLowerCase()) || [];
+            return legacyRole === 'mentor' || roleNames.includes('mentor');
+        })
+        .map((user) => ({
+            value: user.id,
+            label: user.email ? `${user.fullName} - ${user.email}` : user.fullName
+        }));
+
+const mapLearningPathOptions = (learningPaths: LearningPath[]): SelectOption[] =>
+    learningPaths.map((learningPath) => ({
+        value: learningPath.id,
+        label: `${learningPath.title} (${learningPath.track})`
+    }));
+
+export const ConvertToInternModal = ({
+    open,
+    onCancel,
+    onSuccess,
+    candidateId,
+    candidateName
+}: ConvertToInternModalProps) => {
     const { t } = useTranslation();
     const { isMobile, isLaptop } = useResponsive();
     const [form] = Form.useForm();
-    const [isProcessing, setIsProcessing] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+    const [mentorOptions, setMentorOptions] = useState<SelectOption[]>([]);
+    const [learningPathOptions, setLearningPathOptions] = useState<SelectOption[]>([]);
+
+    useEffect(() => {
+        if (!open) {
+            form.resetFields();
+            return;
+        }
+
+        let isMounted = true;
+
+        const loadOptions = async () => {
+            setIsLoadingOptions(true);
+            try {
+                const [usersResult, learningPathsResult] = await Promise.all([getUsers(), getLearningPaths()]);
+                if (!isMounted) return;
+
+                setMentorOptions(mapMentorOptions(usersResult.data || []));
+                setLearningPathOptions(mapLearningPathOptions(learningPathsResult.data || []));
+            } catch {
+                if (isMounted) {
+                    message.error(t('common.error'));
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoadingOptions(false);
+                }
+            }
+        };
+
+        loadOptions();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [form, open, t]);
+
+    const handleClose = () => {
+        form.resetFields();
+        onCancel();
+    };
 
     const handleSubmit = async () => {
-        setIsProcessing(true);
         try {
             const values = await form.validateFields();
+            setIsSubmitting(true);
 
-            await http.post(`/interns/from-candidate/${candidateId}`, {
-                track: values.track,
-                mentor: values.mentor,
-                department: values.department,
-                internshipPeriod: values.internshipPeriod
-            });
+            await convertCandidateToIntern(candidateId, values.mentorId, values.learningPathId);
 
             message.success(t('onboarding.convert_success', { name: candidateName }));
             form.resetFields();
+            await onSuccess?.();
             onCancel();
-        } catch (error) {
-            if (error instanceof Error && 'errorFields' in (error as any)) {
-                // Validation error, do nothing
-                return;
+        } catch (error: unknown) {
+            const formError = (error as { errorFields?: unknown })?.errorFields;
+            if (!formError) {
+                const errorMessage = (error as { message?: string })?.message;
+                message.error(errorMessage || t('common.error'));
             }
-            message.error(t('common.error'));
         } finally {
-            setIsProcessing(false);
+            setIsSubmitting(false);
         }
     };
 
@@ -53,73 +118,38 @@ export const ConvertToInternModal = ({ open, onCancel, candidateId, candidateNam
             title={t('onboarding.convert_to_intern')}
             open={open}
             onOk={handleSubmit}
-            onCancel={() => {
-                form.resetFields();
-                onCancel();
-            }}
+            onCancel={handleClose}
             okText={t('onboarding.create_intern_profile')}
             cancelText={t('common.cancel')}
-            confirmLoading={isProcessing}
+            confirmLoading={isSubmitting}
             width={isMobile ? 'calc(100vw - 24px)' : isLaptop ? 540 : 600}
         >
-            <div style={{ marginBottom: '16px' }}>
-                <strong>{t('candidate.name')}:</strong> {candidateName}
-            </div>
-
             <Form form={form} layout='vertical'>
                 <Form.Item
-                    name='track'
-                    label={t('onboarding.track')}
-                    rules={[{ required: true, message: t('onboarding.track_required') }]}
-                >
-                    <Select placeholder={t('onboarding.select_track')}>
-                        <Select.Option value='Frontend Development'>Phát triển Frontend</Select.Option>
-                        <Select.Option value='Backend Development'>Phát triển Backend</Select.Option>
-                        <Select.Option value='Full Stack Development'>Phát triển Full Stack</Select.Option>
-                        <Select.Option value='Mobile Development'>Phát triển Mobile</Select.Option>
-                        <Select.Option value='DevOps'>DevOps</Select.Option>
-                        <Select.Option value='UI/UX Design'>Thiết kế UI/UX</Select.Option>
-                        <Select.Option value='QA Testing'>Kiểm thử QA</Select.Option>
-                    </Select>
-                </Form.Item>
-
-                <Form.Item
-                    name='mentor'
                     label={t('onboarding.mentor')}
+                    name='mentorId'
                     rules={[{ required: true, message: t('onboarding.mentor_required') }]}
                 >
-                    <Select placeholder={t('onboarding.select_mentor')}>
-                        <Select.Option value='Michael Ross'>Michael Ross</Select.Option>
-                        <Select.Option value='Sarah Chen'>Sarah Chen</Select.Option>
-                        <Select.Option value='David Kim'>David Kim</Select.Option>
-                        <Select.Option value='Emily Johnson'>Emily Johnson</Select.Option>
-                        <Select.Option value='Alex Martinez'>Alex Martinez</Select.Option>
-                    </Select>
+                    <Select
+                        showSearch
+                        loading={isLoadingOptions}
+                        placeholder={t('onboarding.select_mentor')}
+                        options={mentorOptions}
+                        optionFilterProp='label'
+                    />
                 </Form.Item>
 
                 <Form.Item
-                    name='department'
-                    label={t('onboarding.department')}
-                    rules={[{ required: true, message: t('onboarding.department_required') }]}
+                    label='Lộ trình đào tạo'
+                    name='learningPathId'
+                    rules={[{ required: true, message: 'Vui lòng chọn lộ trình đào tạo' }]}
                 >
-                    <Select placeholder={t('onboarding.select_department')}>
-                        <Select.Option value='Engineering'>Kỹ thuật</Select.Option>
-                        <Select.Option value='Product'>Sản phẩm</Select.Option>
-                        <Select.Option value='Design'>Thiết kế</Select.Option>
-                        <Select.Option value='QA'>Kiểm định chất lượng</Select.Option>
-                        <Select.Option value='DevOps'>DevOps</Select.Option>
-                    </Select>
-                </Form.Item>
-
-                <Form.Item
-                    name='internshipPeriod'
-                    label={t('onboarding.internship_period')}
-                    rules={[{ required: true, message: t('onboarding.period_required') }]}
-                >
-                    <RangePicker
-                        style={{ width: '100%' }}
-                        format='YYYY-MM-DD'
-                        placeholder={[t('onboarding.start_date'), t('onboarding.end_date')]}
+                    <Select
+                        showSearch
+                        loading={isLoadingOptions}
+                        placeholder='Chọn lộ trình đào tạo'
+                        options={learningPathOptions}
+                        optionFilterProp='label'
                     />
                 </Form.Item>
             </Form>
