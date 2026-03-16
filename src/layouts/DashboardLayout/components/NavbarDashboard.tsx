@@ -112,6 +112,7 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
 
     const currentModule = getCurrentModule();
     const isIntern = currentRoles.includes('intern');
+    const hasMentorPortalAccess = currentRoles.some((role) => ['mentor', 'admin', 'super_admin'].includes(role));
 
     const recruitmentItems: MenuItem[] = [
         {
@@ -153,33 +154,37 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
     ];
 
     const trainingItems: MenuItem[] = [
-        {
-            key: 'mentor',
-            icon: <SolutionOutlined />,
-            label: t('menu.mentor_portal'),
-            children: [
-                {
-                    key: 'train-interns',
-                    label: t('menu.intern_list'),
-                    onClick: () => navigate(RouteConfig.TrainingInternList.path)
-                },
-                {
-                    key: 'mentor-path',
-                    label: t('menu.learning_path'),
-                    onClick: () => navigate(RouteConfig.MentorLearningPath.path)
-                },
-                {
-                    key: 'mentor-eval',
-                    label: t('menu.evaluations'),
-                    onClick: () => navigate(RouteConfig.MentorInternList.path)
-                },
-                {
-                    key: 'mentor-tasks',
-                    label: t('menu.task_management'),
-                    onClick: () => navigate(RouteConfig.MentorTaskManagement.path)
-                }
-            ]
-        },
+        ...(hasMentorPortalAccess
+            ? [
+                  {
+                      key: 'mentor',
+                      icon: <SolutionOutlined />,
+                      label: t('menu.mentor_portal'),
+                      children: [
+                          {
+                              key: 'train-interns',
+                              label: t('menu.intern_list'),
+                              onClick: () => navigate(RouteConfig.TrainingInternList.path)
+                          },
+                          {
+                              key: 'mentor-path',
+                              label: t('menu.learning_path'),
+                              onClick: () => navigate(RouteConfig.MentorLearningPath.path)
+                          },
+                          {
+                              key: 'mentor-eval',
+                              label: t('menu.evaluations'),
+                              onClick: () => navigate(RouteConfig.MentorInternList.path)
+                          },
+                          {
+                              key: 'mentor-tasks',
+                              label: t('menu.task_management'),
+                              onClick: () => navigate(RouteConfig.MentorTaskManagement.path)
+                          }
+                      ]
+                  } satisfies MenuItem
+              ]
+            : []),
         ...(isIntern
             ? [
                   {
