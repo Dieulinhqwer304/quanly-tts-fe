@@ -1,20 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as studentProgressService from '../../services/Internship/studentProgress';
-import { MOCK_DATA } from '../../constants/MockData';
+import { StudentProgress } from '../../services/Internship/studentProgress';
+import { ResponseDetailSuccess } from '../../utils/types/ServiceResponse';
 
 export const useStudentProgress = (internId: string) => {
-    const [data, setData] = useState<any>(() => {
-        const progress = MOCK_DATA.studentProgress.find((item) => item.internId === internId);
-        if (progress) {
-            return {
-                code: 200,
-                data: progress
-            };
-        }
-        return null;
-    });
+    const [data, setData] = useState<ResponseDetailSuccess<StudentProgress> | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const fetchData = useCallback(async () => {
         if (!internId) return;
@@ -38,9 +30,9 @@ export const useStudentProgress = (internId: string) => {
 };
 
 export const useMyProgress = () => {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<ResponseDetailSuccess<StudentProgress> | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<unknown>(null);
 
     const fetchData = useCallback(async () => {
         setIsLoading(true);

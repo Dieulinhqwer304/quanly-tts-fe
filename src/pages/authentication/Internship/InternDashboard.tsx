@@ -2,7 +2,6 @@ import {
     ArrowRightOutlined,
     CalendarOutlined,
     CheckCircleFilled,
-    CheckCircleOutlined,
     ClockCircleOutlined,
     DownloadOutlined,
     FileTextOutlined,
@@ -19,6 +18,10 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from 'react';
 import { RouteConfig } from '../../../constants';
+import { Intern } from '../../../services/Internship/interns';
+import { LearningPath } from '../../../services/Internship/learningPath';
+import { StudentProgress } from '../../../services/Internship/studentProgress';
+import { Task } from '../../../services/Internship/tasks';
 import { http } from '../../../utils/http';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -27,15 +30,39 @@ dayjs.extend(relativeTime);
 
 const { Title, Text } = Typography;
 
+type DashboardIntern = Intern & {
+    mentorAvatar?: string;
+    overallProgress?: number;
+};
+
+interface DashboardTask extends Task {
+    dueDate: string;
+}
+
+type DashboardModule = {
+    id: string;
+    title: string;
+    description: string;
+    orderIndex: number;
+    passingScore: number;
+    isRequired: boolean;
+    contents?: Array<{ contentUrl?: string; title?: string }>;
+    quizzes?: Array<{ id: string; title?: string }>;
+    sequence: number;
+    status: 'Ready' | 'In Progress' | 'Locked';
+    items: Array<Record<string, unknown>>;
+    progress: number;
+};
+
 export const InternDashboard = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { message: messageApi } = App.useApp();
 
-    const [internData, setInternData] = useState<any>(null);
-    const [tasksData, setTasksData] = useState<any>(null);
-    const [learningPathData, setLearningPathData] = useState<any>(null);
-    const [progressData, setProgressData] = useState<any>(null);
+    const [internData, setInternData] = useState<DashboardIntern | null>(null);
+    const [tasksData, setTasksData] = useState<{ hits?: DashboardTask[]; data?: DashboardTask[] } | null>(null);
+    const [learningPathData, setLearningPathData] = useState<LearningPath | null>(null);
+    const [progressData, setProgressData] = useState<StudentProgress | null>(null);
     const [isLoadingIntern, setIsLoadingIntern] = useState(true);
     const [isLoadingTasks, setIsLoadingTasks] = useState(false);
     const [isLoadingLP, setIsLoadingLP] = useState(false);
@@ -44,7 +71,7 @@ export const InternDashboard = () => {
         const fetchInitialData = async () => {
             setIsLoadingIntern(true);
             try {
-                const res = await http.get('/interns/me');
+                const res = (await http.get('/interns/me')) as DashboardIntern;
                 setInternData(res);
                 const internObj = res;
 
@@ -53,20 +80,24 @@ export const InternDashboard = () => {
                     setIsLoadingLP(true);
 
                     const [tasksRes, progressRes] = await Promise.all([
-                        http.get(`/tasks`, { params: { internId: internObj.id } }),
+                        http.get(`/tasks`, {
+                            params: { internId: internObj.id }
+                        }),
                         http.get(`/interns/me/progress`)
                     ]);
+                    const typedTasksRes = tasksRes as { hits?: DashboardTask[]; data?: DashboardTask[] };
+                    const typedProgressRes = progressRes as StudentProgress;
 
-                    let lpRes = null;
-                    if (progressRes?.learningPathId) {
-                        lpRes = await http.get(`/learning-paths/${progressRes.learningPathId}`);
+                    let lpRes: LearningPath | null = null;
+                    if (typedProgressRes?.learningPathId) {
+                        lpRes = (await http.get(`/learning-paths/${typedProgressRes.learningPathId}`)) as LearningPath;
                     } else if (internObj.track) {
-                        lpRes = await http.get(`/learning-paths/track/${internObj.track}`);
+                        lpRes = (await http.get(`/learning-paths/track/${internObj.track}`)) as LearningPath;
                     }
 
-                    setTasksData(tasksRes);
+                    setTasksData(typedTasksRes);
                     setLearningPathData(lpRes);
-                    setProgressData(progressRes);
+                    setProgressData(typedProgressRes);
                 }
             } catch (error) {
                 console.error(error);
@@ -78,42 +109,105 @@ export const InternDashboard = () => {
             }
         };
 
-        fetchInitialData();
-    }, []);
+        void fetchInitialData();
+    }, [messageApi, t]);
 
     const intern = internData;
 
-    const tasks = tasksData?.hits || tasksData?.data || [];
+    const tasks = useMemo(() => tasksData?.hits || tasksData?.data || [], [tasksData]);
     const learningPath = learningPathData;
     const modules = useMemo(() => {
         if (!learningPath?.modules) return [];
         const completedSet = new Set(progressData?.modulesCompleted || []);
         const currentModuleId = progressData?.currentModuleId;
 
-        return (learningPath.modules as any[]).map((m: any) => {
-            const status = completedSet.has(m.id) ? 'Ready' : currentModuleId === m.id ? 'In Progress' : 'Locked';
+        return learningPath.modules.map((module, index) => {
+            const status: DashboardModule['status'] = completedSet.has(module.id)
+                ? 'Ready'
+                : currentModuleId === module.id
+                    ? 'In Progress'
+                    : 'Locked';
+            const contents = Array.isArray(module.contents)
+                ? (module.contents as Array<{ contentUrl?: string; title?: string }>)
+                : [];
+            const quizzes = Array.isArray(module.quizzes) ? (module.quizzes as Array<{ id: string; title?: string }>) : [];
+
             return {
-                ...m,
+                id: module.id,
+                title: module.title,
+                description: module.description,
+                orderIndex: module.orderIndex,
+                passingScore: module.passingScore,
+                isRequired: module.isRequired,
+                contents,
+                quizzes,
+                sequence: index + 1,
                 status,
-                items: [...(m.contents || []), ...(m.quizzes || [])],
+                items: [...contents, ...quizzes],
                 progress: status === 'In Progress' ? progressData?.overallProgress || 0 : status === 'Ready' ? 100 : 0
             };
-        });
-    }, [learningPath?.modules, progressData]);
+        }) as DashboardModule[];
+    }, [learningPath, progressData]);
+
+    const activeModule = useMemo(() => {
+        const progressModuleId = progressData?.currentModuleId;
+
+        if (progressModuleId) {
+            const matchedModule = modules.find((module) => String(module.id) === String(progressModuleId));
+
+            if (matchedModule) {
+                return matchedModule;
+            }
+        }
+
+        return modules.find((module) => module.status === 'In Progress') || modules[0] || null;
+    }, [modules, progressData?.currentModuleId]);
+
+    const currentDocument = useMemo<{ contentUrl?: string; title?: string } | null>(() => {
+        const contents = Array.isArray(activeModule?.contents)
+            ? (activeModule.contents as Array<{ contentUrl?: string; title?: string }>)
+            : [];
+
+        if (!contents.length) {
+            return null;
+        }
+
+        return contents.find((content) => Boolean(content.contentUrl)) || null;
+    }, [activeModule]);
+
+    const activeProgramLabel = activeModule?.title || learningPath?.title || intern?.track || t('menu.dashboard');
+    const activeProgramDescription =
+        activeModule?.description ||
+        learningPath?.description ||
+        'Theo doi lo trinh hoc, tien do va bai kiem tra hien tai cua ban.';
 
     // Find the nearest upcoming deadline
     const upcomingTask = useMemo(() => {
         return tasks
-            .filter((t) => t.status?.toLowerCase() !== 'completed' && dayjs(t.dueDate).isAfter(dayjs()))
-            .sort((a, b) => dayjs(a.dueDate).diff(dayjs(b.dueDate)))[0];
+            .filter((task) => task.status?.toLowerCase() !== 'completed' && dayjs(task.dueDate).isAfter(dayjs()))
+            .sort((firstTask, secondTask) => dayjs(firstTask.dueDate).diff(dayjs(secondTask.dueDate)))[0];
     }, [tasks]);
 
     const handleNavigation = (path: string) => {
         navigate(path);
     };
 
-    const handleDownload = (file: string) => {
-        messageApi.success(t('intern_dashboard.download_msg', { file }));
+    const handleDownload = () => {
+        if (currentDocument?.contentUrl) {
+            window.open(currentDocument.contentUrl, '_blank', 'noopener,noreferrer');
+            return;
+        }
+
+        messageApi.info(t('intern_dashboard.download_msg', { file: currentDocument?.title || activeProgramLabel }));
+    };
+
+    const handleOpenQuiz = (moduleId?: string, quizId?: string) => {
+        if (!moduleId || !quizId) {
+            messageApi.info('Hoc phan hien tai chua co bai kiem tra.');
+            return;
+        }
+
+        navigate(RouteConfig.InternTest.getPath(String(quizId), String(moduleId)));
     };
 
     if (isLoadingIntern || isLoadingTasks || isLoadingLP) {
@@ -142,7 +236,7 @@ export const InternDashboard = () => {
                 <RightOutlined style={{ fontSize: '10px' }} />
                 <span style={{ cursor: 'pointer' }}>{t('intern_dashboard.breadcrumb_program')}</span>
                 <RightOutlined style={{ fontSize: '10px' }} />
-                <span style={{ color: '#1E40AF', fontWeight: 600 }}>Phase 1: Foundations</span>
+                <span style={{ color: '#1E40AF', fontWeight: 600 }}>{activeProgramLabel}</span>
             </div>
 
             <div
@@ -180,11 +274,10 @@ export const InternDashboard = () => {
                         {t('intern_dashboard.current_track')}
                     </Tag>
                     <Title level={1} style={{ margin: '0 0 8px 0' }}>
-                        {intern?.track || 'Software Development Track'}
+                        {learningPath?.title || intern?.track || '-'}
                     </Title>
                     <Text type='secondary' style={{ fontSize: '16px', maxWidth: '600px', display: 'block' }}>
-                        Master the core principles of software engineering. Phase 1 focuses on database design, backend
-                        logic, and system architecture.
+                        {activeProgramDescription}
                     </Text>
                     <div style={{ marginTop: '24px', maxWidth: '300px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -207,9 +300,9 @@ export const InternDashboard = () => {
                     <Button
                         icon={<DownloadOutlined />}
                         size='large'
-                        onClick={() => handleDownload('Syllabus_Q3_2024.pdf')}
+                        onClick={handleDownload}
                     >
-                        {t('intern_dashboard.syllabus')}
+                        {currentDocument?.title || t('intern_dashboard.syllabus')}
                     </Button>
                     <Button
                         icon={<CalendarOutlined />}
@@ -336,12 +429,12 @@ export const InternDashboard = () => {
                                                                 ? t('task_mgmt.in_progress')
                                                                 : t('common.locked')}
                                                     </Tag>
-                                                    <Title
-                                                        level={module.status === 'In Progress' ? 3 : 4}
-                                                        style={{ margin: '0 0 8px 0' }}
-                                                    >
-                                                        Module {module.id}: {module.title}
-                                                    </Title>
+                                                     <Title
+                                                         level={module.status === 'In Progress' ? 3 : 4}
+                                                         style={{ margin: '0 0 8px 0' }}
+                                                     >
+                                                        Module {module.sequence}: {module.title}
+                                                     </Title>
                                                     <Text type='secondary'>{module.description}</Text>
                                                 </div>
                                                 {module.status === 'In Progress' && (
@@ -462,11 +555,7 @@ export const InternDashboard = () => {
                                             )}
 
                                             {module.status === 'Ready' && (
-                                                <Button
-                                                    type='link'
-                                                    style={{ padding: 0 }}
-                                                    onClick={() => handleNavigation(`Module ${module.id} Review`)}
-                                                >
+                                                <Button type='link' style={{ padding: 0 }} onClick={() => handleNavigation(module.title)}>
                                                     {t('intern_dashboard.review_materials')}
                                                 </Button>
                                             )}
@@ -482,7 +571,11 @@ export const InternDashboard = () => {
                                                             <Button icon={<DownloadOutlined style={{ transform: 'rotate(180deg)' }} />} onClick={() => messageApi.success('Nộp bài tập thành công!')}>
                                                                 Nộp bài tập
                                                             </Button>
-                                                            <Button type='primary' onClick={() => navigate(RouteConfig.InternTest.path)}>
+                                                            <Button
+                                                                type='primary'
+                                                                onClick={() => handleOpenQuiz(module.id, module.quizzes?.[0]?.id)}
+                                                                disabled={!module.quizzes?.length}
+                                                            >
                                                                 Làm bài kiểm tra
                                                             </Button>
                                                         </Space>
@@ -629,7 +722,7 @@ export const InternDashboard = () => {
                                 />
                                 <div style={{ flex: 1 }}>
                                     <Text strong style={{ display: 'block' }}>
-                                        {intern?.mentor?.fullName || intern?.mentor || t('internship.mentor')}
+                                        {intern?.mentor?.fullName || t('internship.mentor')}
                                     </Text>
                                     <Text type='secondary' style={{ fontSize: '12px' }}>
                                         {intern?.track} Senior • {t('internship.mentor')}

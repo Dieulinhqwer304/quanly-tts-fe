@@ -109,7 +109,21 @@ export const RouteConfig = {
         path: '/training/intern/dashboard'
     },
     InternTest: {
-        path: '/training/intern/test'
+        path: '/training/intern/test',
+        getPath: (quizId?: string, moduleId?: string) => {
+            const params = new URLSearchParams();
+
+            if (quizId) {
+                params.set('quizId', quizId);
+            }
+
+            if (moduleId) {
+                params.set('moduleId', moduleId);
+            }
+
+            const queryString = params.toString();
+            return queryString ? `/training/intern/test?${queryString}` : '/training/intern/test';
+        }
     },
     InternTaskBoard: {
         path: '/training/intern/tasks'
