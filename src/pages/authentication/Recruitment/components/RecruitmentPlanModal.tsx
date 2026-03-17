@@ -23,7 +23,6 @@ interface PlanFormValues {
     department: string;
     description?: string;
     period?: [dayjs.Dayjs, dayjs.Dayjs];
-    status?: string;
     positions?: Array<{
         title: string;
         count: number;
@@ -43,21 +42,11 @@ export const RecruitmentPlanModal = ({
     const [form] = Form.useForm();
     const [isLoading, setIsLoading] = useState(false);
 
-    const normalizePlanStatus = (value?: string) => {
-        const normalized = (value || '').toLowerCase().replace(/\s+/g, '_');
-        if (normalized === 'pending') return 'pending_approval';
-        if (normalized === 'active') return 'pending_approval';
-        if (normalized === 'rejected') return 'pending_approval';
-        if (normalized === 'on_hold' || normalized === 'closed' || normalized === 'pending_approval') return normalized;
-        return 'pending_approval';
-    };
-
     useEffect(() => {
         if (open) {
             if (initialValues) {
                 form.setFieldsValue({
                     ...initialValues,
-                    status: normalizePlanStatus(initialValues.status),
                     positions: initialValues.jobPositions?.map((jp) => ({
                         title: jp.title,
                         count: jp.requiredQuantity,
@@ -84,14 +73,16 @@ export const RecruitmentPlanModal = ({
                 description: values.description,
                 startDate: values.period ? values.period[0].format('YYYY-MM-DD') : '',
                 endDate: values.period ? values.period[1].format('YYYY-MM-DD') : '',
-                status: normalizePlanStatus(values.status),
                 jobPositions: values.positions || []
             };
 
             if (initialValues?.id) {
                 await http.patch(`/recruitment-plans/${initialValues.id}`, formData);
             } else {
-                await http.post('/recruitment-plans', formData);
+                await http.post('/recruitment-plans', {
+                    ...formData,
+                    status: 'pending_approval'
+                });
             }
             message.success(t('common.success'));
             onSuccess();
@@ -132,7 +123,6 @@ export const RecruitmentPlanModal = ({
                 onFinish={onFinish}
                 disabled={viewOnly}
                 initialValues={{
-                    status: 'pending_approval',
                     department: 'Engineering'
                 }}
             >
@@ -273,28 +263,7 @@ export const RecruitmentPlanModal = ({
                                     <RangePicker style={{ width: '100%' }} />
                                 </Form.Item>
                             </Col>
-                            <Col xs={24} md={12}>
-                                <Form.Item label={t('common.status')} name='status'>
-                                    <Select
-                                        options={[
-                                            { value: 'pending_approval', label: t('recruitment.pending_approval') },
-                                            { value: 'on_hold', label: t('recruitment.on_hold') },
-                                            { value: 'closed', label: t('recruitment.closed') }
-                                        ]}
-                                    />
-                                </Form.Item>
-                            </Col>
                         </Row>
-
-                        <Form.Item label={t('recruitment.assign_approver')} name='approver'>
-                            <Select
-                                placeholder={t('recruitment.assign_approver')}
-                                options={[
-                                    { value: 'dir1', label: 'John Director (CTO)' },
-                                    { value: 'dir2', label: 'Jane Director (CEO)' }
-                                ]}
-                            />
-                        </Form.Item>
                     </Col>
                 </Row>
             </Form>
