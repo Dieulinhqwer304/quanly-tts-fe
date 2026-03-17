@@ -209,6 +209,7 @@
         "schedule_title": "Schedule Interviews",
         "schedule_desc": "Select candidates and configure interview invites.",
         "queue": "Candidates Queue",
+        "select_all": "Select all candidates",
         "selected": "Selected",
         "configure_send": "Configure & Send",
         "setup_details": "Setup details for the selected candidates.",

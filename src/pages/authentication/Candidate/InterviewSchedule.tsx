@@ -252,9 +252,15 @@ export const InterviewSchedule = () => {
     const formattedDate = date ? date.format('DD/MM/YYYY') : '{Interview_Date}';
 
     const candidates: ICandidate[] = candidatesData?.hits || candidatesData?.data || [];
+    const selectedVisibleCount = candidates.filter((candidate) => selectedCandidates.includes(candidate.id)).length;
+    const isAllVisibleSelected = candidates.length > 0 && selectedVisibleCount === candidates.length;
+    const isPartiallyVisibleSelected = selectedVisibleCount > 0 && selectedVisibleCount < candidates.length;
 
     const toggleCandidate = (id: string) => {
         setSelectedCandidates((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
+    };
+    const toggleAllVisibleCandidates = (checked: boolean) => {
+        setSelectedCandidates(checked ? candidates.map((candidate) => candidate.id) : []);
     };
 
     const getProcessedHtml = (preview: boolean = true) => {
@@ -379,14 +385,24 @@ export const InterviewSchedule = () => {
                             />
 
                             <div style={{ padding: '12px', background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
-                                <Input
-                                    prefix={<SearchOutlined />}
-                                    placeholder={t('candidate.search_placeholder')}
-                                    onChange={(e) => {
-                                        setSearchText(e.target.value);
-                                        setSelectedCandidates([]);
-                                    }}
-                                />
+                                <Space direction='vertical' size={8} style={{ width: '100%' }}>
+                                    <Input
+                                        prefix={<SearchOutlined />}
+                                        placeholder={t('candidate.search_placeholder')}
+                                        onChange={(e) => {
+                                            setSearchText(e.target.value);
+                                            setSelectedCandidates([]);
+                                        }}
+                                    />
+                                    <Checkbox
+                                        checked={isAllVisibleSelected}
+                                        indeterminate={isPartiallyVisibleSelected}
+                                        disabled={candidates.length === 0}
+                                        onChange={(e) => toggleAllVisibleCandidates(e.target.checked)}
+                                    >
+                                        {t('interview.select_all')}
+                                    </Checkbox>
+                                </Space>
                             </div>
 
                             <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -458,7 +474,6 @@ export const InterviewSchedule = () => {
                                     <Title level={4} style={{ margin: 0 }}>
                                         {t('interview.configure_send')}
                                     </Title>
-                                    <Text type='secondary'>{t('interview.setup_details')}</Text>
                                 </div>
                                 <Space>
                                     <Select
