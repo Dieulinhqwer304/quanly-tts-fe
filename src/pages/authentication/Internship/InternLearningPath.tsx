@@ -3,7 +3,6 @@ import {
     CheckCircleFilled,
     ClockCircleOutlined,
     FileTextOutlined,
-    LockOutlined,
     PlayCircleOutlined,
     QuestionCircleOutlined
 } from '@ant-design/icons';
@@ -24,10 +23,16 @@ type DashboardModule = {
     title: string;
     description: string;
     orderIndex: number;
-    contents?: Array<{ id?: string; title?: string; contentUrl?: string; type?: string }>;
+    contents?: Array<{
+        id?: string;
+        title?: string;
+        contentUrl?: string;
+        type?: string;
+        metadata?: { assessmentFileUrl?: string };
+    }>;
     quizzes?: Array<{ id: string; title?: string }>;
     sequence: number;
-    status: 'Completed' | 'In Progress' | 'Locked';
+    status: 'Completed' | 'In Progress';
 };
 
 type LearningMaterialItem = {
@@ -35,6 +40,7 @@ type LearningMaterialItem = {
     title: string;
     type: 'video' | 'document' | 'quiz' | 'other';
     contentUrl?: string;
+    assessmentFileUrl?: string;
 };
 
 export const InternLearningPath = () => {
@@ -72,11 +78,17 @@ export const InternLearningPath = () => {
             description: module.description,
             orderIndex: module.orderIndex,
             contents: Array.isArray(module.contents)
-                ? (module.contents as Array<{ id?: string; title?: string; contentUrl?: string; type?: string }>)
+                ? (module.contents as Array<{
+                      id?: string;
+                      title?: string;
+                      contentUrl?: string;
+                      type?: string;
+                      metadata?: { assessmentFileUrl?: string };
+                  }>)
                 : [],
             quizzes: Array.isArray(module.quizzes) ? (module.quizzes as Array<{ id: string; title?: string }>) : [],
             sequence: index + 1,
-            status: completedSet.has(module.id) ? 'Completed' : activeModuleId === module.id ? 'In Progress' : 'Locked'
+            status: completedSet.has(module.id) ? 'Completed' : 'In Progress'
         }));
     }, [learningPath, progress]);
 
@@ -97,7 +109,8 @@ export const InternLearningPath = () => {
                 id: String(content.id || `content-${index}`),
                 title: String(content.title || `Bài giảng ${index + 1}`),
                 type: normalizedType,
-                contentUrl: content.contentUrl
+                contentUrl: content.contentUrl,
+                assessmentFileUrl: content.metadata?.assessmentFileUrl
             };
         });
 
@@ -232,10 +245,8 @@ export const InternLearningPath = () => {
                                             <Space align='start'>
                                                 {module.status === 'Completed' ? (
                                                     <CheckCircleFilled style={{ color: '#10B981', marginTop: '4px' }} />
-                                                ) : module.status === 'In Progress' ? (
-                                                    <PlayCircleOutlined style={{ color: '#1E40AF', marginTop: '4px' }} />
                                                 ) : (
-                                                    <LockOutlined style={{ color: '#8c8c8c', marginTop: '4px' }} />
+                                                    <PlayCircleOutlined style={{ color: '#1E40AF', marginTop: '4px' }} />
                                                 )}
                                                 <div>
                                                     <Text strong>{`Module ${module.sequence}: ${module.title}`}</Text>
@@ -244,9 +255,7 @@ export const InternLearningPath = () => {
                                                             color={
                                                                 module.status === 'Completed'
                                                                     ? 'success'
-                                                                    : module.status === 'In Progress'
-                                                                      ? 'processing'
-                                                                      : 'default'
+                                                                    : 'processing'
                                                             }
                                                             style={{ marginTop: '6px' }}
                                                         >
@@ -310,9 +319,23 @@ export const InternLearningPath = () => {
                                                                     ? 'Video bài giảng'
                                                                     : item.type === 'quiz'
                                                                       ? 'Bài kiểm tra học phần'
-                                                                      : 'Tài liệu học tập'}
+                                                                : 'Tài liệu học tập'}
                                                             </Text>
                                                         </div>
+                                                        {item.assessmentFileUrl ? (
+                                                            <div style={{ marginTop: '6px' }}>
+                                                                <Button
+                                                                    type='link'
+                                                                    size='small'
+                                                                    style={{ padding: 0 }}
+                                                                    onClick={() =>
+                                                                        window.open(item.assessmentFileUrl, '_blank', 'noopener,noreferrer')
+                                                                    }
+                                                                >
+                                                                    Xem file bài đánh giá đi kèm
+                                                                </Button>
+                                                            </div>
+                                                        ) : null}
                                                     </div>
                                                 </Space>
                                             </List.Item>
@@ -352,11 +375,41 @@ export const InternLearningPath = () => {
                                                 />
                                             </div>
                                         ) : selectedMaterial.contentUrl ? (
-                                            <Button type='primary' onClick={() => handleOpenMaterial(selectedMaterial)}>
-                                                Mở nội dung
-                                            </Button>
+                                            <Space direction='vertical'>
+                                                <Button type='primary' onClick={() => handleOpenMaterial(selectedMaterial)}>
+                                                    Mở nội dung
+                                                </Button>
+                                                {selectedMaterial.assessmentFileUrl ? (
+                                                    <Button
+                                                        onClick={() =>
+                                                            window.open(
+                                                                selectedMaterial.assessmentFileUrl,
+                                                                '_blank',
+                                                                'noopener,noreferrer',
+                                                            )
+                                                        }
+                                                    >
+                                                        Mở file bài đánh giá
+                                                    </Button>
+                                                ) : null}
+                                            </Space>
                                         ) : (
-                                            <Text type='secondary'>Nội dung này chưa có URL.</Text>
+                                            <Space direction='vertical'>
+                                                <Text type='secondary'>Nội dung này chưa có URL.</Text>
+                                                {selectedMaterial.assessmentFileUrl ? (
+                                                    <Button
+                                                        onClick={() =>
+                                                            window.open(
+                                                                selectedMaterial.assessmentFileUrl,
+                                                                '_blank',
+                                                                'noopener,noreferrer',
+                                                            )
+                                                        }
+                                                    >
+                                                        Mở file bài đánh giá
+                                                    </Button>
+                                                ) : null}
+                                            </Space>
                                         )}
                                     </Card>
                                 </Space>
