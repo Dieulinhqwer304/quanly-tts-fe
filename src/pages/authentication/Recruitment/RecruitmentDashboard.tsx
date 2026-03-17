@@ -184,11 +184,6 @@ export const RecruitmentDashboard = () => {
                                 </div>
                             </Col>
                         </Row>
-
-                        <Paragraph style={{ marginTop: '20px', marginBottom: 0, color: '#64748B' }}>
-                            Phần này giúp recruiter nhìn nhanh kết quả đầu ra của toàn bộ pipeline, từ ứng tuyển đến
-                            chuyển đổi thành thực tập sinh.
-                        </Paragraph>
                     </Card>
                 </Col>
                 <Col xs={24} lg={10}>
