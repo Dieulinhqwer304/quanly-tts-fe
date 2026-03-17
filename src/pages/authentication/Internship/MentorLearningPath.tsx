@@ -31,7 +31,7 @@ interface ModuleContentItem {
   title: string;
   type: string;
   contentUrl?: string;
-  metadata?: { durationMinutes?: number };
+  metadata?: { durationMinutes?: number; assessmentFileUrl?: string };
 }
 
 interface LearningModuleItem {
@@ -263,6 +263,7 @@ export const MentorLearningPath = () => {
       type: content.type,
       contentUrl: content.contentUrl,
       durationMinutes: content.metadata?.durationMinutes,
+      assessmentFileUrl: content.metadata?.assessmentFileUrl,
     });
     setContentModalOpen(true);
   };
@@ -440,6 +441,9 @@ export const MentorLearningPath = () => {
                             {content.metadata?.durationMinutes ? (
                               <Text type='secondary'>Thời lượng: {content.metadata.durationMinutes} phút</Text>
                             ) : null}
+                            {content.metadata?.assessmentFileUrl ? (
+                              <Text type='secondary'>File đánh giá: {content.metadata.assessmentFileUrl}</Text>
+                            ) : null}
                           </Space>
                         }
                       />
@@ -521,6 +525,9 @@ export const MentorLearningPath = () => {
           </Form.Item>
           <Form.Item label='Thời lượng (phút)' name='durationMinutes'>
             <InputNumber style={{ width: '100%' }} min={0} />
+          </Form.Item>
+          <Form.Item label='File bài đánh giá (URL)' name='assessmentFileUrl'>
+            <Input placeholder='Ví dụ: link Google Drive/PDF/Doc cho bài đánh giá' />
           </Form.Item>
         </Form>
       </Modal>
