@@ -74,6 +74,17 @@ interface CandidateListResponse {
     data?: ICandidate[];
 }
 
+interface DirectMailSendResult {
+    total: number;
+    success: number;
+    failed: number;
+    details?: Array<{
+        email: string;
+        status: 'sent' | 'failed';
+        error?: string;
+    }>;
+}
+
 const TABS = [
     { key: 'all', labelKey: 'candidate.tab_all', summaryKey: 'total' },
     { key: 'pending_review', labelKey: 'candidate.tab_new_cv', summaryKey: 'pending_review' },
@@ -243,14 +254,6 @@ export const InterviewSchedule = () => {
         setIsEditing(false);
     };
 
-    const calculateTime = (index: number) => {
-        if (!startTime) return '{Interview_Time}';
-        const st = (startTime as Dayjs).clone().add(index * intervalMinutes, 'minute');
-        return st.format('HH:mm');
-    };
-
-    const formattedDate = date ? date.format('DD/MM/YYYY') : '{Interview_Date}';
-
     const candidates: ICandidate[] = candidatesData?.hits || candidatesData?.data || [];
     const selectedVisibleCount = candidates.filter((candidate) => selectedCandidates.includes(candidate.id)).length;
     const isAllVisibleSelected = candidates.length > 0 && selectedVisibleCount === candidates.length;
@@ -263,27 +266,9 @@ export const InterviewSchedule = () => {
         setSelectedCandidates(checked ? candidates.map((candidate) => candidate.id) : []);
     };
 
-    const getProcessedHtml = (preview: boolean = true) => {
-        let candidateNames = '{Candidate_Name}';
-        if (selectedCandidates.length > 0) {
-            candidateNames = preview
-                ? candidates
-                      .filter((c: ICandidate) => selectedCandidates.includes(c.id))
-                      .map((c: ICandidate) => c.fullName || c.name)
-                      .join(', ')
-                : '';
-        }
-
-        return emailHtml
-            .replace(/{Candidate_Name}/g, candidateNames)
-            .replace(/{Interview_Date}/g, formattedDate)
-            .replace(/{Interview_Time}/g, calculateTime(0))
-            .replace(/{Role}/g, (candidates.find((c: ICandidate) => selectedCandidates.includes(c.id))?.job?.title as string) || 'Vị trí ứng tuyển')
-            .replace(
-                /{Department}/g,
-                (candidates.find((c: ICandidate) => selectedCandidates.includes(c.id))?.job as Record<string, string>)
-                    ?.department || 'N/A'
-            );
+    const calculateInterviewTime = (index: number): string => {
+        if (!startTime) return '';
+        return startTime.clone().add(index * intervalMinutes, 'minute').format('HH:mm');
     };
 
     const handleSendInvites = async () => {
@@ -303,18 +288,66 @@ export const InterviewSchedule = () => {
             setIsProcessing(true);
             message.loading({ content: 'Đang xử lý...', key: 'inviting' });
 
+            const interviewerName = interviewers.find((user) => user.id === interviewerId)?.fullName || '';
+            const interviewDate = date ? date.format('DD/MM/YYYY') : '';
+            const mailPayload = {
+                subject: emailSubject,
+                recipients: selectedCandsInfo.map((candidate: ICandidate, index) => {
+                    const candidateName = String(candidate.fullName || candidate.name || '');
+                    const role = String(candidate.job?.title || candidate.appliedForTitle || 'Vị trí ứng tuyển');
+                    const jobMeta = (candidate.job || {}) as Record<string, unknown>;
+                    const department = String(jobMeta.department || 'N/A');
+                    const interviewTime = calculateInterviewTime(index);
+
+                    return {
+                        email: candidate.email,
+                        fullName: candidateName,
+                        htmlBody: emailHtml,
+                        candidateName,
+                        role,
+                        department,
+                        interviewDate,
+                        interviewTime,
+                        locationLink,
+                        interviewerName
+                    };
+                })
+            };
+
+            const mailResult = await http.post<DirectMailSendResult>('/recruitment/mail/send', mailPayload);
+            const sentEmailSet = new Set(
+                (mailResult?.details || [])
+                    .filter((item) => item.status === 'sent')
+                    .map((item) => item.email.toLowerCase())
+            );
+            const sentCandidates = selectedCandsInfo.filter((candidate) =>
+                sentEmailSet.has(String(candidate.email || '').toLowerCase())
+            );
+
+            if (sentCandidates.length === 0) {
+                message.error({ content: 'Không có email nào gửi thành công.', key: 'inviting' });
+                return;
+            }
+
             await Promise.all(
-                selectedCandsInfo.map((c: ICandidate) =>
+                sentCandidates.map((c: ICandidate) =>
                     http.patch(`/candidates/${c.id}`, {
                         status: 'interview_scheduled'
                     })
                 )
             );
 
-            message.success({
-                content: 'Đã chuyển ứng viên sang trạng thái phỏng vấn thành công.',
-                key: 'inviting'
-            });
+            if ((mailResult?.failed || 0) > 0) {
+                message.warning({
+                    content: `Đã gửi thành công ${mailResult.success}/${mailResult.total} email.`,
+                    key: 'inviting'
+                });
+            } else {
+                message.success({
+                    content: `Đã gửi thành công ${mailResult.success} email và cập nhật trạng thái ứng viên.`,
+                    key: 'inviting'
+                });
+            }
             setSelectedCandidates([]);
             fetchCandidates();
             fetchSummary();
@@ -677,7 +710,7 @@ export const InterviewSchedule = () => {
                                         contentEditable={isEditing}
                                         onBlur={(e) => setEmailHtml(e.currentTarget.innerHTML)}
                                         dangerouslySetInnerHTML={{
-                                            __html: isEditing ? emailHtml : getProcessedHtml(true)
+                                            __html: emailHtml
                                         }}
                                         style={{
                                             flex: 1,
