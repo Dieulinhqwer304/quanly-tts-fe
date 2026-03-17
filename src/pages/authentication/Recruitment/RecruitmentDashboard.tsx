@@ -102,9 +102,6 @@ export const RecruitmentDashboard = () => {
                 <Title level={2} style={{ margin: 0, fontWeight: 800 }}>
                     Tổng quan tuyển dụng
                 </Title>
-                <Text type='secondary' style={{ fontSize: '15px' }}>
-                    Theo dõi nhanh tình hình tuyển dụng và đi thẳng vào các công việc cần xử lý trong ngày.
-                </Text>
             </div>
 
             <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
@@ -155,7 +152,11 @@ export const RecruitmentDashboard = () => {
                     <Card
                         title={<span style={{ fontWeight: 700 }}>Bức tranh tuyển dụng hiện tại</span>}
                         bordered={false}
-                        style={{ borderRadius: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }}
+                        style={{
+                            borderRadius: '16px',
+                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                            border: '1px solid #E2E8F0'
+                        }}
                     >
                         <Row gutter={[16, 16]}>
                             <Col xs={24} sm={8}>
@@ -185,8 +186,8 @@ export const RecruitmentDashboard = () => {
                         </Row>
 
                         <Paragraph style={{ marginTop: '20px', marginBottom: 0, color: '#64748B' }}>
-                            Phần này giúp recruiter nhìn nhanh kết quả đầu ra của toàn bộ pipeline, từ ứng tuyển đến chuyển
-                            đổi thành thực tập sinh.
+                            Phần này giúp recruiter nhìn nhanh kết quả đầu ra của toàn bộ pipeline, từ ứng tuyển đến
+                            chuyển đổi thành thực tập sinh.
                         </Paragraph>
                     </Card>
                 </Col>
@@ -194,7 +195,12 @@ export const RecruitmentDashboard = () => {
                     <Card
                         title={<span style={{ fontWeight: 700 }}>Tác vụ nhanh</span>}
                         bordered={false}
-                        style={{ height: '100%', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)', border: '1px solid #E2E8F0' }}
+                        style={{
+                            height: '100%',
+                            borderRadius: '16px',
+                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                            border: '1px solid #E2E8F0'
+                        }}
                     >
                         <Space direction='vertical' size={16} style={{ width: '100%' }}>
                             {actionItems.map((item) => (
