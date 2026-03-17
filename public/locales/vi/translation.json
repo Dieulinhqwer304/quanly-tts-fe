@@ -221,6 +221,7 @@
         "schedule_title": "Thông báo & Email",
         "schedule_desc": "Chọn ứng viên và gửi email hàng loạt.",
         "queue": "Danh sách ứng viên",
+        "select_all": "Chọn tất cả ứng viên",
         "selected": "Đã chọn",
         "configure_send": "Cấu hình & Gửi",
         "setup_details": "Thiết lập nội dung email cho các ứng viên đã chọn.",
