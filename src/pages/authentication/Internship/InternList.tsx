@@ -177,8 +177,8 @@ export const InternList = () => {
                             { value: 'all', label: t('internship.all_statuses') },
                             { value: 'active', label: t('internship.active') },
                             { value: 'completed', label: t('internship.completed') },
-                            { value: 'terminated', label: t('internship.dropped') },
-                            { value: 'on_hold', label: t('internship.on_hold') }
+                            { value: 'terminated', label: t('internship.dropped') }
+                            // { value: 'on_hold', label: t('internship.on_hold') }
                         ]}
                     />
                 </div>
