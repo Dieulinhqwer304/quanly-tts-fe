@@ -63,12 +63,6 @@ interface ICandidate {
     [key: string]: unknown;
 }
 
-interface IUserOption {
-    id: string;
-    fullName: string;
-    role?: string;
-}
-
 interface CandidateListResponse {
     hits?: ICandidate[];
     data?: ICandidate[];
@@ -164,7 +158,6 @@ export const InterviewSchedule = () => {
     const [intervalMinutes, setIntervalMinutes] = useState<number>(30);
     const [format, setFormat] = useState('online');
     const [locationLink, setLocationLink] = useState('https://meet.google.com/abc-defg-hij');
-    const [interviewerId, setInterviewerId] = useState<string | undefined>(undefined);
 
     const [searchText, setSearchText] = useState('');
     const [activeTab, setActiveTab] = useState('all');
@@ -182,7 +175,6 @@ export const InterviewSchedule = () => {
         rejected_cv: 0,
         rejected_interview: 0
     });
-    const [interviewers, setInterviewers] = useState<IUserOption[]>([]);
 
     const fetchSummary = async () => {
         try {
@@ -212,29 +204,8 @@ export const InterviewSchedule = () => {
         }
     }, [searchText, activeTab]);
 
-    const fetchInterviewers = async () => {
-        try {
-            const res = await http.get<{ data?: Array<Record<string, unknown>>; hits?: Array<Record<string, unknown>> }>(
-                '/users'
-            );
-            const source = (res?.data || res?.hits || []) as Array<Record<string, unknown>>;
-            const normalized = source
-                .map((u) => ({
-                    id: String(u.id || ''),
-                    fullName: String(u.fullName || u.name || ''),
-                    role: String(u.role || '').toLowerCase()
-                }))
-                .filter((u) => u.id && u.fullName)
-                .filter((u) => ['mentor', 'hr', 'director', 'admin'].includes(u.role || ''));
-            setInterviewers(normalized);
-        } catch {
-            setInterviewers([]);
-        }
-    };
-
     useEffect(() => {
         fetchSummary();
-        fetchInterviewers();
     }, []);
 
     useEffect(() => {
@@ -288,7 +259,6 @@ export const InterviewSchedule = () => {
             setIsProcessing(true);
             message.loading({ content: 'Đang xử lý...', key: 'inviting' });
 
-            const interviewerName = interviewers.find((user) => user.id === interviewerId)?.fullName || '';
             const interviewDate = date ? date.format('DD/MM/YYYY') : '';
             const mailPayload = {
                 subject: emailSubject,
@@ -308,8 +278,7 @@ export const InterviewSchedule = () => {
                         department,
                         interviewDate,
                         interviewTime,
-                        locationLink,
-                        interviewerName
+                        locationLink
                     };
                 })
             };
@@ -610,22 +579,6 @@ export const InterviewSchedule = () => {
                                                 style={{ marginTop: '8px' }}
                                                 value={locationLink}
                                                 onChange={(e) => setLocationLink(e.target.value)}
-                                            />
-                                        </Col>
-                                    </Row>
-                                    <Row style={{ marginTop: '16px' }}>
-                                        <Col span={24}>
-                                            <Text strong>Người phỏng vấn</Text>
-                                            <Select
-                                                allowClear
-                                                style={{ width: '100%', marginTop: '8px' }}
-                                                placeholder='Chọn người phỏng vấn (tuỳ chọn)'
-                                                value={interviewerId}
-                                                onChange={setInterviewerId}
-                                                options={interviewers.map((u) => ({
-                                                    value: u.id,
-                                                    label: `${u.fullName}${u.role ? ` (${u.role})` : ''}`
-                                                }))}
                                             />
                                         </Col>
                                     </Row>
