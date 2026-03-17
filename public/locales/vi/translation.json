@@ -215,7 +215,8 @@
         "offer": "Mời làm việc",
         "just_now": "Vừa xong",
         "via_website": "qua Website",
-        "auto_screened": "Tự động sàng lọc"
+        "auto_screened": "Tự động sàng lọc",
+        "converted_to_intern": "Đã chuyển thành thực tập sinh"
     },
     "interview": {
         "schedule_title": "Thông báo & Email",

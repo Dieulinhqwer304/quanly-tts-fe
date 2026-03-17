@@ -203,7 +203,8 @@
         "offer": "Offer",
         "just_now": "Just now",
         "via_website": "via Website",
-        "auto_screened": "Auto-screened"
+        "auto_screened": "Auto-screened",
+        "converted_to_intern": "Converted to Intern"
     },
     "interview": {
         "schedule_title": "Schedule Interviews",
