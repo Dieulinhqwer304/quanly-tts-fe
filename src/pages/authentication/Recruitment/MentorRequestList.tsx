@@ -25,7 +25,7 @@ import {
     DatePicker
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import TextArea from 'antd/es/input/TextArea';
 import dayjs, { Dayjs } from 'dayjs';
@@ -64,14 +64,7 @@ export const MentorRequestList = () => {
     const fetchRequests = async () => {
         setIsLoading(true);
         try {
-            const params: any = {};
-            if (searchText) {
-                params.searcher = JSON.stringify({ keyword: searchText, field: 'title' });
-            }
-            if (statusFilter !== 'all') {
-                params.status = statusFilter;
-            }
-            const res = await http.get('/mentor-requests', { params });
+            const res = await http.get('/mentor-requests');
             setRequestsData(res);
         } catch (error) {
             console.error(error);
@@ -84,7 +77,34 @@ export const MentorRequestList = () => {
         fetchRequests();
     }, []);
 
-    const requests: MentorRequest[] = requestsData?.data || [];
+    const requests: MentorRequest[] = requestsData?.hits || requestsData?.data || [];
+    const filteredRequests = useMemo(() => {
+        const normalizedKeyword = searchText.trim().toLowerCase();
+
+        return requests.filter((record) => {
+            const normalizedStatus = String(record.status || '').toLowerCase();
+            const matchesStatus = statusFilter === 'all' || normalizedStatus === statusFilter;
+            const matchesKeyword =
+                !normalizedKeyword ||
+                String(record.title || '')
+                    .toLowerCase()
+                    .includes(normalizedKeyword) ||
+                String(record.department || '')
+                    .toLowerCase()
+                    .includes(normalizedKeyword) ||
+                String(record.position || '')
+                    .toLowerCase()
+                    .includes(normalizedKeyword) ||
+                String(record.requiredSkills || '')
+                    .toLowerCase()
+                    .includes(normalizedKeyword) ||
+                String(record.mentor?.fullName || '')
+                    .toLowerCase()
+                    .includes(normalizedKeyword);
+
+            return matchesStatus && matchesKeyword;
+        });
+    }, [requests, searchText, statusFilter]);
 
     const handleOpenCreate = () => {
         setEditingId(null);
@@ -359,10 +379,11 @@ export const MentorRequestList = () => {
                             placeholder={t('mentor_request.search_placeholder')}
                             prefix={<SearchOutlined />}
                             style={{ width: isMobile ? '100%' : 250 }}
+                            value={searchText}
                             onChange={(e) => setSearchText(e.target.value)}
                         />
                         <Select
-                            defaultValue='all'
+                            value={statusFilter}
                             style={{ width: isMobile ? '100%' : 150 }}
                             onChange={setStatusFilter}
                             options={[
@@ -378,7 +399,7 @@ export const MentorRequestList = () => {
 
                 <Table
                     columns={columns}
-                    dataSource={requests}
+                    dataSource={filteredRequests}
                     rowKey='id'
                     loading={isLoading}
                     pagination={{ pageSize: 10 }}

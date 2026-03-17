@@ -8,20 +8,8 @@ import {
     CalendarOutlined,
     StarOutlined
 } from '@ant-design/icons';
-import {
-    Avatar,
-    Button,
-    Card,
-    Input,
-    Select,
-    Space,
-    Table,
-    Tag,
-    Typography,
-    message,
-    Tooltip
-} from 'antd';
-import { useEffect, useState } from 'react';
+import { Avatar, Button, Card, Input, Select, Space, Table, Tag, Typography, message, Tooltip } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { RouteConfig } from '../../../constants';
@@ -33,13 +21,29 @@ import { PlusOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
+const normalizeInternStatus = (status?: string): 'active' | 'completed' | 'terminated' | 'on_hold' | '' => {
+    const normalized = String(status || '')
+        .trim()
+        .toLowerCase();
+    const lastToken = normalized.split('.').pop() || '';
+    const normalizedToken = lastToken.replace(/[\s-]+/g, '_');
+
+    if (!normalized) return '';
+    if (normalizedToken === 'active') return 'active';
+    if (normalizedToken === 'completed') return 'completed';
+    if (normalizedToken === 'terminated' || normalizedToken === 'dropped') return 'terminated';
+    if (normalizedToken === 'on_hold' || normalizedToken === 'onhold') return 'on_hold';
+
+    return '';
+};
+
 export const InternList = () => {
     // ... (rest of the component)
     const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const [searchText, setSearchText] = useState('');
-    const [statusFilter, setStatusFilter] = useState('All');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingIntern, setEditingIntern] = useState<any>(null);
     const [isViewOnly, setIsViewOnly] = useState(false);
@@ -51,14 +55,7 @@ export const InternList = () => {
     const fetchInterns = async () => {
         setIsLoading(true);
         try {
-            const params: any = {};
-            if (searchText) {
-                params.searcher = JSON.stringify({ keyword: searchText, field: 'fullName' });
-            }
-            if (statusFilter !== 'All') {
-                params.status = statusFilter;
-            }
-            const res = await http.get('/interns', { params });
+            const res = await http.get('/interns');
             setInternsData(res);
         } catch (error) {
             console.error(error);
@@ -69,7 +66,7 @@ export const InternList = () => {
 
     useEffect(() => {
         fetchInterns();
-    }, [searchText, statusFilter]);
+    }, []);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -112,6 +109,31 @@ export const InternList = () => {
     const canManageInterns = currentRole === 'admin' || currentRole === 'super_admin';
     const isMentorView = isMentorModule || isMentorRole;
     const dataSource = internsData?.hits || internsData?.data || [];
+    const filteredDataSource = useMemo(() => {
+        const normalizedKeyword = searchText.trim().toLowerCase();
+
+        return dataSource.filter((record: any) => {
+            const normalizedStatus = normalizeInternStatus(record?.status);
+            const matchesStatus = statusFilter === 'all' || normalizedStatus === statusFilter;
+
+            const matchesKeyword =
+                !normalizedKeyword ||
+                String(record?.user?.fullName || record?.fullName || '')
+                    .toLowerCase()
+                    .includes(normalizedKeyword) ||
+                String(record?.user?.email || '')
+                    .toLowerCase()
+                    .includes(normalizedKeyword) ||
+                String(record?.code || record?.id || '')
+                    .toLowerCase()
+                    .includes(normalizedKeyword) ||
+                String(record?.track || '')
+                    .toLowerCase()
+                    .includes(normalizedKeyword);
+
+            return matchesStatus && matchesKeyword;
+        });
+    }, [dataSource, searchText, statusFilter]);
 
     return (
         <div style={{ padding: '24px' }}>
@@ -144,14 +166,15 @@ export const InternList = () => {
                         placeholder={t('internship.search_placeholder')}
                         prefix={<SearchOutlined />}
                         style={{ width: 350 }}
+                        value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                     />
                     <Select
-                        defaultValue='All'
+                        value={statusFilter}
                         style={{ width: 160 }}
                         onChange={setStatusFilter}
                         options={[
-                            { value: 'All', label: t('internship.all_statuses') },
+                            { value: 'all', label: t('internship.all_statuses') },
                             { value: 'active', label: t('internship.active') },
                             { value: 'completed', label: t('internship.completed') },
                             { value: 'terminated', label: t('internship.dropped') },
@@ -363,18 +386,19 @@ export const InternList = () => {
                                       dataIndex: 'status',
                                       key: 'status',
                                       render: (status: string) => {
+                                          const normalizedStatus = normalizeInternStatus(status);
                                           let color = 'processing';
                                           let label = status;
-                                          if (status === 'active') {
+                                          if (normalizedStatus === 'active') {
                                               color = 'processing';
                                               label = t('internship.active');
-                                          } else if (status === 'completed') {
+                                          } else if (normalizedStatus === 'completed') {
                                               color = 'success';
                                               label = t('internship.completed');
-                                          } else if (status === 'terminated') {
+                                          } else if (normalizedStatus === 'terminated') {
                                               color = 'error';
                                               label = t('internship.dropped');
-                                          } else if (status === 'on_hold') {
+                                          } else if (normalizedStatus === 'on_hold') {
                                               color = 'warning';
                                               label = t('internship.on_hold');
                                           }
@@ -425,10 +449,10 @@ export const InternList = () => {
                             }
                         ].filter(Boolean) as any[]
                     }
-                    dataSource={dataSource}
+                    dataSource={filteredDataSource}
                     loading={isLoading}
                     pagination={{
-                        total: internsData?.pagination?.totalRows || 0,
+                        total: filteredDataSource.length,
                         showTotal: (total, range) =>
                             `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('internship.interns')}`,
                         pageSize: 10
