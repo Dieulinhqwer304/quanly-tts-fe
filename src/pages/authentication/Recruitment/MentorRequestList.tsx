@@ -339,7 +339,6 @@ export const MentorRequestList = () => {
                     <Title level={2} style={{ margin: 0 }}>
                         {t('mentor_request.title')}
                     </Title>
-                    <Text type='secondary'>{t('mentor_request.desc')}</Text>
                 </div>
                 <Button type='primary' icon={<PlusOutlined />} onClick={handleOpenCreate}>
                     {t('mentor_request.create_request')}

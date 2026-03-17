@@ -107,7 +107,6 @@ export const OnboardingList = () => {
                     <Title level={3} style={{ margin: 0 }}>
                         {t('onboarding.title')}
                     </Title>
-                    <Text type='secondary'>{t('onboarding.desc')}</Text>
                 </div>
                 <Space>
                     <Input

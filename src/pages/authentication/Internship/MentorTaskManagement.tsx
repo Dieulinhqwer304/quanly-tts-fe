@@ -284,7 +284,6 @@ export const MentorTaskManagement = () => {
                     <Title level={2} style={{ margin: 0 }}>
                         {t('task_mgmt.title')}
                     </Title>
-                    <Text type='secondary'>{t('task_mgmt.desc')}</Text>
                 </div>
                 <Button type='primary' icon={<PlusOutlined />} size='large' onClick={() => setIsModalOpen(true)}>
                     {t('task_mgmt.assign_task')}
