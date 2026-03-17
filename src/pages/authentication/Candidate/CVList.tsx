@@ -378,7 +378,6 @@ export const CVList = () => {
                     <Title level={3} style={{ margin: 0 }}>
                         {t('candidate.screening')}
                     </Title>
-                    <Text type='secondary'>{t('candidate.screening_desc')}</Text>
                 </div>
             </div>
 

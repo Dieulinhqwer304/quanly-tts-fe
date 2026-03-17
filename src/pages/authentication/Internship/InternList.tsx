@@ -127,9 +127,6 @@ export const InternList = () => {
                     <Title level={3} style={{ margin: 0 }}>
                         {isMentorView ? t('menu.evaluations') : t('internship.management')}
                     </Title>
-                    <Text type='secondary'>
-                        {isMentorView ? t('internship.eval_desc') : t('internship.management_desc')}
-                    </Text>
                 </div>
                 <Space>
                     {canManageInterns && (
