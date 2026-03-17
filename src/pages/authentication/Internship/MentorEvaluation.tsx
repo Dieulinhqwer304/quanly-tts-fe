@@ -22,7 +22,6 @@ import {
     Space,
     Typography,
     message,
-    Breadcrumb,
     Divider,
     Tag,
     Steps,
@@ -680,25 +679,6 @@ export const MentorEvaluation = () => {
 
     return (
         <div style={{ padding: '24px', maxWidth: '1100px', margin: '0 auto', paddingBottom: '100px' }}>
-            <div style={{ marginBottom: '24px' }}>
-                <Breadcrumb
-                    items={[
-                        { title: t('menu.mentor_portal') },
-                        {
-                            title: (
-                                <span
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={() => navigate(RouteConfig.MentorInternList.path)}
-                                >
-                                    {t('menu.evaluations')}
-                                </span>
-                            )
-                        },
-                        { title: intern?.user?.fullName || intern?.name || 'Thực tập sinh' }
-                    ]}
-                />
-            </div>
-
             {/* Header card intern */}
             <Card
                 bordered={false}

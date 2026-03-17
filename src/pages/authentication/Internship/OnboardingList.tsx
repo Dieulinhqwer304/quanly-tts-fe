@@ -21,7 +21,6 @@ import {
     message,
     Dropdown,
     MenuProps,
-    Breadcrumb,
     Skeleton
 } from 'antd';
 import { useEffect, useState } from 'react';
@@ -101,10 +100,6 @@ export const OnboardingList = () => {
 
     return (
         <div style={{ padding: '24px' }}>
-            <div style={{ marginBottom: '24px' }}>
-                <Breadcrumb items={[{ title: t('menu.recruitment_management') }, { title: t('menu.onboarding') }]} />
-            </div>
-
             <div
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}
             >

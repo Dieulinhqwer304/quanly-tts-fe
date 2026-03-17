@@ -194,22 +194,6 @@ export const InternTaskBoard = () => {
                     <div
                         style={{
                             display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            fontSize: '14px',
-                            color: '#64748B',
-                            marginBottom: '8px'
-                        }}
-                    >
-                        <span>{t('intern_task_board.breadcrumb_phase')}</span>{' '}
-                        <span style={{ fontSize: '10px' }}>▶</span>{' '}
-                        <span>{t('intern_task_board.breadcrumb_project')}</span>{' '}
-                        <span style={{ fontSize: '10px' }}>▶</span>{' '}
-                        <span style={{ color: '#1E293B', fontWeight: 500 }}>{t('menu.task_board')}</span>
-                    </div>
-                    <div
-                        style={{
-                            display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: isMobile ? 'flex-start' : 'center',
                             flexDirection: isMobile ? 'column' : 'row',

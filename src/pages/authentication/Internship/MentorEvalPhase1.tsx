@@ -12,7 +12,6 @@ import {
     Space,
     Typography,
     message,
-    Breadcrumb,
     Divider,
     Tag
 } from 'antd';
@@ -96,16 +95,6 @@ export const MentorEvalPhase1 = () => {
 
     return (
         <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
-            <div style={{ marginBottom: '24px' }}>
-                <Breadcrumb
-                    items={[
-                        { title: t('menu.mentor_portal') },
-                        { title: t('menu.evaluations') },
-                        { title: t('eval.phase1_title') }
-                    ]}
-                />
-            </div>
-
             <div
                 style={{
                     display: 'flex',

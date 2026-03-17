@@ -416,8 +416,6 @@
         "normal_priority": "Normal Priority"
     },
     "intern_task_board": {
-        "breadcrumb_phase": "Phase 2",
-        "breadcrumb_project": "Project Alpha",
         "title": "Phase 2: Project Deliverables",
         "mentor_label": "Mentor",
         "new_task": "New Task",
@@ -439,7 +437,6 @@
         "no_completed_tasks": "No completed tasks"
     },
     "intern_dashboard": {
-        "breadcrumb_program": "Internship Program",
         "current_track": "Current Track",
         "syllabus": "Syllabus",
         "schedule": "Schedule",
