@@ -14,6 +14,11 @@ export interface UserProfile {
     phone?: string;
 }
 
+export interface ChangePasswordPayload {
+    currentPassword: string;
+    newPassword: string;
+}
+
 export const getProfile = async (): Promise<ResponseDetailSuccess<UserProfile>> => {
     const result = await http.get<ResponseDetailSuccess<UserProfile>>('/auth/profile');
     return result;
@@ -26,5 +31,10 @@ export const updateProfile = async (data: Partial<UserProfile>): Promise<Respons
 
 export const register = async (data: any): Promise<ResponseDetailSuccess<UserProfile>> => {
     const result = await http.post<ResponseDetailSuccess<UserProfile>>('/auth/register', data);
+    return result;
+};
+
+export const changePassword = async (payload: ChangePasswordPayload): Promise<ResponseDetailSuccess<{ message: string }>> => {
+    const result = await http.patch<ResponseDetailSuccess<{ message: string }>>('/auth/change-password', payload);
     return result;
 };
