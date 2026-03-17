@@ -18,8 +18,7 @@ import {
     Typography,
     message,
     Dropdown,
-    MenuProps,
-    Breadcrumb
+    MenuProps
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useEffect, useState } from 'react';
@@ -228,33 +227,33 @@ export const RecruitmentJobList = () => {
             render: (text: any) => <Tag color='blue'>{text}</Tag>
         },
 
-        {
-            title: t('recruitment.fulfillment'),
-            key: 'fulfillment',
-            render: (_: any, record: any) => (
-                <div style={{ minWidth: '100px' }}>
-                    <Text strong>{record.filled}</Text> / <Text type='secondary'>{record.required}</Text>
-                    <div
-                        style={{
-                            width: '100%',
-                            height: '4px',
-                            background: '#E2E8F0',
-                            marginTop: '4px',
-                            borderRadius: '2px',
-                            overflow: 'hidden'
-                        }}
-                    >
-                        <div
-                            style={{
-                                width: `${(record.filled / record.required) * 100}%`,
-                                height: '100%',
-                                background: record.filled >= record.required ? '#10B981' : '#1E40AF'
-                            }}
-                        />
-                    </div>
-                </div>
-            )
-        },
+        // {
+        //     title: t('recruitment.fulfillment'),
+        //     key: 'fulfillment',
+        //     render: (_: any, record: any) => (
+        //         <div style={{ minWidth: '100px' }}>
+        //             <Text strong>{record.filled}</Text> / <Text type='secondary'>{record.required}</Text>
+        //             <div
+        //                 style={{
+        //                     width: '100%',
+        //                     height: '4px',
+        //                     background: '#E2E8F0',
+        //                     marginTop: '4px',
+        //                     borderRadius: '2px',
+        //                     overflow: 'hidden'
+        //                 }}
+        //             >
+        //                 <div
+        //                     style={{
+        //                         width: `${(record.filled / record.required) * 100}%`,
+        //                         height: '100%',
+        //                         background: record.filled >= record.required ? '#10B981' : '#1E40AF'
+        //                     }}
+        //                 />
+        //             </div>
+        //         </div>
+        //     )
+        // },
         {
             title: t('common.status'),
             dataIndex: 'status',
@@ -316,12 +315,6 @@ export const RecruitmentJobList = () => {
 
     return (
         <div style={{ padding: '24px' }}>
-            <div style={{ marginBottom: '24px' }}>
-                <Breadcrumb
-                    items={[{ title: t('menu.recruitment_management') }, { title: t('recruitment.job_management') }]}
-                />
-            </div>
-
             <div
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}
             >
@@ -329,7 +322,7 @@ export const RecruitmentJobList = () => {
                     <Title level={3} style={{ margin: 0 }}>
                         {t('recruitment.job_management')}
                     </Title>
-                    <Text type='secondary'>{t('recruitment.job_management_desc')}</Text>
+                    {/* <Text type='secondary'>{t('recruitment.job_management_desc')}</Text> */}
                 </div>
                 <Button type='primary' icon={<PlusOutlined />} onClick={handleCreate}>
                     {t('recruitment.create_job_post')}
@@ -365,7 +358,7 @@ export const RecruitmentJobList = () => {
                                 { value: 'Data', label: 'Data Science' }
                             ]}
                         />
-                        <Button icon={<FilterOutlined />}>{t('common.more_filters')}</Button>
+                        {/* <Button icon={<FilterOutlined />}>{t('common.more_filters')}</Button> */}
                     </Space>
                     <Space>
                         <Text type='secondary'>

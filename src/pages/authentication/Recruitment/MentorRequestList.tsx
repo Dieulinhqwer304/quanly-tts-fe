@@ -23,7 +23,6 @@ import {
     Form,
     InputNumber,
     message,
-    Breadcrumb,
     DatePicker
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -326,12 +325,6 @@ export const MentorRequestList = () => {
 
     return (
         <div style={{ padding: isMobile ? '12px' : isLaptop ? '18px' : '24px' }}>
-            <div style={{ marginBottom: '16px' }}>
-                <Breadcrumb
-                    items={[{ title: t('menu.recruitment_management') }, { title: t('mentor_request.title') }]}
-                />
-            </div>
-
             <div
                 style={{
                     display: 'flex',

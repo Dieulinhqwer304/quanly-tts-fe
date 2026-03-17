@@ -11,7 +11,6 @@ import {
     Space,
     Typography,
     message,
-    Breadcrumb,
     Divider,
     Tag,
     Select
@@ -96,16 +95,6 @@ export const MentorEvalPhase2 = () => {
 
     return (
         <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
-            <div style={{ marginBottom: '24px' }}>
-                <Breadcrumb
-                    items={[
-                        { title: t('menu.mentor_portal') },
-                        { title: t('menu.evaluations') },
-                        { title: 'Giai đoạn 2: Hợp tác dự án' }
-                    ]}
-                />
-            </div>
-
             <div
                 style={{
                     display: 'flex',

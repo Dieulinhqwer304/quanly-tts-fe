@@ -16,7 +16,6 @@ import {
     Space,
     Typography,
     message,
-    Breadcrumb,
     Divider
 } from 'antd';
 import { useNavigate } from 'react-router-dom';
@@ -46,16 +45,6 @@ export const RecruitmentPlanCreate = () => {
 
     return (
         <div style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto' }}>
-            <div style={{ marginBottom: '24px' }}>
-                <Breadcrumb
-                    items={[
-                        { title: t('menu.recruitment_management'), onClick: () => navigate(RouteConfig.RecruitmentPlanList.path) },
-                        { title: t('menu.recruitment_plans'), onClick: () => navigate(RouteConfig.RecruitmentPlanList.path) },
-                        { title: t('recruitment.create_new_plan') },
-                    ]}
-                />
-            </div>
-
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <Space align="center">
                     <Button

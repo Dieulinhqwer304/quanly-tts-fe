@@ -19,7 +19,6 @@ import {
     Tag,
     Typography,
     message,
-    Breadcrumb,
     Tooltip
 } from 'antd';
 import { useEffect, useState } from 'react';
@@ -116,19 +115,6 @@ export const InternList = () => {
 
     return (
         <div style={{ padding: '24px' }}>
-            <div style={{ marginBottom: '24px' }}>
-                <Breadcrumb
-                    items={[
-                        {
-                            title: location.pathname.startsWith('/training')
-                                ? t('menu.training_module')
-                                : t('menu.recruitment_management')
-                        },
-                        { title: isMentorView ? t('menu.evaluations') : t('internship.intern_list') }
-                    ]}
-                />
-            </div>
-
             <div
                 style={{
                     display: 'flex',

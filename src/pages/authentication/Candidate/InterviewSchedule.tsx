@@ -347,13 +347,6 @@ export const InterviewSchedule = () => {
     return (
         <Layout style={{ minHeight: '100vh', background: '#f6f7f8' }}>
             <Content style={{ padding: '24px' }}>
-                <div style={{ marginBottom: '24px' }}>
-                    <Text type='secondary'>
-                        {t('menu.recruitment_management')} / {t('menu.cv_management')} /{' '}
-                    </Text>
-                    <Text strong>{t('menu.interviews')}</Text>
-                </div>
-
                 <div style={{ marginBottom: '32px' }}>
                     <Title level={2} style={{ margin: 0 }}>
                         {t('interview.schedule_title')}

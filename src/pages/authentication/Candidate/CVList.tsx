@@ -13,7 +13,6 @@ import {
     message,
     Dropdown,
     MenuProps,
-    Breadcrumb
 } from 'antd';
 import {
     CheckCircleOutlined,
@@ -372,12 +371,6 @@ export const CVList = () => {
 
     return (
         <div style={{ padding: '24px' }}>
-            <div style={{ marginBottom: '24px' }}>
-                <Breadcrumb
-                    items={[{ title: t('menu.recruitment_management') }, { title: t('candidate.screening') }]}
-                />
-            </div>
-
             <div
                 style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
             >

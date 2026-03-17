@@ -81,10 +81,6 @@ export const themeConfig: ThemeConfig = {
             colorPrimary: '#1E40AF',
             colorTextDescription: '#64748B'
         },
-        Breadcrumb: {
-            linkColor: '#64748B',
-            lastItemColor: '#1E293B'
-        },
         Divider: {
             colorSplit: '#E2E8F0'
         },
