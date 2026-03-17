@@ -34,13 +34,39 @@ export const RecruitmentPlanList = () => {
     const [isViewOnly, setIsViewOnly] = useState(false);
 
     const [plansData, setPlansData] = useState<any>(null);
+    const [adjustingApprovalsByPlanId, setAdjustingApprovalsByPlanId] = useState<Record<string, any>>({});
+    const [selectedAdjustment, setSelectedAdjustment] = useState<{ planName: string; approval: any } | null>(null);
+    const [isAdjustmentModalOpen, setIsAdjustmentModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const fetchPlans = async () => {
         setIsLoading(true);
         try {
-            const res = await http.get('/recruitment-plans');
-            setPlansData(res);
+            const [plansRes, approvalsRes] = await Promise.all([
+                http.get('/recruitment-plans'),
+                http.get('/approvals', {
+                    params: {
+                        type: 'Recruitment',
+                        status: 'Adjusting'
+                    }
+                })
+            ]);
+
+            setPlansData(plansRes);
+
+            const approvals = ((approvalsRes as any)?.hits || []) as Array<any>;
+            const latestAdjustingByPlanId = approvals.reduce<Record<string, any>>((accumulator, approval) => {
+                const entityId = String(approval?.entityId || '');
+
+                if (!entityId || accumulator[entityId]) {
+                    return accumulator;
+                }
+
+                accumulator[entityId] = approval;
+                return accumulator;
+            }, {});
+
+            setAdjustingApprovalsByPlanId(latestAdjustingByPlanId);
         } catch (error) {
             console.error(error);
         } finally {
@@ -75,6 +101,13 @@ export const RecruitmentPlanList = () => {
             handleEdit(record);
         } else if (e.key === 'view') {
             handleView(record);
+        } else if (e.key === 'view_adjustment_request') {
+            const adjustingApproval = adjustingApprovalsByPlanId[record.id];
+            setSelectedAdjustment({
+                planName: record.name,
+                approval: adjustingApproval
+            });
+            setIsAdjustmentModalOpen(true);
         } else if (e.key === 'delete') {
             Modal.confirm({
                 title: t('common.delete_confirm'),
@@ -95,10 +128,13 @@ export const RecruitmentPlanList = () => {
     const getActionMenu = (record: RecruitmentPlan): MenuProps => ({
         items: [
             { key: 'view', label: t('common.view') },
+            adjustingApprovalsByPlanId[record.id]
+                ? { key: 'view_adjustment_request', label: 'Xem yêu cầu chỉnh sửa' }
+                : null,
             { key: 'edit', label: t('common.edit') },
             { type: 'divider' },
             { key: 'delete', label: t('common.delete'), danger: true }
-        ],
+        ].filter(Boolean) as MenuProps['items'],
         onClick: (e) => handleMenuClick(e, record)
     });
 
@@ -107,16 +143,25 @@ export const RecruitmentPlanList = () => {
             title: t('recruitment.campaign_name'),
             dataIndex: 'name',
             key: 'name',
-            render: (text, record) => (
-                <div style={{ cursor: 'pointer' }} onClick={() => handleView(record)}>
-                    <Text strong style={{ display: 'block', color: '#1E40AF' }}>
-                        {text}
-                    </Text>
-                    <Text type='secondary' style={{ fontSize: '12px' }}>
-                        {record.batch}
-                    </Text>
-                </div>
-            )
+            render: (text, record) => {
+                const hasAdjustmentRequest = Boolean(adjustingApprovalsByPlanId[record.id]);
+
+                return (
+                    <div style={{ cursor: 'pointer' }} onClick={() => handleView(record)}>
+                        <Text strong style={{ display: 'block', color: '#1E40AF' }}>
+                            {text}
+                            {hasAdjustmentRequest && (
+                                <Text strong style={{ color: '#EF4444', marginLeft: 6 }}>
+                                    *
+                                </Text>
+                            )}
+                        </Text>
+                        <Text type='secondary' style={{ fontSize: '12px' }}>
+                            {record.batch}
+                        </Text>
+                    </div>
+                );
+            }
         },
         {
             title: t('common.department'),
@@ -254,6 +299,30 @@ export const RecruitmentPlanList = () => {
                     initialValues={editingPlan as any}
                     viewOnly={isViewOnly}
                 />
+                <Modal
+                    title='Yêu cầu chỉnh sửa từ Giám đốc'
+                    open={isAdjustmentModalOpen}
+                    onCancel={() => setIsAdjustmentModalOpen(false)}
+                    onOk={() => setIsAdjustmentModalOpen(false)}
+                    okText='Đã hiểu'
+                    cancelButtonProps={{ style: { display: 'none' } }}
+                >
+                    <div>
+                        <Text type='secondary'>Kế hoạch: {selectedAdjustment?.planName || '-'}</Text>
+                        <div style={{ marginTop: 12 }}>
+                            <Text strong>Nội dung yêu cầu:</Text>
+                            <div style={{ marginTop: 8 }}>
+                                {selectedAdjustment?.approval?.notes ||
+                                    'Giám đốc đã yêu cầu chỉnh sửa kế hoạch này. Vui lòng cập nhật và gửi lại.'}
+                            </div>
+                        </div>
+                        <div style={{ marginTop: 12, color: '#6B7280', fontSize: 12 }}>
+                            {selectedAdjustment?.approval?.updatedAt
+                                ? `Cập nhật lúc: ${new Date(selectedAdjustment.approval.updatedAt).toLocaleString('vi-VN')}`
+                                : ''}
+                        </div>
+                    </div>
+                </Modal>
             </Row>
         </div>
     );
