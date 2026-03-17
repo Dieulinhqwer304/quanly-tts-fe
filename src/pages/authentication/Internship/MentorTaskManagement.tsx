@@ -27,7 +27,7 @@ import {
     App
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
 import { Task } from '../../../services/Internship/tasks';
@@ -39,7 +39,7 @@ export const MentorTaskManagement = () => {
     const { message: messageApi } = App.useApp();
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [internFilter, setInternFilter] = useState<string | undefined>(undefined);
+    const [internFilter, setInternFilter] = useState<string>('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [taskDetail, setTaskDetail] = useState<Task | null>(null);
@@ -56,15 +56,7 @@ export const MentorTaskManagement = () => {
     const fetchTasks = async () => {
         setIsLoading(true);
         try {
-            const params: any = {};
-            if (searchText.trim()) params.q = searchText.trim();
-            if (statusFilter !== 'all') {
-                params.status = statusFilter;
-            }
-            if (internFilter && internFilter !== 'All Interns') {
-                params.internId = internFilter;
-            }
-            const res = await http.get('/tasks', { params });
+            const res = await http.get('/tasks');
             setTasksData(res);
         } catch {
             messageApi.error(t('common.error'));
@@ -84,7 +76,7 @@ export const MentorTaskManagement = () => {
 
     useEffect(() => {
         fetchTasks();
-    }, [searchText, statusFilter, internFilter]);
+    }, []);
 
     useEffect(() => {
         fetchInterns();
@@ -143,6 +135,39 @@ export const MentorTaskManagement = () => {
 
     const responseData = tasksData;
     const dataSource = responseData?.hits || responseData?.data || [];
+    const filteredDataSource = useMemo(() => {
+        const normalizedKeyword = searchText.trim().toLowerCase();
+
+        return dataSource.filter((task: any) => {
+            const normalizedStatus = String(task?.status || '').toLowerCase();
+            const matchesStatus = statusFilter === 'all' || normalizedStatus === statusFilter;
+
+            const taskInternId = String(task?.internId || task?.intern?.id || '');
+            const matchesIntern = internFilter === 'all' || taskInternId === internFilter;
+
+            const matchesKeyword =
+                !normalizedKeyword ||
+                String(task?.title || '')
+                    .toLowerCase()
+                    .includes(normalizedKeyword) ||
+                String(task?.description || '')
+                    .toLowerCase()
+                    .includes(normalizedKeyword) ||
+                String(task?.internName || task?.intern?.user?.fullName || task?.intern?.fullName || '')
+                    .toLowerCase()
+                    .includes(normalizedKeyword);
+
+            return matchesStatus && matchesIntern && matchesKeyword;
+        });
+    }, [dataSource, searchText, statusFilter, internFilter]);
+
+    const internOptions = [
+        { value: 'all', label: t('task_mgmt.all_interns') },
+        ...internRecords.map((i: any) => ({
+            value: i.id,
+            label: i.name || i.fullName || i.user?.fullName || i.user?.email || i.id
+        }))
+    ];
 
     const getActionMenu = (record: Task): MenuProps => ({
         items: [
@@ -296,13 +321,10 @@ export const MentorTaskManagement = () => {
                         <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
                             <Space size='middle'>
                                 <Select
-                                    defaultValue='All Interns'
+                                    value={internFilter}
                                     style={{ width: 150 }}
                                     onChange={setInternFilter}
-                                    options={[
-                                        { value: 'All Interns', label: t('task_mgmt.all_interns') },
-                                        ...(internRecords.map((i: any) => ({ value: i.id, label: i.name || i.fullName })) || [])
-                                    ]}
+                                    options={internOptions}
                                 />
                                 <Select
                                     value={statusFilter}
@@ -321,16 +343,17 @@ export const MentorTaskManagement = () => {
                                 prefix={<ProjectOutlined />}
                                 placeholder={t('task_mgmt.search_tasks')}
                                 style={{ width: 250 }}
+                                value={searchText}
                                 onChange={(e) => setSearchText(e.target.value)}
                             />
                         </div>
                         <Table
                             columns={columns}
-                            dataSource={dataSource}
+                            dataSource={filteredDataSource}
                             scroll={{ x: 'max-content' }}
                             loading={isLoading}
                             pagination={{
-                                total: tasksData?.pagination?.totalRows || dataSource.length,
+                                total: filteredDataSource.length,
                                 pageSize: 8
                             }}
                             rowKey='id'
