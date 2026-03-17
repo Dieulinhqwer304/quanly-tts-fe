@@ -16,7 +16,7 @@ import {
     Typography
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
@@ -38,6 +38,9 @@ export const RecruitmentPlanList = () => {
     const [selectedAdjustment, setSelectedAdjustment] = useState<{ planName: string; approval: any } | null>(null);
     const [isAdjustmentModalOpen, setIsAdjustmentModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [searchText, setSearchText] = useState('');
+    const [departmentFilter, setDepartmentFilter] = useState<string>('all');
+    const [statusFilter, setStatusFilter] = useState<string>('all');
 
     const fetchPlans = async () => {
         setIsLoading(true);
@@ -228,6 +231,41 @@ export const RecruitmentPlanList = () => {
     ];
 
     const schedule = [];
+    const plans = (plansData?.hits || []) as RecruitmentPlan[];
+
+    const departmentOptions = useMemo(() => {
+        const uniqueDepartments = Array.from(
+            new Set(
+                plans
+                    .map((plan) => String(plan.department || '').trim())
+                    .filter((department) => department.length > 0)
+            )
+        ).sort((a, b) => a.localeCompare(b));
+
+        return [{ value: 'all', label: t('recruitment.all_depts') }, ...uniqueDepartments.map((dept) => ({ value: dept, label: dept }))];
+    }, [plans, t]);
+
+    const filteredPlans = useMemo(() => {
+        return plans.filter((plan) => {
+            const normalizedSearchText = searchText.trim().toLowerCase();
+            const matchesSearch =
+                !normalizedSearchText ||
+                String(plan.name || '')
+                    .toLowerCase()
+                    .includes(normalizedSearchText) ||
+                String(plan.batch || '')
+                    .toLowerCase()
+                    .includes(normalizedSearchText);
+
+            const matchesDepartment =
+                departmentFilter === 'all' || String(plan.department || '').toLowerCase() === departmentFilter.toLowerCase();
+
+            const planStatus = String(plan.status || '').toLowerCase();
+            const matchesStatus = statusFilter === 'all' || planStatus === statusFilter;
+
+            return matchesSearch && matchesDepartment && matchesStatus;
+        });
+    }, [plans, searchText, departmentFilter, statusFilter]);
 
     return (
         <div style={{ padding: '24px' }}>
@@ -252,34 +290,34 @@ export const RecruitmentPlanList = () => {
                                 prefix={<SearchOutlined />}
                                 placeholder={t('recruitment.search_campaigns')}
                                 style={{ width: 200 }}
+                                value={searchText}
+                                onChange={(event) => setSearchText(event.target.value)}
                             />
                             <Select
-                                defaultValue={t('recruitment.all_depts')}
+                                value={departmentFilter}
                                 style={{ width: 160 }}
-                                options={[
-                                    { value: 'All Departments', label: t('recruitment.all_depts') },
-                                    { value: 'Engineering', label: 'Engineering' },
-                                    { value: 'Marketing', label: 'Marketing' }
-                                ]}
+                                onChange={setDepartmentFilter}
+                                options={departmentOptions}
                             />
                             <Select
-                                defaultValue={t('recruitment.status_all')}
+                                value={statusFilter}
                                 style={{ width: 140 }}
+                                onChange={setStatusFilter}
                                 options={[
-                                    { value: 'Status: All', label: t('recruitment.status_all') },
-                                    { value: 'Active', label: t('internship.active') },
-                                    { value: 'Closed', label: t('recruitment.closed') }
+                                    { value: 'all', label: t('recruitment.status_all') },
+                                    { value: 'active', label: t('internship.active') },
+                                    { value: 'pending_approval', label: t('recruitment.pending_approval') },
+                                    { value: 'closed', label: t('recruitment.closed') }
                                 ]}
                             />
                         </div>
 
                         <Table
                             columns={columns as any}
-                            dataSource={plansData?.hits || []}
+                            dataSource={filteredPlans}
                             scroll={{ x: 'max-content' }}
                             pagination={{
-                                current: 1,
-                                total: plansData?.pagination?.totalRows || 0,
+                                total: filteredPlans.length,
                                 pageSize: 15
                             }}
                             loading={isLoading}
