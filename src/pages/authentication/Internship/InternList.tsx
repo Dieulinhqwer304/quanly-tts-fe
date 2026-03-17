@@ -20,7 +20,6 @@ import {
     Typography,
     message,
     Breadcrumb,
-    Progress,
     Tooltip
 } from 'antd';
 import { useEffect, useState } from 'react';
@@ -373,19 +372,6 @@ export const InternList = () => {
                                               </Button>
                                           );
                                       }
-                                  }
-                                : null,
-                            isMentorView
-                                ? {
-                                      title: t('internship.progress'),
-                                      dataIndex: 'overallProgress',
-                                      key: 'progress',
-                                      width: 140,
-                                      render: (progress: number) => (
-                                          <div style={{ width: '100%' }}>
-                                              <Progress percent={progress} size='small' strokeColor='#1E40AF' />
-                                          </div>
-                                      )
                                   }
                                 : null,
                             !isMentorView
