@@ -4,7 +4,6 @@ import {
     EditOutlined,
     DeleteOutlined,
     EyeOutlined,
-    FilterOutlined,
     MoreOutlined
 } from '@ant-design/icons';
 import {
@@ -358,7 +357,6 @@ export const RecruitmentJobList = () => {
                                 { value: 'Data', label: 'Data Science' }
                             ]}
                         />
-                        {/* <Button icon={<FilterOutlined />}>{t('common.more_filters')}</Button> */}
                     </Space>
                     <Space>
                         <Text type='secondary'>

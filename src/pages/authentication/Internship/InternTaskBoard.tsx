@@ -3,7 +3,6 @@ import {
     CheckSquareOutlined,
     CloseOutlined,
     CloudUploadOutlined,
-    FilterOutlined,
     FlagOutlined,
     LinkOutlined,
     MessageOutlined,
@@ -244,7 +243,6 @@ export const InternTaskBoard = () => {
                                 bordered={false}
                                 className='bg-white rounded-lg border border-gray-200'
                             />
-                            <Button icon={<FilterOutlined />}>{t('common.more_filters')}</Button>
                         </Space>
                     </div>
                 </div>
