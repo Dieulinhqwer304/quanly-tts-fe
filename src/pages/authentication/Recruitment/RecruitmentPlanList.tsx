@@ -316,6 +316,41 @@ export const RecruitmentPlanList = () => {
                                     'Giám đốc đã yêu cầu chỉnh sửa kế hoạch này. Vui lòng cập nhật và gửi lại.'}
                             </div>
                         </div>
+                        <div style={{ marginTop: 12 }}>
+                            <Text strong>Lịch sử yêu cầu chỉnh sửa:</Text>
+                            {Array.isArray(selectedAdjustment?.approval?.details?.directorActionHistory) &&
+                            selectedAdjustment?.approval?.details?.directorActionHistory?.length ? (
+                                <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                    {selectedAdjustment.approval.details.directorActionHistory
+                                        .filter((history: any) => history?.action === 'Adjusting')
+                                        .sort(
+                                            (first: any, second: any) =>
+                                                new Date(second.actedAt || second.updatedAt || 0).getTime() -
+                                                new Date(first.actedAt || first.updatedAt || 0).getTime()
+                                        )
+                                        .map((history: any, index: number) => (
+                                            <div
+                                                key={`${history.actedAt || history.updatedAt || index}`}
+                                                style={{
+                                                    border: '1px solid #E5E7EB',
+                                                    borderRadius: 8,
+                                                    padding: '8px 10px',
+                                                    background: '#FAFAFA'
+                                                }}
+                                            >
+                                                <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 4 }}>
+                                                    {new Date(
+                                                        history.actedAt || history.updatedAt || Date.now()
+                                                    ).toLocaleString('vi-VN')}
+                                                </div>
+                                                <div>{history.note || 'Không có ghi chú.'}</div>
+                                            </div>
+                                        ))}
+                                </div>
+                            ) : (
+                                <div style={{ marginTop: 8, color: '#6B7280' }}>Chưa có lịch sử chỉnh sửa.</div>
+                            )}
+                        </div>
                         <div style={{ marginTop: 12, color: '#6B7280', fontSize: 12 }}>
                             {selectedAdjustment?.approval?.updatedAt
                                 ? `Cập nhật lúc: ${new Date(selectedAdjustment.approval.updatedAt).toLocaleString('vi-VN')}`

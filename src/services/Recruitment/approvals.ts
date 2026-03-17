@@ -16,11 +16,20 @@ export interface ApprovalPositionDetail {
     level?: string;
 }
 
+export interface ApprovalDirectorActionHistoryItem {
+    action: ApprovalStatus;
+    note?: string;
+    actedAt: string;
+    approverId?: string;
+    previousStatus?: ApprovalStatus;
+}
+
 export interface ApprovalDetails {
     positions?: ApprovalPositionDetail[];
     totalPositions?: number;
     expectedStart?: string;
     justification?: string;
+    directorActionHistory?: ApprovalDirectorActionHistoryItem[];
     [key: string]: unknown;
 }
 
