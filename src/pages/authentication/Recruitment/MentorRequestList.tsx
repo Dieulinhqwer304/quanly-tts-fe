@@ -1,7 +1,6 @@
 import {
     PlusOutlined,
     SearchOutlined,
-    FilterOutlined,
     CheckCircleOutlined,
     ClockCircleOutlined,
     CloseCircleOutlined,
@@ -375,7 +374,6 @@ export const MentorRequestList = () => {
                             ]}
                         />
                     </Space>
-                    <Button icon={<FilterOutlined />}>{t('common.filter')}</Button>
                 </div>
 
                 <Table

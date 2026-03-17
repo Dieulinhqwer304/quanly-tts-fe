@@ -1,4 +1,4 @@
-import { EllipsisOutlined, FilterOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { EllipsisOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import {
     Avatar,
     Button,
@@ -271,7 +271,6 @@ export const RecruitmentPlanList = () => {
                                     { value: 'Closed', label: t('recruitment.closed') }
                                 ]}
                             />
-                            <Button icon={<FilterOutlined />}>{t('common.more_filters')}</Button>
                         </div>
 
                         <Table
