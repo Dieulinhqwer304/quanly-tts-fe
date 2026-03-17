@@ -351,7 +351,6 @@ export const InterviewSchedule = () => {
                     <Title level={2} style={{ margin: 0 }}>
                         {t('interview.schedule_title')}
                     </Title>
-                    <Text type='secondary'>{t('interview.schedule_desc')}</Text>
                 </div>
 
                 <Row gutter={24}>
