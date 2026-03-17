@@ -552,8 +552,6 @@
         "normal_priority": "Ưu tiên bình thường"
     },
     "intern_task_board": {
-        "breadcrumb_phase": "Giai đoạn 2",
-        "breadcrumb_project": "Dự án Alpha",
         "title": "Giai đoạn 2: Sản phẩm dự án",
         "mentor_label": "Mentor",
         "new_task": "Task mới",
@@ -575,7 +573,6 @@
         "no_completed_tasks": "Chưa có công việc hoàn thành"
     },
     "intern_dashboard": {
-        "breadcrumb_program": "Chương trình thực tập",
         "current_track": "Chuyên ngành hiện tại",
         "syllabus": "Đề cương",
         "schedule": "Lịch trình",
