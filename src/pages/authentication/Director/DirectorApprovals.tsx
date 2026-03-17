@@ -1,7 +1,6 @@
 import {
     CheckCircleOutlined,
     CloseCircleOutlined,
-    DollarOutlined,
     FileTextOutlined,
     HistoryOutlined,
     InfoCircleOutlined,
@@ -32,7 +31,13 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { useApprovals, useUpdateApproval } from '../../../hooks/Recruitment/useApprovals';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { useResponsive } from '../../../hooks/useResponsive';
-import { Approval, ApprovalPositionDetail, ApprovalStatus, ApprovalType } from '../../../services/Recruitment/approvals';
+import {
+    Approval,
+    ApprovalDirectorActionHistoryItem,
+    ApprovalPositionDetail,
+    ApprovalStatus,
+    ApprovalType
+} from '../../../services/Recruitment/approvals';
 
 dayjs.extend(relativeTime);
 
@@ -73,21 +78,6 @@ const getStatusLabel = (status: string): string => {
 const getStatusColor = (status: string): 'warning' | 'success' | 'error' | 'processing' | 'default' => {
     const normalized = normalizeStatus(status);
     return normalized ? STATUS_COLORS[normalized] : 'default';
-};
-
-const getSafeNumber = (value: unknown): number | null => {
-    if (typeof value === 'number' && Number.isFinite(value)) return value;
-    if (typeof value === 'string') {
-        const parsed = Number(value);
-        return Number.isFinite(parsed) ? parsed : null;
-    }
-    return null;
-};
-
-const formatCurrency = (value: unknown): string => {
-    const num = getSafeNumber(value);
-    if (num === null) return 'N/A';
-    return `$${num.toLocaleString()}`;
 };
 
 const formatDateTime = (value?: string): string => {
@@ -153,6 +143,16 @@ export const DirectorApprovals = () => {
     );
 
     const positions: ApprovalPositionDetail[] = selectedRequest?.details?.positions || [];
+    const directorActionHistory = useMemo<ApprovalDirectorActionHistoryItem[]>(() => {
+        const history = selectedRequest?.details?.directorActionHistory;
+
+        if (!Array.isArray(history)) {
+            return [];
+        }
+
+        return [...history].sort((firstItem, secondItem) => dayjs(secondItem.actedAt).valueOf() - dayjs(firstItem.actedAt).valueOf());
+    }, [selectedRequest?.details?.directorActionHistory]);
+
     const totalPositions =
         typeof selectedRequest?.details?.totalPositions === 'number'
             ? selectedRequest.details.totalPositions
@@ -177,10 +177,6 @@ export const DirectorApprovals = () => {
 
     const selectedStatus = selectedRequest?.status ? normalizeStatus(selectedRequest.status) : null;
     const canTakeAction = selectedStatus === 'Pending' || selectedStatus === 'Adjusting';
-
-    const salary = getSafeNumber(selectedRequest?.salary);
-    const budget = getSafeNumber(selectedRequest?.budget);
-    const exceedAmount = salary !== null && budget !== null ? salary - budget : null;
 
     return (
         <Layout
@@ -339,7 +335,7 @@ export const DirectorApprovals = () => {
                             }}
                         >
                             <Row gutter={[16, 16]}>
-                                <Col xs={24} lg={16}>
+                                <Col span={24}>
                                     <Card bordered={false} style={{ border: '1px solid #E2E8F0' }}>
                                         <Title level={5} style={{ marginTop: 0 }}>
                                             <InfoCircleOutlined style={{ color: '#1E40AF' }} /> Thông tin kế hoạch
@@ -366,37 +362,6 @@ export const DirectorApprovals = () => {
                                                         : undefined
                                                 )}
                                             </Text>
-                                        </Space>
-                                    </Card>
-                                </Col>
-
-                                <Col xs={24} lg={8}>
-                                    <Card bordered={false} style={{ border: '1px solid #E2E8F0', height: '100%' }}>
-                                        <Title level={5} style={{ marginTop: 0 }}>
-                                            <DollarOutlined style={{ color: '#1E40AF' }} /> Tài chính (nếu có)
-                                        </Title>
-
-                                        <Space direction='vertical' size={10} style={{ width: '100%' }}>
-                                            <Text>
-                                                <strong>Ngân sách:</strong> {formatCurrency(selectedRequest.budget)}
-                                            </Text>
-                                            <Text>
-                                                <strong>Lương đề xuất:</strong> {formatCurrency(selectedRequest.salary)}
-                                            </Text>
-
-                                            {exceedAmount !== null && exceedAmount > 0 && (
-                                                <div
-                                                    style={{
-                                                        background: '#fff7ed',
-                                                        color: '#b45309',
-                                                        border: '1px solid #fed7aa',
-                                                        borderRadius: 8,
-                                                        padding: '8px 10px'
-                                                    }}
-                                                >
-                                                    <WarningOutlined /> Vượt ngân sách {formatCurrency(exceedAmount)}
-                                                </div>
-                                            )}
                                         </Space>
                                     </Card>
                                 </Col>
@@ -446,13 +411,60 @@ export const DirectorApprovals = () => {
 
                                         <Paragraph style={{ marginBottom: 8 }}>
                                             {(selectedRequest.details?.justification as string) ||
-                                                selectedRequest.notes ||
                                                 'Chưa có nội dung giải trình.'}
                                         </Paragraph>
 
                                         <Text type='secondary'>
                                             Cập nhật gần nhất: {formatDateTime(selectedRequest.updatedAt)}
                                         </Text>
+                                    </Card>
+                                </Col>
+
+                                <Col span={24}>
+                                    <Card bordered={false} style={{ border: '1px solid #E2E8F0' }}>
+                                        <Title level={5} style={{ marginTop: 0 }}>
+                                            <HistoryOutlined style={{ color: '#1E40AF' }} /> Ghi chú giám đốc
+                                        </Title>
+
+                                        <Paragraph style={{ marginBottom: 8 }}>
+                                            {selectedRequest.notes || 'Chưa có ghi chú từ giám đốc.'}
+                                        </Paragraph>
+
+                                        <Text type='secondary'>
+                                            Cập nhật gần nhất: {formatDateTime(selectedRequest.updatedAt)}
+                                        </Text>
+
+                                        <div style={{ marginTop: 12 }}>
+                                            <Text strong>Lịch sử xử lý</Text>
+                                            {directorActionHistory.length === 0 ? (
+                                                <Paragraph style={{ margin: '8px 0 0' }} type='secondary'>
+                                                    Chưa có lịch sử thao tác.
+                                                </Paragraph>
+                                            ) : (
+                                                <List
+                                                    size='small'
+                                                    style={{ marginTop: 8 }}
+                                                    dataSource={directorActionHistory}
+                                                    renderItem={(historyItem) => (
+                                                        <List.Item>
+                                                            <Space direction='vertical' size={2} style={{ width: '100%' }}>
+                                                                <Space size={8}>
+                                                                    <Tag color={getStatusColor(historyItem.action)}>
+                                                                        {getStatusLabel(historyItem.action)}
+                                                                    </Tag>
+                                                                    <Text type='secondary'>
+                                                                        {formatDateTime(historyItem.actedAt)}
+                                                                    </Text>
+                                                                </Space>
+                                                                <Text>
+                                                                    {historyItem.note || 'Không có ghi chú cho lần xử lý này.'}
+                                                                </Text>
+                                                            </Space>
+                                                        </List.Item>
+                                                    )}
+                                                />
+                                            )}
+                                        </div>
                                     </Card>
                                 </Col>
                             </Row>
