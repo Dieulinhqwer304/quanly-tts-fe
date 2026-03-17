@@ -20,12 +20,12 @@ interface RecruitmentPlanModalProps {
 interface PlanFormValues {
     name: string;
     batch: string;
-    department: string;
     description?: string;
     period?: [dayjs.Dayjs, dayjs.Dayjs];
     positions?: Array<{
         title: string;
         count: number;
+        department?: string;
         requirements?: string;
     }>;
 }
@@ -41,6 +41,13 @@ export const RecruitmentPlanModal = ({
     const { isMobile, isLaptop } = useResponsive();
     const [form] = Form.useForm();
     const [isLoading, setIsLoading] = useState(false);
+    const departmentOptions = [
+        { value: 'Engineering', label: 'Engineering' },
+        { value: 'Marketing', label: 'Marketing' },
+        { value: 'Design', label: 'Design' },
+        { value: 'Data', label: 'Data Science' },
+        { value: 'HR', label: 'Human Resources' }
+    ];
 
     useEffect(() => {
         if (open) {
@@ -50,6 +57,7 @@ export const RecruitmentPlanModal = ({
                     positions: initialValues.jobPositions?.map((jp) => ({
                         title: jp.title,
                         count: jp.requiredQuantity,
+                        department: jp.department || initialValues.department,
                         requirements: jp.requirements
                     })),
                     period:
@@ -66,10 +74,12 @@ export const RecruitmentPlanModal = ({
     const onFinish = async (values: PlanFormValues) => {
         setIsLoading(true);
         try {
+            const planDepartment =
+                values.positions?.[0]?.department?.trim() || initialValues?.department?.trim() || 'Engineering';
             const formData = {
                 name: values.name,
                 batch: values.batch,
-                department: values.department,
+                department: planDepartment,
                 description: values.description,
                 startDate: values.period ? values.period[0].format('YYYY-MM-DD') : '',
                 endDate: values.period ? values.period[1].format('YYYY-MM-DD') : '',
@@ -123,7 +133,7 @@ export const RecruitmentPlanModal = ({
                 onFinish={onFinish}
                 disabled={viewOnly}
                 initialValues={{
-                    department: 'Engineering'
+                    positions: [{ department: 'Engineering' }]
                 }}
             >
                 <Row gutter={24}>
@@ -144,23 +154,6 @@ export const RecruitmentPlanModal = ({
                                     rules={[{ required: true, message: t('common.required_field') }]}
                                 >
                                     <Input placeholder={t('recruitment.batch_name')} />
-                                </Form.Item>
-                            </Col>
-                            <Col xs={24} md={12}>
-                                <Form.Item
-                                    label={t('common.department')}
-                                    name='department'
-                                    rules={[{ required: true, message: t('common.required_field') }]}
-                                >
-                                    <Select
-                                        options={[
-                                            { value: 'Engineering', label: 'Engineering' },
-                                            { value: 'Marketing', label: 'Marketing' },
-                                            { value: 'Design', label: 'Design' },
-                                            { value: 'Data', label: 'Data Science' },
-                                            { value: 'HR', label: 'Human Resources' }
-                                        ]}
-                                    />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -212,6 +205,18 @@ export const RecruitmentPlanModal = ({
                                                             style={{ width: '100%' }}
                                                             placeholder='5'
                                                         />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col xs={24} md={12}>
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, 'department']}
+                                                        label={t('common.department')}
+                                                        rules={[
+                                                            { required: true, message: t('common.required_field') }
+                                                        ]}
+                                                    >
+                                                        <Select options={departmentOptions} />
                                                     </Form.Item>
                                                 </Col>
                                             </Row>
