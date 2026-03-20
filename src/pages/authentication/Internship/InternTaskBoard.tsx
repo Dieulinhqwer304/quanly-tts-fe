@@ -17,7 +17,6 @@ import {
     Divider,
     Input,
     Layout,
-    Select,
     Space,
     Tag,
     Typography,
@@ -156,22 +155,6 @@ export const InternTaskBoard = () => {
         }
     };
 
-    const moveTask = async (task: Task, newStatus: Task['status']) => {
-        setIsMutating(true);
-        try {
-            await http.patch(`/tasks/${task.id}/status`, { status: newStatus });
-            message.success(t('common.success'));
-            if (internId) fetchTasks(internId);
-            if (selectedTask?.id === task.id) {
-                setSelectedTask({ ...selectedTask, status: newStatus });
-            }
-        } catch {
-            message.error(t('common.error'));
-        } finally {
-            setIsMutating(false);
-        }
-    };
-
     useEffect(() => {
         setRepoLink('');
         setSubmissionFileList([]);
@@ -189,41 +172,6 @@ export const InternTaskBoard = () => {
             }}
             bodyStyle={{ padding: '16px' }}
             onClick={() => loadTaskDetail(task)}
-            actions={[
-                <Button
-                    type='text'
-                    size='small'
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        moveTask(task, 'to_do');
-                    }}
-                    disabled={task.status?.toLowerCase() === 'to_do'}
-                >
-                    {t('task_mgmt.to_do')}
-                </Button>,
-                <Button
-                    type='text'
-                    size='small'
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        moveTask(task, 'in_progress');
-                    }}
-                    disabled={task.status?.toLowerCase() === 'in_progress'}
-                >
-                    {t('task_mgmt.in_progress')}
-                </Button>,
-                <Button
-                    type='text'
-                    size='small'
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        moveTask(task, 'completed');
-                    }}
-                    disabled={task.status?.toLowerCase() === 'completed'}
-                >
-                    {t('task_mgmt.completed')}
-                </Button>
-            ]}
         >
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <Tag
@@ -300,7 +248,7 @@ export const InternTaskBoard = () => {
                     <div
                         style={{
                             display: 'flex',
-                            justifyContent: 'space-between',
+                            justifyContent: 'flex-start',
                             marginTop: '24px',
                             flexDirection: isMobile ? 'column' : 'row',
                             gap: isMobile ? '10px' : 0
@@ -314,14 +262,6 @@ export const InternTaskBoard = () => {
                             >
                                 {t('intern_task_board.kanban_board')}
                             </Button>
-                        </Space>
-                        <Space wrap>
-                            <Select
-                                defaultValue={t('intern_task_board.all_priorities')}
-                                style={{ width: 140 }}
-                                bordered={false}
-                                className='bg-white rounded-lg border border-gray-200'
-                            />
                         </Space>
                     </div>
                 </div>
