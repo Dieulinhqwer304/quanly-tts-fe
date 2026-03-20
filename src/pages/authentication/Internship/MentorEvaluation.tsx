@@ -5,7 +5,6 @@ import {
     SendOutlined,
     TeamOutlined,
     ClockCircleOutlined,
-    StarOutlined,
     FileTextOutlined,
     LockOutlined
 } from '@ant-design/icons';
@@ -39,6 +38,12 @@ import { getProfile } from '../../../services/auth/profile';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
+const DEFAULT_FORM_VALUES = {
+    strengths: '',
+    improvements: '',
+    notes: '',
+    overallScore: 7
+};
 
 const PHASE_CONFIG = [
     {
@@ -113,43 +118,50 @@ export const MentorEvaluation = () => {
         getProfile().then((res) => setMentorProfile(res)).catch(() => { });
     }, []);
 
+    const getPhaseByStep = (step: number) => PHASE_CONFIG[step] ?? PHASE_CONFIG[0];
+    const getEvalByPhase = (phase: string) => evaluations.find((e) => e.type === phase);
+    const getCompletedEvalByPhase = (phase: string) => evaluations.find((e) => e.type === phase && e.status === 'completed');
+    const getDraftEvalByPhase = (phase: string) => evaluations.find((e) => e.type === phase && e.status === 'draft');
+    const getFormSourceByPhase = (phase: string) => getDraftEvalByPhase(phase) ?? getCompletedEvalByPhase(phase) ?? getEvalByPhase(phase);
+    const getFormValuesByPhase = (phase: string) => {
+        const evaluation = getFormSourceByPhase(phase);
+
+        return {
+            strengths: evaluation?.strengths ?? DEFAULT_FORM_VALUES.strengths,
+            improvements: evaluation?.weaknesses ?? DEFAULT_FORM_VALUES.improvements,
+            notes: evaluation?.feedback ?? DEFAULT_FORM_VALUES.notes,
+            overallScore: evaluation?.overallScore ?? DEFAULT_FORM_VALUES.overallScore
+        };
+    };
+
     useEffect(() => {
-        const completedPhaseCount = PHASE_CONFIG.filter((phase) => Boolean(getEvalByPhase(phase.key))).length;
-        setCurrentStep(Math.min(completedPhaseCount, 2));
+        const firstIncompleteStep = PHASE_CONFIG.findIndex((phase) => !getCompletedEvalByPhase(phase.key));
+        setCurrentStep(firstIncompleteStep === -1 ? PHASE_CONFIG.length - 1 : firstIncompleteStep);
     }, [evaluations]);
 
-    const getEvalByPhase = (phase: string) => evaluations.find((e) => e.type === phase);
+    useEffect(() => {
+        form.setFieldsValue(getFormValuesByPhase(getPhaseByStep(currentStep).key));
+    }, [currentStep, evaluations, form]);
 
-    const onFinish = async (values: any) => {
+    const submitEvaluation = async (status: 'draft' | 'completed', values: any) => {
         if (!id || !internData) return;
         setIsProcessing(true);
         try {
-            let evalType = 'Probation';
-
-            if (currentStep === 0) {
-                evalType = 'Probation';
-            } else if (currentStep === 1) {
-                evalType = 'Mid-term';
-            } else {
-                evalType = 'Final';
-            }
-
             await http.post('/evaluations', {
                 internId: id,
                 mentorId: mentorProfile?.id,
-                type: evalType as any,
+                type: getPhaseByStep(currentStep).key as any,
                 overallScore: values.overallScore,
                 strengths: values.strengths,
                 weaknesses: values.improvements,
                 feedback: values.notes,
+                status,
             });
 
-            message.success(t('common.success'));
+            message.success(status === 'draft' ? t('eval.draft_saved') : t('common.success'));
             await fetchEvaluations();
-            form.resetFields();
-            if (currentStep < 2) {
-                setCurrentStep(currentStep + 1);
-            } else {
+
+            if (status === 'completed' && currentStep === PHASE_CONFIG.length - 1) {
                 navigate(RouteConfig.MentorInternList.path);
             }
         } catch {
@@ -157,6 +169,17 @@ export const MentorEvaluation = () => {
         } finally {
             setIsProcessing(false);
         }
+    };
+
+    const onFinish = async (values: any) => {
+        await submitEvaluation('completed', values);
+    };
+
+    const onSaveDraft = async () => {
+        await submitEvaluation('draft', {
+            ...DEFAULT_FORM_VALUES,
+            ...form.getFieldsValue(true)
+        });
     };
 
     if (isInternLoading) {
@@ -187,16 +210,17 @@ export const MentorEvaluation = () => {
                 <Row gutter={16}>
                     {PHASE_CONFIG.map((phase, idx) => {
                         const eval_ = getEvalByPhase(phase.key);
-                        const isDone = !!eval_;
-                        const isNext = !isDone && idx === currentStep;
+                        const isCompleted = eval_?.status === 'completed';
+                        const isDraft = eval_?.status === 'draft';
+                        const isCurrent = idx === currentStep;
                         return (
                             <Col xs={24} md={8} key={phase.key}>
                                 <div
                                     style={{
                                         padding: '16px',
                                         borderRadius: '12px',
-                                        border: `2px solid ${isDone ? phase.color : isNext ? '#E2E8F0' : '#F1F5F9'}`,
-                                        background: isDone ? phase.bg : '#FAFAFA',
+                                        border: `2px solid ${isCompleted || isDraft ? phase.color : isCurrent ? '#E2E8F0' : '#F1F5F9'}`,
+                                        background: isCompleted || isDraft ? phase.bg : '#FAFAFA',
                                         position: 'relative',
                                         height: '100%'
                                     }}
@@ -208,24 +232,24 @@ export const MentorEvaluation = () => {
                                                 style={{
                                                     width: 32, height: 32,
                                                     borderRadius: '8px',
-                                                    background: isDone ? phase.color : '#E2E8F0',
+                                                    background: isCompleted || isDraft ? phase.color : '#E2E8F0',
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    color: isDone ? '#fff' : '#94A3B8',
+                                                    color: isCompleted || isDraft ? '#fff' : '#94A3B8',
                                                     marginBottom: '8px'
                                                 }}
                                             >
-                                                {isDone ? <CheckCircleOutlined /> : isNext ? phase.icon : <LockOutlined />}
+                                                {isCompleted ? <CheckCircleOutlined /> : isDraft ? <SaveOutlined /> : isCurrent ? phase.icon : <LockOutlined />}
                                             </div>
-                                            <Text strong style={{ fontSize: '13px', color: isDone ? phase.color : '#64748B' }}>
+                                            <Text strong style={{ fontSize: '13px', color: isCompleted || isDraft ? phase.color : '#64748B' }}>
                                                 {phase.label}
                                             </Text>
                                         </div>
-                                        <Tag color={isDone ? 'success' : isNext ? 'processing' : 'default'}>
-                                            {isDone ? 'Hoàn thành' : isNext ? 'Đang thực hiện' : 'Chưa đến'}
+                                        <Tag color={isCompleted ? 'success' : isDraft ? 'gold' : isCurrent ? 'processing' : 'default'}>
+                                            {isCompleted ? 'Hoàn thành' : isDraft ? 'Bản nháp' : isCurrent ? 'Đang thực hiện' : 'Chưa đến'}
                                         </Tag>
                                     </div>
 
-                                    {isDone ? (
+                                    {eval_ ? (
                                         <>
                                             <Divider style={{ margin: '8px 0' }} />
                                             {eval_.overallScore != null && (
@@ -251,7 +275,7 @@ export const MentorEvaluation = () => {
                                         </>
                                     ) : (
                                         <div style={{ color: '#94A3B8', fontSize: '12px', marginTop: '8px' }}>
-                                            {isNext ? 'Sẵn sàng đánh giá bên dưới' : 'Chưa đến giai đoạn này'}
+                                            {isCurrent ? 'Sẵn sàng đánh giá bên dưới' : 'Chưa đến giai đoạn này'}
                                         </div>
                                     )}
                                 </div>
@@ -275,6 +299,9 @@ export const MentorEvaluation = () => {
                                 children: (
                                     <div>
                                         <Tag color='blue' style={{ fontSize: '11px' }}>{cfg?.label || e.type}</Tag>
+                                        <Tag color={e.status === 'completed' ? 'success' : 'gold'} style={{ fontSize: '11px', marginLeft: '8px' }}>
+                                            {e.status === 'completed' ? 'Hoàn thành' : 'Bản nháp'}
+                                        </Tag>
                                         <Text style={{ fontSize: '12px', marginLeft: '8px', color: '#64748B' }}>
                                             {e.evaluationDate ? new Date(e.evaluationDate).toLocaleDateString('vi-VN') : '--'}
                                         </Text>
@@ -333,7 +360,6 @@ export const MentorEvaluation = () => {
                             label='Điểm đánh giá tổng'
                             name='overallScore'
                             rules={[{ required: true, message: t('common.required_field') }]}
-                            initialValue={7}
                         >
                             <Slider min={0} max={10} step={1} marks={{ 0: '0', 5: '5', 10: '10' }} />
                         </Form.Item>
@@ -343,7 +369,7 @@ export const MentorEvaluation = () => {
         );
     };
 
-    const completedPhases = PHASE_CONFIG.filter((phase) => Boolean(getEvalByPhase(phase.key))).length;
+    const completedPhases = PHASE_CONFIG.filter((phase) => Boolean(getCompletedEvalByPhase(phase.key))).length;
     const allDone = completedPhases >= PHASE_CONFIG.length;
 
     return (
@@ -414,9 +440,15 @@ export const MentorEvaluation = () => {
                         <Steps
                             current={currentStep}
                             onChange={(step) => {
-                                const evalDone = getEvalByPhase(PHASE_CONFIG[step].key);
-                                if (evalDone || step <= completedPhases) setCurrentStep(step);
-                                else message.warning('Vui lòng hoàn thành đánh giá giai đoạn trước.');
+                                const firstIncompleteStep = PHASE_CONFIG.findIndex((phase) => !getCompletedEvalByPhase(phase.key));
+                                const maxAccessibleStep = firstIncompleteStep === -1 ? PHASE_CONFIG.length - 1 : firstIncompleteStep;
+
+                                if (step <= maxAccessibleStep || Boolean(getCompletedEvalByPhase(PHASE_CONFIG[step].key))) {
+                                    setCurrentStep(step);
+                                    return;
+                                }
+
+                                message.warning('Vui lòng hoàn thành đánh giá giai đoạn trước.');
                             }}
                             items={[
                                 { title: t('eval.phase1_title'), description: t('task_mgmt.training'), icon: completedPhases > 0 ? <CheckCircleOutlined /> : undefined },
@@ -455,7 +487,7 @@ export const MentorEvaluation = () => {
                                     {t('common.back')}
                                 </Button>
                                 <Space>
-                                    <Button icon={<SaveOutlined />} onClick={() => message.success(t('eval.draft_saved'))}>
+                                    <Button icon={<SaveOutlined />} onClick={onSaveDraft} loading={isProcessing}>
                                         {t('eval.save_draft')}
                                     </Button>
                                     <Button

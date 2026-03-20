@@ -64,9 +64,11 @@ export interface CreateEvaluationParams {
     attitudeScore?: number;
     teamworkScore?: number;
     progressScore?: number;
+    overallScore?: number;
     strengths?: string;
     weaknesses?: string;
-    feedback: string;
+    feedback?: string;
+    status?: 'draft' | 'completed';
 }
 
 export const createEvaluation = async (params: CreateEvaluationParams): Promise<ResponseDetailSuccess<Evaluation>> => {
