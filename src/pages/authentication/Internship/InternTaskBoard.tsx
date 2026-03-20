@@ -5,14 +5,12 @@ import {
     CloudUploadOutlined,
     FlagOutlined,
     LinkOutlined,
-    MessageOutlined,
     MoreOutlined,
     PaperClipOutlined,
     UploadOutlined,
     UserOutlined
 } from '@ant-design/icons';
 import {
-    Avatar,
     Button,
     Card,
     Divider,
@@ -33,7 +31,6 @@ import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
 import { Task } from '../../../services/Internship/tasks';
 import { useResponsive } from '../../../hooks/useResponsive';
-import dayjs from 'dayjs';
 
 const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -42,7 +39,6 @@ export const InternTaskBoard = () => {
     const { t } = useTranslation();
     const { isMobile, isLaptop } = useResponsive();
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-    const [comment, setComment] = useState('');
     const [repoLink, setRepoLink] = useState('');
     const [submissionFileList, setSubmissionFileList] = useState<UploadFile[]>([]);
 
@@ -582,86 +578,6 @@ export const InternTaskBoard = () => {
                             >
                                 {t('intern_task_board.submit_for_review')}
                             </Button>
-                        </div>
-
-                        <Divider />
-
-                        <div>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    fontWeight: 700,
-                                    marginBottom: '16px'
-                                }}
-                            >
-                                <MessageOutlined style={{ color: '#722ed1' }} />{' '}
-                                {t('intern_task_board.mentor_feedback')}
-                            </div>
-
-                            <div style={{ marginBottom: '24px' }}>
-                                <Input.TextArea
-                                    placeholder={t('common.write_a_reply')}
-                                    rows={3}
-                                    value={comment}
-                                    onChange={(e) => setComment(e.target.value)}
-                                    style={{ marginBottom: '8px' }}
-                                />
-                                <Button
-                                    type='primary'
-                                    size='small'
-                                    disabled={!comment.trim()}
-                                    onClick={async () => {
-                                        setIsMutating(true);
-                                        try {
-                                            await http.post(`/tasks/${selectedTask.id}/comments`, { content: comment });
-                                            message.success(t('common.success'));
-                                            setComment('');
-                                            if (internId) fetchTasks(internId);
-                                        } catch {
-                                            message.error(t('common.error'));
-                                        } finally {
-                                            setIsMutating(false);
-                                        }
-                                    }}
-                                    loading={isMutating}
-                                >
-                                    {t('common.send')}
-                                </Button>
-                            </div>
-
-                            {selectedTask.comments?.map((c) => (
-                                <div key={c.id} style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-                                    <Avatar src={c.user?.avatarUrl || `https://i.pravatar.cc/150?u=${c.userId}`} />
-                                    <div style={{ flex: 1 }}>
-                                        <div
-                                            style={{
-                                                background: '#f3f4f6',
-                                                padding: '12px',
-                                                borderRadius: '12px',
-                                                borderTopLeftRadius: '0'
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    marginBottom: '4px'
-                                                }}
-                                            >
-                                                <Text strong style={{ fontSize: '12px' }}>
-                                                    {c.user?.fullName}
-                                                </Text>
-                                                <Text type='secondary' style={{ fontSize: '10px' }}>
-                                                    {dayjs(c.createdAt).fromNow()}
-                                                </Text>
-                                            </div>
-                                            <Text style={{ fontSize: '13px', color: '#64748B' }}>{c.comment}</Text>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
                         </div>
                     </div>
                 </Sider>

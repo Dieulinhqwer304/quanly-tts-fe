@@ -7,7 +7,6 @@ import {
     CloseOutlined,
     EyeOutlined,
     LinkOutlined,
-    MessageOutlined,
     PaperClipOutlined,
     UploadOutlined
 } from '@ant-design/icons';
@@ -50,7 +49,6 @@ export const MentorTaskManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [taskDetail, setTaskDetail] = useState<Task | null>(null);
-    const [reviewComment, setReviewComment] = useState('');
     const [assignmentFileList, setAssignmentFileList] = useState<UploadFile[]>([]);
     const [form] = Form.useForm();
 
@@ -170,7 +168,6 @@ export const MentorTaskManagement = () => {
     const handleViewDetail = async (id: string) => {
         setIsLoadingDetail(true);
         setIsDetailModalOpen(true);
-        setReviewComment('');
         try {
             const detail = await http.get<Task>(`/tasks/${id}`);
             setTaskDetail(detail);
@@ -179,23 +176,6 @@ export const MentorTaskManagement = () => {
             setIsDetailModalOpen(false);
         } finally {
             setIsLoadingDetail(false);
-        }
-    };
-
-    const handleSubmitReviewComment = async () => {
-        if (!taskDetail?.id || !reviewComment.trim()) return;
-
-        setIsProcessing(true);
-        try {
-            await http.post(`/tasks/${taskDetail.id}/comments`, { content: reviewComment.trim() });
-            messageApi.success(t('common.success'));
-            setReviewComment('');
-            await handleViewDetail(taskDetail.id);
-            await fetchTasks();
-        } catch {
-            messageApi.error(t('common.error'));
-        } finally {
-            setIsProcessing(false);
         }
     };
 
@@ -520,7 +500,6 @@ export const MentorTaskManagement = () => {
                 onCancel={() => {
                     setIsDetailModalOpen(false);
                     setTaskDetail(null);
-                    setReviewComment('');
                 }}
                 footer={null}
                 confirmLoading={isLoadingDetail}
@@ -595,22 +574,6 @@ export const MentorTaskManagement = () => {
                         ) : (
                             <Text type='secondary'>Chưa có tài liệu nộp.</Text>
                         )}
-                    </Space>
-                    <Divider style={{ margin: '8px 0' }} />
-                    <Space direction='vertical' style={{ width: '100%' }} size={8}>
-                        <Text strong>
-                            <MessageOutlined style={{ marginRight: '8px' }} />
-                            Đánh giá công việc
-                        </Text>
-                        <Input.TextArea
-                            rows={4}
-                            value={reviewComment}
-                            onChange={(event) => setReviewComment(event.target.value)}
-                            placeholder='Nhập nhận xét công việc'
-                        />
-                        <Button type='primary' onClick={handleSubmitReviewComment} loading={isProcessing} disabled={!reviewComment.trim()}>
-                            Gửi nhận xét
-                        </Button>
                     </Space>
                 </Space>
             </Modal>
