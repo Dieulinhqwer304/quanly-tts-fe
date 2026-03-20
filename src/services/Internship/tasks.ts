@@ -30,6 +30,7 @@ export interface Task {
         fullName: string;
     };
     attachments?: string[];
+    revisionRequest?: string;
     comments?: Array<{
         id: string;
         userId: string;
@@ -84,6 +85,7 @@ export interface UpdateTaskParams {
     status?: string;
     description?: string;
     attachments?: string[];
+    revisionRequest?: string;
 }
 
 export const updateStatus = async (id: string, status: string): Promise<ResponseDetailSuccess<Task>> => {

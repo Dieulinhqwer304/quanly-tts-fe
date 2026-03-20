@@ -438,7 +438,11 @@
         "view_details": "Xem chi tiết",
         "approve_complete": "Duyệt / Hoàn thành",
         "request_revision": "Yêu cầu chỉnh sửa",
-        "choose_intern": "Chọn thực tập sinh"
+        "choose_intern": "Chọn thực tập sinh",
+        "need_rework": "Cần chỉnh sửa",
+        "revision_request": "Yêu cầu chỉnh sửa",
+        "revision_request_placeholder": "Nhập nội dung cần thực tập sinh chỉnh sửa...",
+        "send_revision_request": "Gửi yêu cầu"
     },
     "test": {
         "title": "Bài kiểm tra kiến thức",

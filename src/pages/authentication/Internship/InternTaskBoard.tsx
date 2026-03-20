@@ -490,6 +490,18 @@ export const InternTaskBoard = () => {
                             {selectedTask.description}
                         </Paragraph>
 
+                        {selectedTask.revisionRequest ? (
+                            <>
+                                <Divider />
+                                <Card size='small' style={{ marginBottom: '24px', borderColor: '#faad14', background: '#fffbe6' }}>
+                                    <Space direction='vertical' style={{ width: '100%' }} size={6}>
+                                        <Text strong>{t('task_mgmt.revision_request')}</Text>
+                                        <Text style={{ whiteSpace: 'pre-wrap' }}>{selectedTask.revisionRequest}</Text>
+                                    </Space>
+                                </Card>
+                            </>
+                        ) : null}
+
                         <Divider />
 
                         <div style={{ marginBottom: '24px' }}>
