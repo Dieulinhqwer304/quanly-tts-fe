@@ -22,6 +22,7 @@ interface InternModalProps {
   onSuccess: () => void;
   initialValues?: any;
   viewOnly?: boolean;
+  hideLearningPathSelection?: boolean;
 }
 
 interface UserOption {
@@ -37,7 +38,14 @@ interface LearningPathOption {
   track: string;
 }
 
-export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly }: InternModalProps) => {
+export const InternModal = ({
+  open,
+  onCancel,
+  onSuccess,
+  initialValues,
+  viewOnly,
+  hideLearningPathSelection = false,
+}: InternModalProps) => {
   const { t } = useTranslation();
   const { isLaptop, isMobile } = useResponsive();
   const [form] = Form.useForm<InternFormValues>();
@@ -58,10 +66,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
   const loadOptions = async () => {
     setIsBootstrapping(true);
     try {
-      const [usersRes, learningPathRes] = await Promise.all([
-        http.get<{ hits?: any[]; data?: any[] }>('/users'),
-        http.get<{ hits?: any[]; data?: any[] }>('/learning-paths'),
-      ]);
+      const usersRes = await http.get<{ hits?: any[]; data?: any[] }>('/users');
 
       const userSource = (usersRes?.hits || usersRes?.data || []) as any[];
       setUsers(
@@ -75,16 +80,21 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
           .filter((u) => u.id && u.fullName),
       );
 
-      const learningPathSource = (learningPathRes?.hits || learningPathRes?.data || []) as any[];
-      setLearningPaths(
-        learningPathSource
-          .map((lp) => ({
-            id: String(lp.id || ''),
-            title: String(lp.title || ''),
-            track: String(lp.track || ''),
-          }))
-          .filter((lp) => lp.id && lp.title),
-      );
+      if (!hideLearningPathSelection) {
+        const learningPathRes = await http.get<{ hits?: any[]; data?: any[] }>('/learning-paths');
+        const learningPathSource = (learningPathRes?.hits || learningPathRes?.data || []) as any[];
+        setLearningPaths(
+          learningPathSource
+            .map((lp) => ({
+              id: String(lp.id || ''),
+              title: String(lp.title || ''),
+              track: String(lp.track || ''),
+            }))
+            .filter((lp) => lp.id && lp.title),
+        );
+      } else {
+        setLearningPaths([]);
+      }
     } catch {
       message.error('Không tải được dữ liệu danh mục cho thực tập sinh');
     } finally {
@@ -95,7 +105,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
   useEffect(() => {
     if (!open) return;
     loadOptions();
-  }, [open]);
+  }, [open, hideLearningPathSelection]);
 
   useEffect(() => {
     if (!open) return;
@@ -104,7 +114,7 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
       form.setFieldsValue({
         userId: initialValues.userId,
         mentorId: initialValues.mentorId,
-        learningPathId: initialValues.learningPathId || initialValues.learningPath?.id,
+        learningPathId: hideLearningPathSelection ? undefined : initialValues.learningPathId || initialValues.learningPath?.id,
         track: initialValues.track,
         department: initialValues.department,
         status: (initialValues.status || '').toLowerCase(),
@@ -115,8 +125,11 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
       });
     } else {
       form.resetFields();
+      if (hideLearningPathSelection) {
+        form.setFieldValue('learningPathId', undefined);
+      }
     }
-  }, [form, initialValues, open]);
+  }, [form, initialValues, open, hideLearningPathSelection]);
 
   const onLearningPathChange = (learningPathId?: string) => {
     const selected = learningPaths.find((lp) => lp.id === learningPathId);
@@ -130,11 +143,13 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
         userId: values.userId,
         mentorId: values.mentorId,
         department: values.department,
-        learningPathId: values.learningPathId,
         track: values.track,
         startDate: startDate?.format('YYYY-MM-DD'),
         endDate: endDate?.format('YYYY-MM-DD'),
       };
+      if (!hideLearningPathSelection && values.learningPathId) {
+        payload.learningPathId = values.learningPathId;
+      }
 
       if (values.status) {
         payload.status = values.status;
@@ -208,23 +223,28 @@ export const InternModal = ({ open, onCancel, onSuccess, initialValues, viewOnly
         </Row>
 
         <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item label='Lộ trình đào tạo' name='learningPathId' rules={[{ required: true, message: t('common.required_field') }]}>
-              <Select
-                showSearch
-                optionFilterProp='label'
-                placeholder='Chọn lộ trình'
-                onChange={onLearningPathChange}
-                options={learningPaths.map((lp) => ({
-                  value: lp.id,
-                  label: `${lp.title} (${lp.track})`,
-                }))}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
+          {!hideLearningPathSelection && (
+            <Col xs={24} md={12}>
+              <Form.Item label='Lộ trình đào tạo' name='learningPathId' rules={[{ required: true, message: t('common.required_field') }]}>
+                <Select
+                  showSearch
+                  optionFilterProp='label'
+                  placeholder='Chọn lộ trình'
+                  onChange={onLearningPathChange}
+                  options={learningPaths.map((lp) => ({
+                    value: lp.id,
+                    label: `${lp.title} (${lp.track})`,
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+          )}
+          <Col xs={24} md={hideLearningPathSelection ? 24 : 12}>
             <Form.Item label={t('internship.track')} name='track' rules={[{ required: true, message: t('common.required_field') }]}>
-              <Input readOnly placeholder='Track tự động theo lộ trình' />
+              <Input
+                readOnly={!hideLearningPathSelection}
+                placeholder={hideLearningPathSelection ? 'Nhập chuyên ngành thực tập' : 'Track tự động theo lộ trình'}
+              />
             </Form.Item>
           </Col>
         </Row>
