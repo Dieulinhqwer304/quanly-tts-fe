@@ -24,8 +24,6 @@ import {
     Tag,
     Steps,
     Spin,
-    Progress,
-    Statistic,
     Empty
 } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -359,27 +357,6 @@ export const MentorEvaluation = () => {
                             <Tag color='blue'>{intern?.status}</Tag>
                             <Tag color='purple'>{intern?.mentor?.fullName}</Tag>
                         </div>
-                    </Col>
-                    <Col>
-                        <Row gutter={24}>
-                            <Col>
-                                <Statistic
-                                    title='Tiến độ'
-                                    value={intern?.overallProgress ?? 0}
-                                    suffix='%'
-                                    valueStyle={{ color: '#1E40AF', fontSize: '24px' }}
-                                />
-                                <Progress percent={intern?.overallProgress ?? 0} size='small' status='active' style={{ width: '120px' }} />
-                            </Col>
-                            <Col>
-                                <Statistic
-                                    title='Giai đoạn đã đánh giá'
-                                    value={completedPhases}
-                                    suffix='/ 3'
-                                    valueStyle={{ color: completedPhases === 3 ? '#10B981' : '#F59E0B', fontSize: '24px' }}
-                                />
-                            </Col>
-                        </Row>
                     </Col>
                 </Row>
             </Card>
