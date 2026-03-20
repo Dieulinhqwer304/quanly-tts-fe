@@ -350,13 +350,7 @@ export const MentorEvaluation = () => {
                         <Title level={3} style={{ margin: 0 }}>
                             {intern?.user?.fullName || intern?.name}
                         </Title>
-                        <Text type='secondary'>
-                            {intern?.track} • {intern?.id}
-                        </Text>
-                        <div style={{ marginTop: '8px' }}>
-                            <Tag color='blue'>{intern?.status}</Tag>
-                            <Tag color='purple'>{intern?.mentor?.fullName}</Tag>
-                        </div>
+                        <Text type='secondary'>{intern?.track}</Text>
                     </Col>
                 </Row>
             </Card>
