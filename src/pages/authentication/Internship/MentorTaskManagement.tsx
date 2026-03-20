@@ -5,13 +5,18 @@ import {
     EllipsisOutlined,
     CheckOutlined,
     CloseOutlined,
-    EyeOutlined
+    EyeOutlined,
+    LinkOutlined,
+    MessageOutlined,
+    PaperClipOutlined,
+    UploadOutlined
 } from '@ant-design/icons';
 import {
     Avatar,
     Button,
     Card,
     Col,
+    Divider,
     Input,
     Row,
     Space,
@@ -24,9 +29,11 @@ import {
     DatePicker,
     Dropdown,
     MenuProps,
-    App
+    App,
+    Upload
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import type { UploadFile } from 'antd/es/upload/interface';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
@@ -43,6 +50,8 @@ export const MentorTaskManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [taskDetail, setTaskDetail] = useState<Task | null>(null);
+    const [reviewComment, setReviewComment] = useState('');
+    const [assignmentFileList, setAssignmentFileList] = useState<UploadFile[]>([]);
     const [form] = Form.useForm();
 
     const [tasksData, setTasksData] = useState<any>(null);
@@ -82,6 +91,30 @@ export const MentorTaskManagement = () => {
         fetchInterns();
     }, []);
 
+    const uploadTaskFile = async (file: File): Promise<string> => {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', file);
+
+        const uploadResult = await http.post<{ fileName?: string; data?: { fileName?: string } }>(
+            '/storage/upload',
+            uploadFormData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            },
+        );
+        const fileName = uploadResult?.fileName || uploadResult?.data?.fileName;
+        if (!fileName) {
+            throw new Error('Upload tài liệu thất bại');
+        }
+
+        const urlResult = await http.get<{ url?: string; data?: { url?: string } }>(
+            `/storage/url/${encodeURIComponent(fileName)}`,
+        );
+        return urlResult?.url || urlResult?.data?.url || fileName;
+    };
+
     const handleAddTask = async (values: any) => {
         setIsProcessing(true);
         try {
@@ -91,16 +124,31 @@ export const MentorTaskManagement = () => {
                 return;
             }
 
+            const uploadedAttachmentUrls = await Promise.all(
+                assignmentFileList
+                    .map((fileItem) => fileItem.originFileObj)
+                    .filter(Boolean)
+                    .map((file) => uploadTaskFile(file as File)),
+            );
+            const attachments = Array.from(
+                new Set([
+                    ...uploadedAttachmentUrls,
+                    ...(values.assignmentLink?.trim() ? [values.assignmentLink.trim()] : []),
+                ]),
+            );
+
             await http.post('/tasks', {
                 title: values.title,
                 internId: values.internId,
                 mentorId: selectedIntern.mentorId,
                 priority: values.priority.toLowerCase() as any,
                 dueDate: values.dueDate.format('YYYY-MM-DD'),
-                description: values.description || ''
+                description: values.description || '',
+                attachments,
             });
             setIsModalOpen(false);
             form.resetFields();
+            setAssignmentFileList([]);
             messageApi.success(t('common.success'));
             fetchTasks();
         } catch {
@@ -122,6 +170,7 @@ export const MentorTaskManagement = () => {
     const handleViewDetail = async (id: string) => {
         setIsLoadingDetail(true);
         setIsDetailModalOpen(true);
+        setReviewComment('');
         try {
             const detail = await http.get<Task>(`/tasks/${id}`);
             setTaskDetail(detail);
@@ -130,6 +179,23 @@ export const MentorTaskManagement = () => {
             setIsDetailModalOpen(false);
         } finally {
             setIsLoadingDetail(false);
+        }
+    };
+
+    const handleSubmitReviewComment = async () => {
+        if (!taskDetail?.id || !reviewComment.trim()) return;
+
+        setIsProcessing(true);
+        try {
+            await http.post(`/tasks/${taskDetail.id}/comments`, { content: reviewComment.trim() });
+            messageApi.success(t('common.success'));
+            setReviewComment('');
+            await handleViewDetail(taskDetail.id);
+            await fetchTasks();
+        } catch {
+            messageApi.error(t('common.error'));
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -160,6 +226,11 @@ export const MentorTaskManagement = () => {
             return matchesStatus && matchesIntern && matchesKeyword;
         });
     }, [dataSource, searchText, statusFilter, internFilter]);
+
+    const submittedComments = (taskDetail?.comments || []).filter(
+        (commentItem) =>
+            Boolean(commentItem.attachments?.length) || /^https?:\/\//i.test(String(commentItem.comment || '').trim()),
+    );
 
     const internOptions = [
         { value: 'all', label: t('task_mgmt.all_interns') },
@@ -373,6 +444,11 @@ export const MentorTaskManagement = () => {
                 onOk={() => form.submit()}
                 confirmLoading={isProcessing}
                 destroyOnClose
+                afterOpenChange={(open) => {
+                    if (!open) {
+                        setAssignmentFileList([]);
+                    }
+                }}
             >
                 <Form form={form} layout='vertical' onFinish={handleAddTask} style={{ marginTop: '16px' }}>
                     <Form.Item
@@ -422,6 +498,19 @@ export const MentorTaskManagement = () => {
                     <Form.Item label={t('learning_path.description_optional')} name='description'>
                         <Input.TextArea rows={3} placeholder={t('learning_path.description_optional')} />
                     </Form.Item>
+                    <Form.Item label='Link tài liệu' name='assignmentLink'>
+                        <Input prefix={<LinkOutlined />} placeholder='https://drive.google.com/... hoặc link tài liệu khác' />
+                    </Form.Item>
+                    <Form.Item label='Upload tài liệu'>
+                        <Upload
+                            multiple
+                            beforeUpload={() => false}
+                            fileList={assignmentFileList}
+                            onChange={({ fileList }) => setAssignmentFileList(fileList)}
+                        >
+                            <Button icon={<UploadOutlined />}>Chọn tài liệu</Button>
+                        </Upload>
+                    </Form.Item>
                 </Form>
             </Modal>
 
@@ -431,6 +520,7 @@ export const MentorTaskManagement = () => {
                 onCancel={() => {
                     setIsDetailModalOpen(false);
                     setTaskDetail(null);
+                    setReviewComment('');
                 }}
                 footer={null}
                 confirmLoading={isLoadingDetail}
@@ -440,7 +530,7 @@ export const MentorTaskManagement = () => {
                         {t('task_mgmt.task_id')}: {taskDetail?.id || 'N/A'}
                     </Text>
                     <Text>
-                        {t('task_mgmt.intern')}: {taskDetail?.internName || 'N/A'}
+                        {t('task_mgmt.intern')}: {taskDetail?.internName || taskDetail?.intern?.user?.fullName || 'N/A'}
                     </Text>
                     <Text>
                         {t('task_mgmt.priority')}:{' '}
@@ -457,6 +547,71 @@ export const MentorTaskManagement = () => {
                         {t('common.status')}: {taskDetail?.status || 'N/A'}
                     </Text>
                     <Text>{taskDetail?.description || 'No description provided.'}</Text>
+                    <Divider style={{ margin: '8px 0' }} />
+                    <Space direction='vertical' style={{ width: '100%' }} size={8}>
+                        <Text strong>
+                            <PaperClipOutlined style={{ marginRight: '8px' }} />
+                            Tài liệu đã giao
+                        </Text>
+                        {taskDetail?.attachments?.length ? (
+                            taskDetail.attachments.map((attachment, index) => (
+                                <Button
+                                    key={`${attachment}-${index}`}
+                                    type='link'
+                                    style={{ padding: 0, justifyContent: 'flex-start' }}
+                                    onClick={() => window.open(attachment, '_blank', 'noopener,noreferrer')}
+                                >
+                                    {attachment}
+                                </Button>
+                            ))
+                        ) : (
+                            <Text type='secondary'>Chưa có tài liệu được giao.</Text>
+                        )}
+                    </Space>
+                    <Divider style={{ margin: '8px 0' }} />
+                    <Space direction='vertical' style={{ width: '100%' }} size={8}>
+                        <Text strong>Tài liệu thực tập sinh đã nộp</Text>
+                        {submittedComments.length ? (
+                            submittedComments.map((commentItem) => (
+                                <Card key={commentItem.id} size='small'>
+                                    <Space direction='vertical' style={{ width: '100%' }} size={6}>
+                                        <Text strong>{commentItem.user?.fullName || 'Người dùng'}</Text>
+                                        <Text>{commentItem.comment}</Text>
+                                        {commentItem.attachments?.length ? (
+                                            commentItem.attachments.map((attachment, index) => (
+                                                <Button
+                                                    key={`${attachment}-${index}`}
+                                                    type='link'
+                                                    style={{ padding: 0, justifyContent: 'flex-start' }}
+                                                    onClick={() => window.open(attachment, '_blank', 'noopener,noreferrer')}
+                                                >
+                                                    {attachment}
+                                                </Button>
+                                            ))
+                                        ) : null}
+                                    </Space>
+                                </Card>
+                            ))
+                        ) : (
+                            <Text type='secondary'>Chưa có tài liệu nộp.</Text>
+                        )}
+                    </Space>
+                    <Divider style={{ margin: '8px 0' }} />
+                    <Space direction='vertical' style={{ width: '100%' }} size={8}>
+                        <Text strong>
+                            <MessageOutlined style={{ marginRight: '8px' }} />
+                            Đánh giá công việc
+                        </Text>
+                        <Input.TextArea
+                            rows={4}
+                            value={reviewComment}
+                            onChange={(event) => setReviewComment(event.target.value)}
+                            placeholder='Nhập nhận xét công việc'
+                        />
+                        <Button type='primary' onClick={handleSubmitReviewComment} loading={isProcessing} disabled={!reviewComment.trim()}>
+                            Gửi nhận xét
+                        </Button>
+                    </Space>
                 </Space>
             </Modal>
         </div>

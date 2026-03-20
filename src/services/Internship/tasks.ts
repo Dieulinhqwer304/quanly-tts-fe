@@ -18,6 +18,9 @@ export interface Task {
         id: string;
         fullName: string;
         avatarUrl: string;
+        user?: {
+            fullName?: string;
+        };
     };
     internAvatar?: string;
     internName?: string;
@@ -26,10 +29,12 @@ export interface Task {
         id: string;
         fullName: string;
     };
+    attachments?: string[];
     comments?: Array<{
         id: string;
         userId: string;
         comment: string;
+        attachments?: string[];
         createdAt: string;
         user?: {
             fullName: string;
@@ -63,6 +68,7 @@ export interface CreateTaskParams {
     priority: 'high' | 'medium' | 'low';
     dueDate: string;
     description?: string;
+    attachments?: string[];
 }
 
 export const createTask = async (params: CreateTaskParams): Promise<ResponseDetailSuccess<Task>> => {
@@ -77,6 +83,7 @@ export interface UpdateTaskParams {
     dueDate?: string;
     status?: string;
     description?: string;
+    attachments?: string[];
 }
 
 export const updateStatus = async (id: string, status: string): Promise<ResponseDetailSuccess<Task>> => {
@@ -95,7 +102,11 @@ export const deleteTask = async (id: string): Promise<ResponseDetailSuccess<null
     return result;
 };
 
-export const addTaskComment = async (taskId: string, content: string): Promise<ResponseDetailSuccess<any>> => {
-    const result = await http.post<ResponseDetailSuccess<any>>(`/tasks/${taskId}/comments`, { content });
+export const addTaskComment = async (
+    taskId: string,
+    content: string,
+    attachments?: string[],
+): Promise<ResponseDetailSuccess<any>> => {
+    const result = await http.post<ResponseDetailSuccess<any>>(`/tasks/${taskId}/comments`, { content, attachments });
     return result;
 };
