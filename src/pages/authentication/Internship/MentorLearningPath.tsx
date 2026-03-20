@@ -353,52 +353,78 @@ export const MentorLearningPath = () => {
 
         <Card loading={isLoading}>
           <Form form={pathForm} layout='vertical'>
-            <Row gutter={12} align='bottom'>
-              <Col xs={24} md={10} lg={8}>
-                <Form.Item label='Chọn lộ trình' style={{ marginBottom: 0 }}>
-                  <Select
-                    value={selectedPathId}
-                    onChange={setSelectedPathId}
-                    options={paths.map((path) => ({
-                      value: path.id,
-                      label: `${path.title} (${path.track})`,
-                    }))}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6} lg={3}>
-                <Button icon={<PlusOutlined />} type='primary' onClick={openCreatePath} style={{ width: '100%' }}>
-                  Thêm
-                </Button>
-              </Col>
-              <Col xs={24} md={8} lg={5}>
-                <Form.Item label='Tên lộ trình' name='title' rules={[{ required: true, message: 'Bắt buộc' }]}>
-                  <Input />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6} lg={4}>
-                <Form.Item label='Track' name='track' rules={[{ required: true, message: 'Bắt buộc' }]}>
-                  <Input />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={10} lg={4}>
-                <Form.Item label='Mô tả' name='description'>
-                  <Input />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row justify='end' style={{ marginTop: 12 }}>
-              <Col xs={24} md={8} lg={6} xl={5}>
-                <Button
-                  type='primary'
-                  icon={<SaveOutlined />}
-                  onClick={savePathMetadata}
-                  loading={isSavingPath}
-                  disabled={!selectedPathId}
-                  style={{ width: '100%' }}
+            <Row gutter={[20, 20]} align='top'>
+              <Col xs={24} xl={8}>
+                <div
+                  style={{
+                    height: '100%',
+                    padding: 16,
+                    border: '1px solid #eef2ff',
+                    borderRadius: 12,
+                    background: '#fafbff',
+                  }}
                 >
-                  Lưu thông tin lộ trình
-                </Button>
+                  <Text strong style={{ display: 'block', marginBottom: 12 }}>
+                    Chọn lộ trình
+                  </Text>
+                  <Space.Compact style={{ width: '100%' }}>
+                    <Select
+                      style={{ width: '100%' }}
+                      value={selectedPathId}
+                      onChange={setSelectedPathId}
+                      options={paths.map((path) => ({
+                        value: path.id,
+                        label: `${path.title} (${path.track})`,
+                      }))}
+                    />
+                    <Button icon={<PlusOutlined />} type='primary' onClick={openCreatePath}>
+                      Thêm
+                    </Button>
+                  </Space.Compact>
+                </div>
+              </Col>
+              <Col xs={24} xl={16}>
+                <div
+                  style={{
+                    height: '100%',
+                    padding: 16,
+                    border: '1px solid #f1f5f9',
+                    borderRadius: 12,
+                    background: '#fff',
+                  }}
+                >
+                  <Row gutter={[12, 0]} align='bottom'>
+                    <Col xs={24} md={10}>
+                      <Form.Item label='Tên lộ trình' name='title' rules={[{ required: true, message: 'Bắt buộc' }]}>
+                        <Input />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={6}>
+                      <Form.Item label='Track' name='track' rules={[{ required: true, message: 'Bắt buộc' }]}>
+                        <Input />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8}>
+                      <Form.Item label='Mô tả' name='description'>
+                        <Input />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                  <Row justify='end'>
+                    <Col xs={24} sm={12} md={9} lg={8}>
+                      <Button
+                        type='primary'
+                        icon={<SaveOutlined />}
+                        onClick={savePathMetadata}
+                        loading={isSavingPath}
+                        disabled={!selectedPathId}
+                        style={{ width: '100%' }}
+                      >
+                        Lưu thông tin lộ trình
+                      </Button>
+                    </Col>
+                  </Row>
+                </div>
               </Col>
             </Row>
           </Form>
@@ -488,10 +514,14 @@ export const MentorLearningPath = () => {
                       <List.Item.Meta
                         title={content.title}
                         description={
-                          <Space direction='vertical' size={2}>
-                            <Text type='secondary'>{content.contentUrl || 'Không có URL'}</Text>
+                          <Space direction='vertical' size={6} style={{ width: '100%' }}>
+                            <Text type='secondary' style={{ wordBreak: 'break-all' }}>
+                              Video: {content.contentUrl || 'Không có URL'}
+                            </Text>
                             {content.metadata?.assessmentFileUrl ? (
-                              <Text type='secondary'>Link đánh giá: {content.metadata.assessmentFileUrl}</Text>
+                              <Text type='secondary' style={{ wordBreak: 'break-all' }}>
+                                Link đánh giá: {content.metadata.assessmentFileUrl}
+                              </Text>
                             ) : null}
                             {Array.isArray(content.metadata?.documentUrls) && content.metadata.documentUrls.length > 0 ? (
                               <Text type='secondary'>Tài liệu đính kèm: {content.metadata.documentUrls.length} file</Text>
