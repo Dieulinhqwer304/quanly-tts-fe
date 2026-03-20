@@ -11,6 +11,7 @@ import {
     UserOutlined
 } from '@ant-design/icons';
 import {
+    Avatar,
     Button,
     Card,
     Divider,
@@ -34,6 +35,15 @@ import { useResponsive } from '../../../hooks/useResponsive';
 
 const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
+const attachmentButtonStyle = {
+    width: '100%',
+    height: 'auto',
+    padding: 0,
+    justifyContent: 'flex-start',
+    whiteSpace: 'normal' as const,
+    wordBreak: 'break-all' as const,
+    textAlign: 'left' as const,
+};
 
 export const InternTaskBoard = () => {
     const { t } = useTranslation();
@@ -473,6 +483,8 @@ export const InternTaskBoard = () => {
                                     {selectedTask.attachments.map((attachment, index) => (
                                         <Button
                                             key={`${attachment}-${index}`}
+                                            type='link'
+                                            style={attachmentButtonStyle}
                                             onClick={() => window.open(attachment, '_blank', 'noopener,noreferrer')}
                                         >
                                             {attachment}
@@ -550,6 +562,7 @@ export const InternTaskBoard = () => {
 
                                     setIsMutating(true);
                                     try {
+                                        const currentTaskId = selectedTask.id;
                                         const uploadedAttachmentUrls = await Promise.all(
                                             submissionFileList
                                                 .map((fileItem) => fileItem.originFileObj)
@@ -562,9 +575,11 @@ export const InternTaskBoard = () => {
                                             attachments,
                                         });
                                         await http.patch(`/tasks/${selectedTask.id}/status`, { status: 'under_review' });
+                                        const refreshedTask = await http.get<Task>(`/tasks/${currentTaskId}`);
                                         message.success(t('common.success'));
                                         setRepoLink('');
                                         setSubmissionFileList([]);
+                                        setSelectedTask(refreshedTask);
                                         if (internId) {
                                             await fetchTasks(internId);
                                         }
