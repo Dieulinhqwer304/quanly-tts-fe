@@ -351,10 +351,10 @@ export const MentorLearningPath = () => {
           Quản lý lộ trình đào tạo
         </Title>
 
-        <Card loading={isLoading}>
+        <Card loading={isLoading} bodyStyle={{ padding: 20 }}>
           <Form form={pathForm} layout='vertical'>
             <Row gutter={[20, 20]} align='top'>
-              <Col xs={24} xl={8}>
+              <Col xs={24} lg={8}>
                 <div
                   style={{
                     height: '100%',
@@ -367,7 +367,7 @@ export const MentorLearningPath = () => {
                   <Text strong style={{ display: 'block', marginBottom: 12 }}>
                     Chọn lộ trình
                   </Text>
-                  <Space.Compact style={{ width: '100%' }}>
+                  <Space direction='vertical' size={12} style={{ width: '100%' }}>
                     <Select
                       style={{ width: '100%' }}
                       value={selectedPathId}
@@ -377,13 +377,13 @@ export const MentorLearningPath = () => {
                         label: `${path.title} (${path.track})`,
                       }))}
                     />
-                    <Button icon={<PlusOutlined />} type='primary' onClick={openCreatePath}>
+                    <Button icon={<PlusOutlined />} type='primary' onClick={openCreatePath} block>
                       Thêm
                     </Button>
-                  </Space.Compact>
+                  </Space>
                 </div>
               </Col>
-              <Col xs={24} xl={16}>
+              <Col xs={24} lg={16}>
                 <div
                   style={{
                     height: '100%',
@@ -393,25 +393,25 @@ export const MentorLearningPath = () => {
                     background: '#fff',
                   }}
                 >
-                  <Row gutter={[12, 0]} align='bottom'>
-                    <Col xs={24} md={10}>
+                  <Row gutter={[12, 0]}>
+                    <Col xs={24} md={12} xl={10}>
                       <Form.Item label='Tên lộ trình' name='title' rules={[{ required: true, message: 'Bắt buộc' }]}>
                         <Input />
                       </Form.Item>
                     </Col>
-                    <Col xs={24} md={6}>
+                    <Col xs={24} md={12} xl={6}>
                       <Form.Item label='Track' name='track' rules={[{ required: true, message: 'Bắt buộc' }]}>
                         <Input />
                       </Form.Item>
                     </Col>
-                    <Col xs={24} md={8}>
+                    <Col xs={24} xl={8}>
                       <Form.Item label='Mô tả' name='description'>
                         <Input />
                       </Form.Item>
                     </Col>
                   </Row>
-                  <Row justify='end'>
-                    <Col xs={24} sm={12} md={9} lg={8}>
+                  <Row justify='end' style={{ marginTop: 4 }}>
+                    <Col xs={24} sm={14} md={10} xl={8}>
                       <Button
                         type='primary'
                         icon={<SaveOutlined />}
@@ -430,7 +430,7 @@ export const MentorLearningPath = () => {
           </Form>
         </Card>
 
-        <Row gutter={16}>
+        <Row gutter={[16, 16]}>
           <Col xs={24} lg={10}>
             <Card
               title={`Danh sách học phần (${modules.length})`}
