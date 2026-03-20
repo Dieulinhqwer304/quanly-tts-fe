@@ -72,7 +72,7 @@ export const RecruitmentPlanCreate = () => {
                 layout="vertical"
                 onFinish={onFinish}
                 initialValues={{
-                    status: 'Active',
+                    status: 'draft',
                     department: 'Engineering'
                 }}
             >
@@ -196,9 +196,10 @@ export const RecruitmentPlanCreate = () => {
                             >
                                 <Select
                                     options={[
-                                        { value: 'Active', label: t('recruitment.active_hiring') },
-                                        { value: 'Pending', label: t('recruitment.pending_approval') },
-                                        { value: 'Closed', label: t('recruitment.closed') }
+                                        { value: 'draft', label: t('recruitment.draft') },
+                                        { value: 'pending_approval', label: t('recruitment.pending_approval') },
+                                        { value: 'active', label: t('internship.active') },
+                                        { value: 'closed', label: t('recruitment.closed') }
                                     ]}
                                 />
                             </Form.Item>

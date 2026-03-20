@@ -14,7 +14,7 @@ export interface RecruitmentPlan {
     description: string;
     startDate: string;
     endDate: string;
-    status: 'pending_approval' | 'active' | 'on_hold' | 'closed';
+    status: 'draft' | 'pending_approval' | 'active' | 'on_hold' | 'closed';
     createdBy: string;
     approvedBy?: string;
     approvedAt?: string;
@@ -53,7 +53,7 @@ export interface CreateRecruitmentPlanParams {
     startDate: string;
     endDate: string;
     description?: string;
-    status?: 'pending_approval' | 'active' | 'on_hold' | 'closed' | 'rejected';
+    status?: 'draft' | 'pending_approval' | 'active' | 'on_hold' | 'closed' | 'rejected';
 }
 
 export const createRecruitmentPlan = async (
@@ -71,7 +71,7 @@ export interface UpdateRecruitmentPlanParams {
     startDate?: string;
     endDate?: string;
     description?: string;
-    status?: 'pending_approval' | 'active' | 'on_hold' | 'closed' | 'rejected';
+    status?: 'draft' | 'pending_approval' | 'active' | 'on_hold' | 'closed' | 'rejected';
 }
 
 export const updateRecruitmentPlan = async (
