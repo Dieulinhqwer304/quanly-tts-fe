@@ -75,11 +75,12 @@ export const RecruitmentJobModal = ({
             } else {
                 form.resetFields();
                 form.setFieldsValue({
+                    campaignId: campaignOptions[0]?.value,
                     status: 'draft'
                 });
             }
         }
-    }, [open, initialValues, form]);
+    }, [open, initialValues, form, campaignOptions]);
 
     const onFinish = async (values: JobFormValues) => {
         setLoading(true);
@@ -132,17 +133,16 @@ export const RecruitmentJobModal = ({
                     <Input placeholder={t('recruitment.job_title')} size="large" />
                 </Form.Item>
 
+                <Form.Item
+                    name="campaignId"
+                    hidden
+                    rules={[{ required: true, message: t('common.required_field') }]}
+                >
+                    <Input />
+                </Form.Item>
+
                 <Row gutter={16}>
-                    <Col xs={24} md={12}>
-                        <Form.Item
-                            label={t('recruitment.campaigns')}
-                            name="campaignId"
-                            rules={[{ required: true, message: t('common.required_field') }]}
-                        >
-                            <Select options={campaignOptions} />
-                        </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
+                    <Col xs={24}>
                         <Form.Item
                             label={t('common.department')}
                             name="department"
