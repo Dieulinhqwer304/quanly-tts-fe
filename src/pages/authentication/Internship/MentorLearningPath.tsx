@@ -354,7 +354,7 @@ export const MentorLearningPath = () => {
         <Card loading={isLoading}>
           <Form form={pathForm} layout='vertical'>
             <Row gutter={12} align='bottom'>
-              <Col xs={24} md={10} lg={7}>
+              <Col xs={24} md={10} lg={8}>
                 <Form.Item label='Chọn lộ trình' style={{ marginBottom: 0 }}>
                   <Select
                     value={selectedPathId}
@@ -386,7 +386,9 @@ export const MentorLearningPath = () => {
                   <Input />
                 </Form.Item>
               </Col>
-              <Col xs={24} md={8} lg={1}>
+            </Row>
+            <Row justify='end' style={{ marginTop: 12 }}>
+              <Col xs={24} md={8} lg={6} xl={5}>
                 <Button
                   type='primary'
                   icon={<SaveOutlined />}
@@ -395,7 +397,7 @@ export const MentorLearningPath = () => {
                   disabled={!selectedPathId}
                   style={{ width: '100%' }}
                 >
-                  Lưu
+                  Lưu thông tin lộ trình
                 </Button>
               </Col>
             </Row>
