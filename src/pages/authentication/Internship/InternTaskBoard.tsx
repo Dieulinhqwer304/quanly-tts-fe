@@ -7,6 +7,7 @@ import {
     LinkOutlined,
     MessageOutlined,
     MoreOutlined,
+    PaperClipOutlined,
     UploadOutlined,
     UserOutlined
 } from '@ant-design/icons';
@@ -26,6 +27,7 @@ import {
     Spin,
     Empty
 } from 'antd';
+import type { UploadFile } from 'antd/es/upload/interface';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
@@ -41,6 +43,8 @@ export const InternTaskBoard = () => {
     const { isMobile, isLaptop } = useResponsive();
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [comment, setComment] = useState('');
+    const [repoLink, setRepoLink] = useState('');
+    const [submissionFileList, setSubmissionFileList] = useState<UploadFile[]>([]);
 
     const [internData, setInternData] = useState<any>(null);
     const [tasksData, setTasksData] = useState<any>(null);
@@ -82,6 +86,30 @@ export const InternTaskBoard = () => {
     const internId = intern?.id;
     const tasks = tasksData?.data || [];
 
+    const uploadTaskFile = async (file: File): Promise<string> => {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', file);
+
+        const uploadResult = await http.post<{ fileName?: string; data?: { fileName?: string } }>(
+            '/storage/upload',
+            uploadFormData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            },
+        );
+        const fileName = uploadResult?.fileName || uploadResult?.data?.fileName;
+        if (!fileName) {
+            throw new Error('Upload tài liệu thất bại');
+        }
+
+        const urlResult = await http.get<{ url?: string; data?: { url?: string } }>(
+            `/storage/url/${encodeURIComponent(fileName)}`,
+        );
+        return urlResult?.url || urlResult?.data?.url || fileName;
+    };
+
     const moveTask = async (task: Task, newStatus: Task['status']) => {
         setIsMutating(true);
         try {
@@ -97,6 +125,11 @@ export const InternTaskBoard = () => {
             setIsMutating(false);
         }
     };
+
+    useEffect(() => {
+        setRepoLink('');
+        setSubmissionFileList([]);
+    }, [selectedTask?.id]);
 
     const renderTaskCard = (task: Task) => (
         <Card
@@ -437,6 +470,36 @@ export const InternTaskBoard = () => {
                                     marginBottom: '12px'
                                 }}
                             >
+                                <PaperClipOutlined style={{ color: '#1E40AF' }} /> Tài liệu được giao
+                            </div>
+                            {selectedTask.attachments?.length ? (
+                                <Space direction='vertical' style={{ width: '100%' }}>
+                                    {selectedTask.attachments.map((attachment, index) => (
+                                        <Button
+                                            key={`${attachment}-${index}`}
+                                            onClick={() => window.open(attachment, '_blank', 'noopener,noreferrer')}
+                                        >
+                                            {attachment}
+                                        </Button>
+                                    ))}
+                                </Space>
+                            ) : (
+                                <Text type='secondary'>Task này chưa có tài liệu đính kèm.</Text>
+                            )}
+                        </div>
+
+                        <Divider />
+
+                        <div style={{ marginBottom: '24px' }}>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    fontWeight: 700,
+                                    marginBottom: '12px'
+                                }}
+                            >
                                 <UploadOutlined style={{ color: '#1E40AF' }} />{' '}
                                 {t('intern_task_board.submit_deliverable')}
                             </div>
@@ -455,6 +518,8 @@ export const InternTaskBoard = () => {
                                 <Input
                                     prefix={<LinkOutlined style={{ color: '#9ca3af' }} />}
                                     placeholder='https://github.com/company/repo/pull/123'
+                                    value={repoLink}
+                                    onChange={(event) => setRepoLink(event.target.value)}
                                 />
                             </div>
 
@@ -465,6 +530,10 @@ export const InternTaskBoard = () => {
                                     border: '2px dashed #E2E8F0',
                                     marginBottom: '12px'
                                 }}
+                                beforeUpload={() => false}
+                                multiple
+                                fileList={submissionFileList}
+                                onChange={({ fileList }) => setSubmissionFileList(fileList)}
                             >
                                 <p className='ant-upload-drag-icon' style={{ marginBottom: '8px' }}>
                                     <CloudUploadOutlined style={{ fontSize: '24px', color: '#9ca3af' }} />
@@ -478,8 +547,36 @@ export const InternTaskBoard = () => {
                                 type='primary'
                                 block
                                 onClick={async () => {
-                                    await moveTask(selectedTask, 'under_review');
-                                    if (internId) fetchTasks(internId);
+                                    if (!repoLink.trim() && submissionFileList.length === 0) {
+                                        message.warning('Vui lòng nhập link hoặc upload tài liệu trước khi nộp.');
+                                        return;
+                                    }
+
+                                    setIsMutating(true);
+                                    try {
+                                        const uploadedAttachmentUrls = await Promise.all(
+                                            submissionFileList
+                                                .map((fileItem) => fileItem.originFileObj)
+                                                .filter(Boolean)
+                                                .map((file) => uploadTaskFile(file as File)),
+                                        );
+                                        const attachments = Array.from(new Set(uploadedAttachmentUrls));
+                                        await http.post(`/tasks/${selectedTask.id}/comments`, {
+                                            content: repoLink.trim() || 'Nộp tài liệu công việc',
+                                            attachments,
+                                        });
+                                        await http.patch(`/tasks/${selectedTask.id}/status`, { status: 'under_review' });
+                                        message.success(t('common.success'));
+                                        setRepoLink('');
+                                        setSubmissionFileList([]);
+                                        if (internId) {
+                                            await fetchTasks(internId);
+                                        }
+                                    } catch {
+                                        message.error(t('common.error'));
+                                    } finally {
+                                        setIsMutating(false);
+                                    }
                                 }}
                                 loading={isMutating}
                             >
