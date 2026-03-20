@@ -25,7 +25,6 @@ import {
     Steps,
     Spin,
     Progress,
-    Timeline,
     Statistic,
     Empty
 } from 'antd';
@@ -284,40 +283,6 @@ export const MentorEvaluation = () => {
                     })}
                 </Row>
             )}
-
-            {/* Timeline tổng quan */}
-            {evaluations.length > 0 && (
-                <>
-                    <Divider orientation='left' style={{ marginTop: '24px' }}>
-                        <Text type='secondary' style={{ fontSize: '12px' }}>Lịch sử đánh giá</Text>
-                    </Divider>
-                    <Timeline
-                        items={evaluations.map((e) => {
-                            const cfg = PHASE_CONFIG.find((p) => p.key === e.type);
-                            return {
-                                color: cfg?.color || 'blue',
-                                children: (
-                                    <div>
-                                        <Tag color='blue' style={{ fontSize: '11px' }}>{cfg?.label || e.type}</Tag>
-                                        <Tag color={e.status === 'completed' ? 'success' : 'gold'} style={{ fontSize: '11px', marginLeft: '8px' }}>
-                                            {e.status === 'completed' ? 'Hoàn thành' : 'Bản nháp'}
-                                        </Tag>
-                                        <Text style={{ fontSize: '12px', marginLeft: '8px', color: '#64748B' }}>
-                                            {e.evaluationDate ? new Date(e.evaluationDate).toLocaleDateString('vi-VN') : '--'}
-                                        </Text>
-                                        {e.overallScore != null && (
-                                            <Text strong style={{ marginLeft: '8px', color: cfg?.color }}>
-                                                {e.overallScore}/10
-                                            </Text>
-                                        )}
-                                    </div>
-                                )
-                            };
-                        })}
-                    />
-                </>
-            )}
-
             {evaluations.length === 0 && !isEvalLoading && (
                 <Empty description='Chưa có đánh giá nào' style={{ marginTop: '16px' }} />
             )}
@@ -479,13 +444,10 @@ export const MentorEvaluation = () => {
                                     maxWidth: '1100px',
                                     margin: '0 auto',
                                     display: 'flex',
-                                    justifyContent: 'space-between',
+                                    justifyContent: 'flex-end',
                                     alignItems: 'center'
                                 }}
                             >
-                                <Button size='large' onClick={() => navigate(RouteConfig.MentorInternList.path)}>
-                                    {t('common.back')}
-                                </Button>
                                 <Space>
                                     <Button icon={<SaveOutlined />} onClick={onSaveDraft} loading={isProcessing}>
                                         {t('eval.save_draft')}
@@ -509,11 +471,6 @@ export const MentorEvaluation = () => {
                     <TrophyOutlined style={{ fontSize: '48px', color: '#10B981', marginBottom: '16px' }} />
                     <Title level={4} style={{ color: '#059669' }}>Đã hoàn thành toàn bộ 3 giai đoạn đánh giá</Title>
                     <Text type='secondary'>Tất cả các phiếu đánh giá đã được ghi nhận. Xem tổng hợp bên trên.</Text>
-                    <div style={{ marginTop: '24px' }}>
-                        <Button type='primary' onClick={() => navigate(RouteConfig.MentorInternList.path)}>
-                            Quay lại danh sách thực tập sinh
-                        </Button>
-                    </div>
                 </Card>
             )}
         </div>
