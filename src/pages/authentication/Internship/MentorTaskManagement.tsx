@@ -39,6 +39,15 @@ import { http } from '../../../utils/http';
 import { Task } from '../../../services/Internship/tasks';
 
 const { Title, Text } = Typography;
+const attachmentButtonStyle = {
+    width: '100%',
+    height: 'auto',
+    padding: 0,
+    justifyContent: 'flex-start',
+    whiteSpace: 'normal' as const,
+    wordBreak: 'break-all' as const,
+    textAlign: 'left' as const,
+};
 
 export const MentorTaskManagement = () => {
     const { t } = useTranslation();
@@ -537,7 +546,7 @@ export const MentorTaskManagement = () => {
                                 <Button
                                     key={`${attachment}-${index}`}
                                     type='link'
-                                    style={{ padding: 0, justifyContent: 'flex-start' }}
+                                    style={attachmentButtonStyle}
                                     onClick={() => window.open(attachment, '_blank', 'noopener,noreferrer')}
                                 >
                                     {attachment}
@@ -555,13 +564,13 @@ export const MentorTaskManagement = () => {
                                 <Card key={commentItem.id} size='small'>
                                     <Space direction='vertical' style={{ width: '100%' }} size={6}>
                                         <Text strong>{commentItem.user?.fullName || 'Người dùng'}</Text>
-                                        <Text>{commentItem.comment}</Text>
+                                        <Text style={{ wordBreak: 'break-all' }}>{commentItem.comment}</Text>
                                         {commentItem.attachments?.length ? (
                                             commentItem.attachments.map((attachment, index) => (
                                                 <Button
                                                     key={`${attachment}-${index}`}
                                                     type='link'
-                                                    style={{ padding: 0, justifyContent: 'flex-start' }}
+                                                    style={attachmentButtonStyle}
                                                     onClick={() => window.open(attachment, '_blank', 'noopener,noreferrer')}
                                                 >
                                                     {attachment}
