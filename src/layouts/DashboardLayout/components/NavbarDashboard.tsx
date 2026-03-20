@@ -17,7 +17,6 @@ import { RouteConfig } from '../../../constants';
 import { ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { LanguageSwitcher } from '../../../components';
 import { getProfile, UserProfile } from '../../../services/auth/profile';
 
 const { Sider } = Layout;
@@ -363,9 +362,6 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                                   : 'Hệ thống'}
                     </span>
                 )}
-                <div style={{ marginLeft: 'auto', paddingRight: collapsed ? 0 : '12px' }}>
-                    <LanguageSwitcher />
-                </div>
             </div>
 
             <div style={{ padding: collapsed ? '12px 8px' : '16px 12px' }}>
