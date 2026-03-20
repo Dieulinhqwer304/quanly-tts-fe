@@ -137,6 +137,19 @@ export const InternTaskBoard = () => {
         return urlResult?.url || urlResult?.data?.url || fileName;
     };
 
+    const loadTaskDetail = async (task: Task) => {
+        setSelectedTask(task);
+        setIsMutating(true);
+        try {
+            const detail = await http.get<Task>(`/tasks/${task.id}`);
+            setSelectedTask(detail);
+        } catch {
+            message.error(t('common.error'));
+        } finally {
+            setIsMutating(false);
+        }
+    };
+
     const moveTask = async (task: Task, newStatus: Task['status']) => {
         setIsMutating(true);
         try {
@@ -169,7 +182,7 @@ export const InternTaskBoard = () => {
                 cursor: 'pointer'
             }}
             bodyStyle={{ padding: '16px' }}
-            onClick={() => setSelectedTask(task)}
+            onClick={() => loadTaskDetail(task)}
             actions={[
                 <Button
                     type='text'
