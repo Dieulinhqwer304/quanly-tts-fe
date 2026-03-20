@@ -352,61 +352,62 @@ export const MentorLearningPath = () => {
         </Title>
 
         <Card loading={isLoading}>
-          <Row gutter={16}>
-            <Col xs={24} md={10} lg={8}>
-              <Text strong>Chọn lộ trình</Text>
-              <Space.Compact style={{ width: '100%', marginTop: 8 }}>
-                <Select
-                  style={{ width: '100%' }}
-                  value={selectedPathId}
-                  onChange={setSelectedPathId}
-                  options={paths.map((path) => ({
-                    value: path.id,
-                    label: `${path.title} (${path.track})`,
-                  }))}
-                />
-                <Button icon={<PlusOutlined />} type='primary' onClick={openCreatePath}>
+          <Form form={pathForm} layout='vertical'>
+            <Row gutter={12} align='bottom'>
+              <Col xs={24} md={10} lg={7}>
+                <Form.Item label='Chọn lộ trình' style={{ marginBottom: 0 }}>
+                  <Select
+                    value={selectedPathId}
+                    onChange={setSelectedPathId}
+                    options={paths.map((path) => ({
+                      value: path.id,
+                      label: `${path.title} (${path.track})`,
+                    }))}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={6} lg={3}>
+                <Button icon={<PlusOutlined />} type='primary' onClick={openCreatePath} style={{ width: '100%' }}>
                   Thêm
                 </Button>
-              </Space.Compact>
-            </Col>
-            <Col xs={24} md={14} lg={16}>
-              <Form form={pathForm} layout='vertical'>
-                <Row gutter={12}>
-                  <Col xs={24} md={10}>
-                    <Form.Item label='Tên lộ trình' name='title' rules={[{ required: true, message: 'Bắt buộc' }]}>
-                      <Input />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} md={6}>
-                    <Form.Item label='Track' name='track' rules={[{ required: true, message: 'Bắt buộc' }]}>
-                      <Input />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} md={8}>
-                    <Form.Item label='Mô tả' name='description'>
-                      <Input />
-                    </Form.Item>
-                  </Col>
-                </Row>
+              </Col>
+              <Col xs={24} md={8} lg={5}>
+                <Form.Item label='Tên lộ trình' name='title' rules={[{ required: true, message: 'Bắt buộc' }]}>
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={6} lg={4}>
+                <Form.Item label='Track' name='track' rules={[{ required: true, message: 'Bắt buộc' }]}>
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={10} lg={4}>
+                <Form.Item label='Mô tả' name='description'>
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={8} lg={1}>
                 <Button
                   type='primary'
                   icon={<SaveOutlined />}
                   onClick={savePathMetadata}
                   loading={isSavingPath}
                   disabled={!selectedPathId}
+                  style={{ width: '100%' }}
                 >
-                  Lưu thông tin lộ trình
+                  Lưu
                 </Button>
-              </Form>
-            </Col>
-          </Row>
+              </Col>
+            </Row>
+          </Form>
         </Card>
 
         <Row gutter={16}>
           <Col xs={24} lg={10}>
             <Card
               title={`Danh sách học phần (${modules.length})`}
+              style={{ height: '100%' }}
+              bodyStyle={{ minHeight: 220 }}
               extra={
                 <Button icon={<PlusOutlined />} type='primary' onClick={openCreateModule} disabled={!selectedPathId}>
                   Thêm học phần
@@ -425,9 +426,10 @@ export const MentorLearningPath = () => {
                       background: selectedModuleId === module.id ? '#f0f5ff' : 'transparent',
                       borderRadius: 8,
                       paddingLeft: 12,
+                      alignItems: 'center',
                     }}
                     actions={[
-                      <Button type='text' icon={<EditOutlined />} onClick={() => openEditModule(module)} />,
+                      <Button type='text' icon={<EditOutlined />} onClick={() => openEditModule(module)} style={{ paddingInline: 6 }} />,
                       <Popconfirm
                         title='Xóa học phần này?'
                         description='Dữ liệu bài giảng trong học phần có thể bị ảnh hưởng.'
@@ -435,7 +437,7 @@ export const MentorLearningPath = () => {
                         cancelText='Hủy'
                         onConfirm={() => removeModule(module.id)}
                       >
-                        <Button danger type='text' icon={<DeleteOutlined />} />
+                        <Button danger type='text' icon={<DeleteOutlined />} style={{ paddingInline: 6 }} />
                       </Popconfirm>,
                     ]}
                   >
@@ -452,6 +454,8 @@ export const MentorLearningPath = () => {
           <Col xs={24} lg={14}>
             <Card
               title={selectedModule ? `Bài giảng của: ${selectedModule.title}` : 'Bài giảng'}
+              style={{ height: '100%' }}
+              bodyStyle={{ minHeight: 220 }}
               extra={
                 <Button icon={<PlusOutlined />} type='primary' onClick={openCreateContent} disabled={!selectedModuleId}>
                   Thêm bài giảng
