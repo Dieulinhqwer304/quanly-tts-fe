@@ -72,7 +72,10 @@ export const MentorTaskManagement = () => {
     const [internFilter, setInternFilter] = useState<string>('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [isRevisionModalOpen, setIsRevisionModalOpen] = useState(false);
     const [taskDetail, setTaskDetail] = useState<Task | null>(null);
+    const [revisionTask, setRevisionTask] = useState<Task | null>(null);
+    const [revisionRequest, setRevisionRequest] = useState('');
     const [assignmentFileList, setAssignmentFileList] = useState<UploadFile[]>([]);
     const [form] = Form.useForm();
 
@@ -206,6 +209,38 @@ export const MentorTaskManagement = () => {
         }
     };
 
+    const openRevisionModal = (task: Task) => {
+        setRevisionTask(task);
+        setRevisionRequest(task.revisionRequest || '');
+        setIsRevisionModalOpen(true);
+    };
+
+    const handleSubmitRevisionRequest = async () => {
+        if (!revisionTask?.id || !revisionRequest.trim()) return;
+
+        setIsProcessing(true);
+        try {
+            await http.patch(`/tasks/${revisionTask.id}`, {
+                status: 'need_rework',
+                revisionRequest: revisionRequest.trim(),
+            });
+            messageApi.success(t('common.success'));
+            setIsRevisionModalOpen(false);
+            setRevisionTask(null);
+            setRevisionRequest('');
+            await fetchTasks();
+
+            if (taskDetail?.id === revisionTask.id) {
+                const detail = await http.get<Task>(`/tasks/${revisionTask.id}`);
+                setTaskDetail(detail);
+            }
+        } catch {
+            messageApi.error(t('common.error'));
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
     const responseData = tasksData;
     const dataSource = responseData?.hits || responseData?.data || [];
     const filteredDataSource = useMemo(() => {
@@ -267,7 +302,7 @@ export const MentorTaskManagement = () => {
                 label: t('task_mgmt.request_revision'),
                 icon: <CloseOutlined />,
                 disabled: record.status === 'completed' || record.status === 'to_do' || record.status === 'need_rework',
-                onClick: () => handleUpdateStatus(record.id, 'need_rework')
+                onClick: () => openRevisionModal(record)
             }
         ]
     });
@@ -554,6 +589,17 @@ export const MentorTaskManagement = () => {
                         {t('common.status')}: {taskDetail?.status || 'N/A'}
                     </Text>
                     <Text>{taskDetail?.description || 'No description provided.'}</Text>
+                    {taskDetail?.revisionRequest ? (
+                        <>
+                            <Divider style={{ margin: '8px 0' }} />
+                            <Card size='small' style={{ borderColor: '#faad14', background: '#fffbe6' }}>
+                                <Space direction='vertical' style={{ width: '100%' }} size={6}>
+                                    <Text strong>{t('task_mgmt.revision_request')}</Text>
+                                    <Text style={{ whiteSpace: 'pre-wrap' }}>{taskDetail.revisionRequest}</Text>
+                                </Space>
+                            </Card>
+                        </>
+                    ) : null}
                     <Divider style={{ margin: '8px 0' }} />
                     <Space direction='vertical' style={{ width: '100%' }} size={8}>
                         <Text strong>
@@ -603,6 +649,31 @@ export const MentorTaskManagement = () => {
                             <Text type='secondary'>Chưa có tài liệu nộp.</Text>
                         )}
                     </Space>
+                </Space>
+            </Modal>
+
+            <Modal
+                title={t('task_mgmt.request_revision')}
+                open={isRevisionModalOpen}
+                onCancel={() => {
+                    setIsRevisionModalOpen(false);
+                    setRevisionTask(null);
+                    setRevisionRequest('');
+                }}
+                onOk={handleSubmitRevisionRequest}
+                okText={t('task_mgmt.send_revision_request')}
+                confirmLoading={isProcessing}
+                okButtonProps={{ disabled: !revisionRequest.trim() }}
+                destroyOnClose
+            >
+                <Space direction='vertical' style={{ width: '100%', marginTop: '16px' }} size={12}>
+                    <Text strong>{revisionTask?.title}</Text>
+                    <Input.TextArea
+                        rows={4}
+                        value={revisionRequest}
+                        onChange={(event) => setRevisionRequest(event.target.value)}
+                        placeholder={t('task_mgmt.revision_request_placeholder')}
+                    />
                 </Space>
             </Modal>
         </div>

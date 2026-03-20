@@ -306,7 +306,11 @@
         "view_details": "View Details",
         "approve_complete": "Approve / Complete",
         "request_revision": "Request Revision",
-        "choose_intern": "Choose Intern"
+        "choose_intern": "Choose Intern",
+        "need_rework": "Need Rework",
+        "revision_request": "Revision Request",
+        "revision_request_placeholder": "Enter the requested changes for the intern...",
+        "send_revision_request": "Send Request"
     },
     "test": {
         "title": "Knowledge Test",
