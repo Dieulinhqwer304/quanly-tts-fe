@@ -20,6 +20,7 @@ interface RecruitmentPlanModalProps {
 interface PlanFormValues {
     name: string;
     batch: string;
+    status?: 'draft' | 'pending_approval' | 'active' | 'closed';
     description?: string;
     period?: [dayjs.Dayjs, dayjs.Dayjs];
     positions?: Array<{
@@ -47,6 +48,12 @@ export const RecruitmentPlanModal = ({
         { value: 'Design', label: 'Design' },
         { value: 'Data', label: 'Data Science' },
         { value: 'HR', label: 'Human Resources' }
+    ];
+    const planStatusOptions = [
+        { value: 'draft', label: t('recruitment.draft') },
+        { value: 'pending_approval', label: t('recruitment.pending_approval') },
+        { value: 'active', label: t('internship.active') },
+        { value: 'closed', label: t('recruitment.closed') }
     ];
 
     useEffect(() => {
@@ -80,6 +87,7 @@ export const RecruitmentPlanModal = ({
                 name: values.name,
                 batch: values.batch,
                 department: planDepartment,
+                status: values.status,
                 description: values.description,
                 startDate: values.period ? values.period[0].format('YYYY-MM-DD') : '',
                 endDate: values.period ? values.period[1].format('YYYY-MM-DD') : '',
@@ -91,7 +99,7 @@ export const RecruitmentPlanModal = ({
             } else {
                 await http.post('/recruitment-plans', {
                     ...formData,
-                    status: 'pending_approval'
+                    status: 'draft'
                 });
             }
             message.success(t('common.success'));
@@ -133,6 +141,7 @@ export const RecruitmentPlanModal = ({
                 onFinish={onFinish}
                 disabled={viewOnly}
                 initialValues={{
+                    status: 'draft',
                     positions: [{ department: 'Engineering' }]
                 }}
             >
@@ -156,6 +165,17 @@ export const RecruitmentPlanModal = ({
                                     <Input placeholder={t('recruitment.batch_name')} />
                                 </Form.Item>
                             </Col>
+                            {initialValues?.id && (
+                                <Col xs={24} md={12}>
+                                    <Form.Item
+                                        label={t('common.status')}
+                                        name='status'
+                                        rules={[{ required: true, message: t('common.required_field') }]}
+                                    >
+                                        <Select options={planStatusOptions} />
+                                    </Form.Item>
+                                </Col>
+                            )}
                         </Row>
 
                         <Form.Item label={t('recruitment.campaign_desc')} name='description'>

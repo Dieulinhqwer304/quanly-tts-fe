@@ -204,15 +204,19 @@ export const RecruitmentPlanList = () => {
                 let color = 'default';
                 const s = status?.toLowerCase();
                 if (s === 'active') color = 'success';
+                if (s === 'draft') color = 'default';
                 if (s === 'pending_approval' || s === 'pending') color = 'warning';
+                if (s === 'closed') color = 'red';
 
                 return (
                     <Tag color={color} style={{ borderRadius: '10px' }}>
-                        {s === 'active'
-                            ? t('internship.active')
-                            : s === 'pending_approval' || s === 'pending'
-                                ? t('recruitment.pending_approval')
-                                : t('recruitment.closed')}
+                        {s === 'draft'
+                            ? t('recruitment.draft')
+                            : s === 'active'
+                                ? t('internship.active')
+                                : s === 'pending_approval' || s === 'pending'
+                                    ? t('recruitment.pending_approval')
+                                    : t('recruitment.closed')}
                     </Tag>
                 );
             }
@@ -305,6 +309,7 @@ export const RecruitmentPlanList = () => {
                                 onChange={setStatusFilter}
                                 options={[
                                     { value: 'all', label: t('recruitment.status_all') },
+                                    { value: 'draft', label: t('recruitment.draft') },
                                     { value: 'active', label: t('internship.active') },
                                     { value: 'pending_approval', label: t('recruitment.pending_approval') },
                                     { value: 'closed', label: t('recruitment.closed') }
