@@ -44,6 +44,21 @@ const attachmentButtonStyle = {
     wordBreak: 'break-all' as const,
     textAlign: 'left' as const,
 };
+const getAttachmentLabel = (attachment: string) => {
+    try {
+        const parsedUrl = new URL(attachment);
+        const normalizedPath = decodeURIComponent(parsedUrl.pathname || '');
+        const lastSegment = normalizedPath.split('/').filter(Boolean).pop();
+
+        if (lastSegment) {
+            return lastSegment;
+        }
+
+        return parsedUrl.hostname.replace(/^www\./, '') || attachment;
+    } catch {
+        return attachment;
+    }
+};
 
 export const InternTaskBoard = () => {
     const { t } = useTranslation();
@@ -493,7 +508,7 @@ export const InternTaskBoard = () => {
                                             style={attachmentButtonStyle}
                                             onClick={() => window.open(attachment, '_blank', 'noopener,noreferrer')}
                                         >
-                                            {attachment}
+                                            {getAttachmentLabel(attachment)}
                                         </Button>
                                     ))}
                                 </Space>
@@ -631,7 +646,7 @@ export const InternTaskBoard = () => {
                                                                 window.open(attachment, '_blank', 'noopener,noreferrer')
                                                             }
                                                         >
-                                                            {attachment}
+                                                            {getAttachmentLabel(attachment)}
                                                         </Button>
                                                     ))
                                                 ) : null}
