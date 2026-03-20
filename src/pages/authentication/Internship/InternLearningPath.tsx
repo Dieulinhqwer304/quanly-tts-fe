@@ -28,7 +28,7 @@ type DashboardModule = {
         title?: string;
         contentUrl?: string;
         type?: string;
-        metadata?: { assessmentFileUrl?: string };
+        metadata?: { assessmentFileUrl?: string; documentUrls?: string[] };
     }>;
     quizzes?: Array<{ id: string; title?: string }>;
     sequence: number;
@@ -41,6 +41,7 @@ type LearningMaterialItem = {
     type: 'video' | 'document' | 'quiz' | 'other';
     contentUrl?: string;
     assessmentFileUrl?: string;
+    documentUrls?: string[];
 };
 
 export const InternLearningPath = () => {
@@ -83,7 +84,7 @@ export const InternLearningPath = () => {
                       title?: string;
                       contentUrl?: string;
                       type?: string;
-                      metadata?: { assessmentFileUrl?: string };
+                      metadata?: { assessmentFileUrl?: string; documentUrls?: string[] };
                   }>)
                 : [],
             quizzes: Array.isArray(module.quizzes) ? (module.quizzes as Array<{ id: string; title?: string }>) : [],
@@ -110,7 +111,8 @@ export const InternLearningPath = () => {
                 title: String(content.title || `Bài giảng ${index + 1}`),
                 type: normalizedType,
                 contentUrl: content.contentUrl,
-                assessmentFileUrl: content.metadata?.assessmentFileUrl
+                assessmentFileUrl: content.metadata?.assessmentFileUrl,
+                documentUrls: Array.isArray(content.metadata?.documentUrls) ? content.metadata.documentUrls : []
             };
         });
 
@@ -356,29 +358,38 @@ export const InternLearningPath = () => {
                                                 </Button>
                                             </Space>
                                         ) : selectedYoutubeEmbedUrl ? (
-                                            <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
-                                                <iframe
-                                                    src={selectedYoutubeEmbedUrl}
-                                                    title={selectedMaterial.title}
-                                                    style={{
-                                                        position: 'absolute',
-                                                        top: 0,
-                                                        left: 0,
-                                                        width: '100%',
-                                                        height: '100%',
-                                                        border: 0,
-                                                        borderRadius: '8px'
-                                                    }}
-                                                    allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
-                                                    referrerPolicy='strict-origin-when-cross-origin'
-                                                    allowFullScreen
-                                                />
-                                            </div>
-                                        ) : selectedMaterial.contentUrl ? (
-                                            <Space direction='vertical'>
-                                                <Button type='primary' onClick={() => handleOpenMaterial(selectedMaterial)}>
-                                                    Mở nội dung
-                                                </Button>
+                                            <Space direction='vertical' style={{ width: '100%' }} size={16}>
+                                                <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
+                                                    <iframe
+                                                        src={selectedYoutubeEmbedUrl}
+                                                        title={selectedMaterial.title}
+                                                        style={{
+                                                            position: 'absolute',
+                                                            top: 0,
+                                                            left: 0,
+                                                            width: '100%',
+                                                            height: '100%',
+                                                            border: 0,
+                                                            borderRadius: '8px'
+                                                        }}
+                                                        allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+                                                        referrerPolicy='strict-origin-when-cross-origin'
+                                                        allowFullScreen
+                                                    />
+                                                </div>
+                                                {selectedMaterial.documentUrls?.length ? (
+                                                    <Space direction='vertical' size={8} style={{ width: '100%' }}>
+                                                        <Text strong>Tài liệu đính kèm</Text>
+                                                        {selectedMaterial.documentUrls.map((url, index) => (
+                                                            <Button
+                                                                key={`${url}-${index}`}
+                                                                onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
+                                                            >
+                                                                Tài liệu {index + 1}
+                                                            </Button>
+                                                        ))}
+                                                    </Space>
+                                                ) : null}
                                                 {selectedMaterial.assessmentFileUrl ? (
                                                     <Button
                                                         onClick={() =>
@@ -389,13 +400,58 @@ export const InternLearningPath = () => {
                                                             )
                                                         }
                                                     >
-                                                        Mở file bài đánh giá
+                                                        Mở link đánh giá
+                                                    </Button>
+                                                ) : null}
+                                            </Space>
+                                        ) : selectedMaterial.contentUrl ? (
+                                            <Space direction='vertical'>
+                                                <Button type='primary' onClick={() => handleOpenMaterial(selectedMaterial)}>
+                                                    Mở nội dung
+                                                </Button>
+                                                {selectedMaterial.documentUrls?.length ? (
+                                                    <Space direction='vertical' size={8}>
+                                                        <Text strong>Tài liệu đính kèm</Text>
+                                                        {selectedMaterial.documentUrls.map((url, index) => (
+                                                            <Button
+                                                                key={`${url}-${index}`}
+                                                                onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
+                                                            >
+                                                                Tài liệu {index + 1}
+                                                            </Button>
+                                                        ))}
+                                                    </Space>
+                                                ) : null}
+                                                {selectedMaterial.assessmentFileUrl ? (
+                                                    <Button
+                                                        onClick={() =>
+                                                            window.open(
+                                                                selectedMaterial.assessmentFileUrl,
+                                                                '_blank',
+                                                                'noopener,noreferrer',
+                                                            )
+                                                        }
+                                                    >
+                                                        Mở link đánh giá
                                                     </Button>
                                                 ) : null}
                                             </Space>
                                         ) : (
                                             <Space direction='vertical'>
                                                 <Text type='secondary'>Nội dung này chưa có URL.</Text>
+                                                {selectedMaterial.documentUrls?.length ? (
+                                                    <Space direction='vertical' size={8}>
+                                                        <Text strong>Tài liệu đính kèm</Text>
+                                                        {selectedMaterial.documentUrls.map((url, index) => (
+                                                            <Button
+                                                                key={`${url}-${index}`}
+                                                                onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
+                                                            >
+                                                                Tài liệu {index + 1}
+                                                            </Button>
+                                                        ))}
+                                                    </Space>
+                                                ) : null}
                                                 {selectedMaterial.assessmentFileUrl ? (
                                                     <Button
                                                         onClick={() =>
@@ -406,7 +462,7 @@ export const InternLearningPath = () => {
                                                             )
                                                         }
                                                     >
-                                                        Mở file bài đánh giá
+                                                        Mở link đánh giá
                                                     </Button>
                                                 ) : null}
                                             </Space>
