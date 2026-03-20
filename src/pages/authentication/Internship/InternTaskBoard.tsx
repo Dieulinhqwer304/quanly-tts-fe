@@ -91,6 +91,12 @@ export const InternTaskBoard = () => {
     const intern = internData;
     const internId = intern?.id;
     const tasks = tasksData?.data || [];
+    const submittedComments = (selectedTask?.comments || []).filter(
+        (commentItem) =>
+            Boolean(commentItem.attachments?.length) ||
+            /^https?:\/\//i.test(String(commentItem.comment || '').trim()) ||
+            String(commentItem.comment || '').trim() === 'Nộp tài liệu công việc',
+    );
 
     const uploadTaskFile = async (file: File): Promise<string> => {
         const uploadFormData = new FormData();
@@ -593,6 +599,49 @@ export const InternTaskBoard = () => {
                             >
                                 {t('intern_task_board.submit_for_review')}
                             </Button>
+                        </div>
+
+                        <Divider />
+
+                        <div style={{ marginBottom: '24px' }}>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    fontWeight: 700,
+                                    marginBottom: '12px'
+                                }}
+                            >
+                                <PaperClipOutlined style={{ color: '#1E40AF' }} /> Sản phẩm đã nộp
+                            </div>
+                            {submittedComments.length ? (
+                                <Space direction='vertical' style={{ width: '100%' }} size={12}>
+                                    {submittedComments.map((commentItem) => (
+                                        <Card key={commentItem.id} size='small'>
+                                            <Space direction='vertical' style={{ width: '100%' }} size={6}>
+                                                <Text style={{ wordBreak: 'break-all' }}>{commentItem.comment}</Text>
+                                                {commentItem.attachments?.length ? (
+                                                    commentItem.attachments.map((attachment, index) => (
+                                                        <Button
+                                                            key={`${attachment}-${index}`}
+                                                            type='link'
+                                                            style={attachmentButtonStyle}
+                                                            onClick={() =>
+                                                                window.open(attachment, '_blank', 'noopener,noreferrer')
+                                                            }
+                                                        >
+                                                            {attachment}
+                                                        </Button>
+                                                    ))
+                                                ) : null}
+                                            </Space>
+                                        </Card>
+                                    ))}
+                                </Space>
+                            ) : (
+                                <Text type='secondary'>Bạn chưa nộp sản phẩm cho task này.</Text>
+                            )}
                         </div>
                     </div>
                 </Sider>
