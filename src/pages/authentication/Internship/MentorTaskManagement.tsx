@@ -180,13 +180,16 @@ export const MentorTaskManagement = () => {
         }
     };
 
-    const handleUpdateStatus = (id: string, newStatus: Task['status']) => {
-        http.patch(`/tasks/${id}/status`, {
-            status: newStatus
-        }).then(() => {
+    const handleUpdateStatus = async (id: string, newStatus: Task['status']) => {
+        try {
+            await http.patch(`/tasks/${id}/status`, {
+                status: newStatus
+            });
             messageApi.success(t('common.success'));
             fetchTasks();
-        });
+        } catch {
+            messageApi.error(t('common.error'));
+        }
     };
 
     const handleViewDetail = async (id: string) => {
@@ -263,8 +266,8 @@ export const MentorTaskManagement = () => {
                 key: 'return',
                 label: t('task_mgmt.request_revision'),
                 icon: <CloseOutlined />,
-                disabled: record.status === 'completed' || record.status === 'to_do',
-                onClick: () => handleUpdateStatus(record.id, 'in_progress')
+                disabled: record.status === 'completed' || record.status === 'to_do' || record.status === 'need_rework',
+                onClick: () => handleUpdateStatus(record.id, 'need_rework')
             }
         ]
     });
@@ -409,6 +412,7 @@ export const MentorTaskManagement = () => {
                                         { value: 'all', label: t('task_mgmt.all_statuses') },
                                         { value: 'in_progress', label: t('task_mgmt.in_progress') },
                                         { value: 'under_review', label: t('task_mgmt.under_review') },
+                                        { value: 'need_rework', label: t('task_mgmt.need_rework') },
                                         { value: 'completed', label: t('task_mgmt.completed') },
                                         { value: 'to_do', label: t('task_mgmt.to_do') }
                                     ]}
