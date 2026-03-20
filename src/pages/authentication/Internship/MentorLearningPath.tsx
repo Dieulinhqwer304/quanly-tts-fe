@@ -16,13 +16,14 @@ import {
   Modal,
   Popconfirm,
   Row,
-  Select,
   Space,
   Typography,
+  Upload,
   message,
 } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { http } from '../../../utils/http';
+import type { UploadFile } from 'antd/es/upload/interface';
 
 const { Title, Text } = Typography;
 
@@ -31,7 +32,7 @@ interface ModuleContentItem {
   title: string;
   type: string;
   contentUrl?: string;
-  metadata?: { durationMinutes?: number; assessmentFileUrl?: string };
+  metadata?: { assessmentFileUrl?: string; documentUrls?: string[] };
 }
 
 interface LearningModuleItem {
@@ -64,6 +65,8 @@ export const MentorLearningPath = () => {
   const [editingModule, setEditingModule] = useState<LearningModuleItem | null>(null);
   const [contentModalOpen, setContentModalOpen] = useState(false);
   const [editingContent, setEditingContent] = useState<ModuleContentItem | null>(null);
+  const [documentFileList, setDocumentFileList] = useState<UploadFile[]>([]);
+  const [existingDocumentUrls, setExistingDocumentUrls] = useState<string[]>([]);
   const [pathModalOpen, setPathModalOpen] = useState(false);
 
   const [pathForm] = Form.useForm();
@@ -252,7 +255,8 @@ export const MentorLearningPath = () => {
   const openCreateContent = () => {
     setEditingContent(null);
     contentForm.resetFields();
-    contentForm.setFieldValue('type', 'video');
+    setDocumentFileList([]);
+    setExistingDocumentUrls([]);
     setContentModalOpen(true);
   };
 
@@ -260,12 +264,35 @@ export const MentorLearningPath = () => {
     setEditingContent(content);
     contentForm.setFieldsValue({
       title: content.title,
-      type: content.type,
       contentUrl: content.contentUrl,
-      durationMinutes: content.metadata?.durationMinutes,
       assessmentFileUrl: content.metadata?.assessmentFileUrl,
     });
+    setDocumentFileList([]);
+    setExistingDocumentUrls(Array.isArray(content.metadata?.documentUrls) ? content.metadata.documentUrls : []);
     setContentModalOpen(true);
+  };
+
+  const uploadDocumentFile = async (file: File): Promise<string> => {
+    const uploadFormData = new FormData();
+    uploadFormData.append('file', file);
+
+    const uploadResult = await http.post<{ fileName?: string; data?: { fileName?: string } }>(
+      '/storage/upload',
+      uploadFormData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      },
+    );
+    const fileName = uploadResult?.fileName || uploadResult?.data?.fileName;
+    if (!fileName) {
+      throw new Error('Upload tài liệu thất bại');
+    }
+
+    const urlResult = await http.get<{ url?: string; data?: { url?: string } }>(`/storage/url/${encodeURIComponent(fileName)}`);
+    const fileUrl = urlResult?.url || urlResult?.data?.url;
+    return fileUrl || fileName;
   };
 
   const submitContent = async () => {
@@ -273,13 +300,31 @@ export const MentorLearningPath = () => {
 
     try {
       const values = await contentForm.validateFields();
+      const uploadedDocumentUrls = await Promise.all(
+        documentFileList
+          .map((fileItem) => fileItem.originFileObj)
+          .filter(Boolean)
+          .map((file) => uploadDocumentFile(file as File)),
+      );
+      const documentUrls = Array.from(new Set([...existingDocumentUrls, ...uploadedDocumentUrls]));
+      const payload = {
+        moduleId: selectedModuleId,
+        type: 'video',
+        title: values.title,
+        contentUrl: values.contentUrl,
+        assessmentFileUrl: values.assessmentFileUrl,
+        documentUrls,
+      };
+
       if (editingContent) {
-        await http.patch(`/training-content/contents/${editingContent.id}`, { ...values, moduleId: selectedModuleId });
+        await http.patch(`/training-content/contents/${editingContent.id}`, payload);
       } else {
-        await http.post('/training-content/contents', { ...values, moduleId: selectedModuleId });
+        await http.post('/training-content/contents', payload);
       }
       message.success('Lưu bài giảng thành công');
       setContentModalOpen(false);
+      setDocumentFileList([]);
+      setExistingDocumentUrls([]);
       await loadPathDetail(selectedPathId);
     } catch (error: any) {
       if (!error?.errorFields) {
@@ -434,15 +479,15 @@ export const MentorLearningPath = () => {
                       ]}
                     >
                       <List.Item.Meta
-                        title={`${content.title} (${content.type})`}
+                        title={content.title}
                         description={
                           <Space direction='vertical' size={2}>
                             <Text type='secondary'>{content.contentUrl || 'Không có URL'}</Text>
-                            {content.metadata?.durationMinutes ? (
-                              <Text type='secondary'>Thời lượng: {content.metadata.durationMinutes} phút</Text>
-                            ) : null}
                             {content.metadata?.assessmentFileUrl ? (
-                              <Text type='secondary'>File đánh giá: {content.metadata.assessmentFileUrl}</Text>
+                              <Text type='secondary'>Link đánh giá: {content.metadata.assessmentFileUrl}</Text>
+                            ) : null}
+                            {Array.isArray(content.metadata?.documentUrls) && content.metadata.documentUrls.length > 0 ? (
+                              <Text type='secondary'>Tài liệu đính kèm: {content.metadata.documentUrls.length} file</Text>
                             ) : null}
                           </Space>
                         }
@@ -511,23 +556,21 @@ export const MentorLearningPath = () => {
           <Form.Item label='Tên bài giảng' name='title' rules={[{ required: true, message: 'Bắt buộc' }]}>
             <Input />
           </Form.Item>
-          <Form.Item label='Loại nội dung' name='type' rules={[{ required: true, message: 'Bắt buộc' }]}>
-            <Select
-              options={[
-                { value: 'video', label: 'Video' },
-                { value: 'document', label: 'Document' },
-                { value: 'file', label: 'File' },
-              ]}
-            />
-          </Form.Item>
-          <Form.Item label='URL nội dung' name='contentUrl' rules={[{ required: true, message: 'Bắt buộc' }]}>
+          <Form.Item label='URL link vid' name='contentUrl' rules={[{ required: true, message: 'Bắt buộc' }]}>
             <Input />
           </Form.Item>
-          <Form.Item label='Thời lượng (phút)' name='durationMinutes'>
-            <InputNumber style={{ width: '100%' }} min={0} />
+          <Form.Item label='Upload tài liệu'>
+            <Upload
+              multiple
+              fileList={documentFileList}
+              beforeUpload={() => false}
+              onChange={({ fileList }) => setDocumentFileList(fileList)}
+            >
+              <Button>Chọn tài liệu</Button>
+            </Upload>
           </Form.Item>
-          <Form.Item label='File bài đánh giá (URL)' name='assessmentFileUrl'>
-            <Input placeholder='Ví dụ: link Google Drive/PDF/Doc cho bài đánh giá' />
+          <Form.Item label='URL link đánh giá' name='assessmentFileUrl'>
+            <Input placeholder='Ví dụ: link Google Form/Quiz/Test đánh giá' />
           </Form.Item>
         </Form>
       </Modal>
