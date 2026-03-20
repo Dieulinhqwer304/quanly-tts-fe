@@ -112,6 +112,12 @@ export const InternTaskBoard = () => {
             /^https?:\/\//i.test(String(commentItem.comment || '').trim()) ||
             String(commentItem.comment || '').trim() === 'Nộp tài liệu công việc',
     );
+    const activeTasks = tasks.filter(
+        (task) =>
+            task.status?.toLowerCase() === 'in_progress' ||
+            task.status?.toLowerCase() === 'under_review' ||
+            task.status?.toLowerCase() === 'need_rework',
+    );
 
     const uploadTaskFile = async (file: File): Promise<string> => {
         const uploadFormData = new FormData();
@@ -361,11 +367,7 @@ export const InternTaskBoard = () => {
                                 {t('task_mgmt.in_progress')}{' '}
                                 <Tag color='blue' style={{ marginLeft: '8px', borderRadius: '12px' }}>
                                     {
-                                        tasks.filter(
-                                            (t) =>
-                                                t.status?.toLowerCase() === 'in_progress' ||
-                                                t.status?.toLowerCase() === 'under_review'
-                                        ).length
+                                        activeTasks.length
                                     }
                                 </Tag>
                             </div>
@@ -381,18 +383,8 @@ export const InternTaskBoard = () => {
                                 border: '2px dashed #E2E8F0'
                             }}
                         >
-                            {tasks
-                                .filter(
-                                    (t) =>
-                                        t.status?.toLowerCase() === 'in_progress' ||
-                                        t.status?.toLowerCase() === 'under_review'
-                                )
-                                .map(renderTaskCard)}
-                            {tasks.filter(
-                                (t) =>
-                                    t.status?.toLowerCase() === 'in_progress' ||
-                                    t.status?.toLowerCase() === 'under_review'
-                            ).length === 0 && (
+                            {activeTasks.map(renderTaskCard)}
+                            {activeTasks.length === 0 && (
                                 <Empty
                                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                                     description={t('intern_task_board.no_tasks_in_progress')}
