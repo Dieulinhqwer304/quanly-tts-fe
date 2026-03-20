@@ -47,6 +47,20 @@ interface SubMenuItem {
 
 type ProfileWithLegacyRole = UserProfile & { role?: string };
 
+const flattenMenuItems = (items: MenuItem[]): MenuItem[] =>
+    items.flatMap((item) => {
+        if (!item.children?.length) {
+            return [item];
+        }
+
+        return item.children.map((child) => ({
+            key: child.key,
+            icon: item.icon,
+            label: child.label,
+            onClick: child.onClick
+        }));
+    });
+
 const toDisplayRole = (roles: string[]): string => {
     const primaryRole = roles[0] || '';
 
@@ -235,22 +249,22 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
     const getMenuItems = (): MenuItem[] => {
         switch (currentModule) {
             case 'recruitment':
-                return recruitmentItems;
+                return flattenMenuItems(recruitmentItems);
             case 'training':
-                return trainingItems;
+                return flattenMenuItems(trainingItems);
             case 'director':
-                return directorItems;
+                return flattenMenuItems(directorItems);
             case 'admin':
-                return adminItems;
+                return flattenMenuItems(adminItems);
             default:
-                return [
+                return flattenMenuItems([
                     {
                         key: 'dashboard',
                         icon: <DashboardOutlined />,
                         label: t('menu.dashboard'),
                         onClick: () => navigate(RouteConfig.ModuleSelection.path)
                     }
-                ];
+                ]);
         }
     };
 
@@ -265,17 +279,17 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
         if (path.includes('/recruitment/interns')) return ['rec-interns'];
 
         if (path.includes('/training/interns')) return ['train-interns'];
-        if (path.includes('/training/mentor/learning-paths')) return ['mentor', 'mentor-path'];
-        if (path.includes('/training/mentor/interns')) return ['mentor', 'mentor-eval'];
-        if (path.includes('/training/mentor/evaluations')) return ['mentor', 'mentor-eval'];
-        if (path.includes('/training/mentor/tasks')) return ['mentor', 'mentor-tasks'];
+        if (path.includes('/training/mentor/learning-paths')) return ['mentor-path'];
+        if (path.includes('/training/mentor/interns')) return ['mentor-eval'];
+        if (path.includes('/training/mentor/evaluations')) return ['mentor-eval'];
+        if (path.includes('/training/mentor/tasks')) return ['mentor-tasks'];
 
-        if (isIntern && path.includes('/training/intern/learning-path')) return ['intern', 'intern-dash'];
-        if (isIntern && path.includes('/training/intern/dashboard')) return ['intern', 'intern-dash'];
-        if (isIntern && path.includes('/training/intern/test')) return ['intern', 'intern-dash'];
-        if (isIntern && path.includes('/training/intern/tasks')) return ['intern', 'intern-tasks'];
+        if (isIntern && path.includes('/training/intern/learning-path')) return ['intern-dash'];
+        if (isIntern && path.includes('/training/intern/dashboard')) return ['intern-dash'];
+        if (isIntern && path.includes('/training/intern/test')) return ['intern-dash'];
+        if (isIntern && path.includes('/training/intern/tasks')) return ['intern-tasks'];
 
-        if (path.includes('/director/approvals')) return ['director', 'dir-approvals'];
+        if (path.includes('/director/approvals')) return ['dir-approvals'];
         if (path.includes('/admin/users')) return ['user-management'];
 
         return ['dashboard'];
@@ -367,7 +381,6 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                     theme='light'
                     mode='inline'
                     selectedKeys={getSelectedKeys()}
-                    defaultOpenKeys={['mentor', 'intern', 'director']}
                     items={getMenuItems()}
                     style={{
                         borderRight: 0,
