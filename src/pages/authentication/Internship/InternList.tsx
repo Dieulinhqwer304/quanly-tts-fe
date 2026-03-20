@@ -105,6 +105,7 @@ export const InternList = () => {
     };
 
     const isMentorModule = location.pathname.startsWith('/training/mentor');
+    const isRecruitmentInternPage = location.pathname.startsWith('/recruitment/interns');
     const isMentorRole = currentRole === 'mentor';
     const canManageInterns = currentRole === 'admin' || currentRole === 'super_admin';
     const isMentorView = isMentorModule || isMentorRole;
@@ -470,6 +471,7 @@ export const InternList = () => {
                 }}
                 initialValues={editingIntern}
                 viewOnly={isViewOnly}
+                hideLearningPathSelection={isRecruitmentInternPage}
             />
         </div>
     );
