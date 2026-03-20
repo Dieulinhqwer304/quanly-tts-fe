@@ -7,7 +7,10 @@ import {
     SolutionOutlined,
     BookOutlined,
     FileProtectOutlined,
-    RocketOutlined
+    RocketOutlined,
+    ReadOutlined,
+    CheckCircleOutlined,
+    UnorderedListOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
@@ -43,6 +46,7 @@ interface SubMenuItem {
     label: string;
     path?: string;
     onClick: () => void;
+    icon?: ReactNode;
 }
 
 type ProfileWithLegacyRole = UserProfile & { role?: string };
@@ -55,7 +59,7 @@ const flattenMenuItems = (items: MenuItem[]): MenuItem[] =>
 
         return item.children.map((child) => ({
             key: child.key,
-            icon: item.icon,
+            icon: child.icon ?? item.icon,
             label: child.label,
             onClick: child.onClick
         }));
@@ -178,22 +182,26 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                           {
                               key: 'train-interns',
                               label: t('menu.intern_list'),
-                              onClick: () => navigate(RouteConfig.TrainingInternList.path)
+                              onClick: () => navigate(RouteConfig.TrainingInternList.path),
+                              icon: <UserOutlined />
                           },
                           {
                               key: 'mentor-path',
                               label: t('menu.learning_path'),
-                              onClick: () => navigate(RouteConfig.MentorLearningPath.path)
+                              onClick: () => navigate(RouteConfig.MentorLearningPath.path),
+                              icon: <BookOutlined />
                           },
                           {
                               key: 'mentor-eval',
                               label: t('menu.evaluations'),
-                              onClick: () => navigate(RouteConfig.MentorInternList.path)
+                              onClick: () => navigate(RouteConfig.MentorInternList.path),
+                              icon: <CheckCircleOutlined />
                           },
                           {
                               key: 'mentor-tasks',
                               label: t('menu.task_management'),
-                              onClick: () => navigate(RouteConfig.MentorTaskManagement.path)
+                              onClick: () => navigate(RouteConfig.MentorTaskManagement.path),
+                              icon: <UnorderedListOutlined />
                           }
                       ]
                   } satisfies MenuItem
@@ -209,12 +217,14 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                           {
                               key: 'intern-dash',
                               label: 'Bài giảng',
-                              onClick: () => navigate(RouteConfig.InternLearningPath.path)
+                              onClick: () => navigate(RouteConfig.InternLearningPath.path),
+                              icon: <ReadOutlined />
                           },
                           {
                               key: 'intern-tasks',
                               label: t('menu.task_board'),
-                              onClick: () => navigate(RouteConfig.InternTaskBoard.path)
+                              onClick: () => navigate(RouteConfig.InternTaskBoard.path),
+                              icon: <UnorderedListOutlined />
                           }
                       ]
                   }
@@ -231,7 +241,8 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                 {
                     key: 'dir-approvals',
                     label: t('menu.plan_approvals'),
-                    onClick: () => navigate(RouteConfig.DirectorApprovals.path)
+                    onClick: () => navigate(RouteConfig.DirectorApprovals.path),
+                    icon: <FileProtectOutlined />
                 }
             ]
         }
