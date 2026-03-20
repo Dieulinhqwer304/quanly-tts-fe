@@ -16,17 +16,14 @@ import {
     Col,
     Form,
     Input,
-    Rate,
     Row,
-    Select,
+    Slider,
     Space,
     Typography,
     message,
     Divider,
     Tag,
     Steps,
-    Radio,
-    Collapse,
     Spin,
     Progress,
     Timeline,
@@ -66,21 +63,6 @@ const PHASE_CONFIG = [
         icon: <TrophyOutlined />
     }
 ];
-
-const ScoreBar = ({ label, score }: { label: string; score?: number }) => (
-    <div style={{ marginBottom: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <Text style={{ fontSize: '13px' }}>{label}</Text>
-            <Text strong style={{ fontSize: '13px' }}>{score ?? '--'}/10</Text>
-        </div>
-        <Progress
-            percent={score ? (score / 10) * 100 : 0}
-            showInfo={false}
-            strokeColor={score && score >= 7 ? '#10B981' : score && score >= 5 ? '#F59E0B' : '#EF4444'}
-            size='small'
-        />
-    </div>
-);
 
 export const MentorEvaluation = () => {
     const { t } = useTranslation();
@@ -132,13 +114,9 @@ export const MentorEvaluation = () => {
     }, []);
 
     useEffect(() => {
-        if (internData) {
-            const progress = internData.overallProgress || 0;
-            if (progress >= 66) setCurrentStep(2);
-            else if (progress >= 33) setCurrentStep(1);
-            else setCurrentStep(0);
-        }
-    }, [internData]);
+        const completedPhaseCount = PHASE_CONFIG.filter((phase) => Boolean(getEvalByPhase(phase.key))).length;
+        setCurrentStep(Math.min(completedPhaseCount, 2));
+    }, [evaluations]);
 
     const getEvalByPhase = (phase: string) => evaluations.find((e) => e.type === phase);
 
@@ -147,48 +125,23 @@ export const MentorEvaluation = () => {
         setIsProcessing(true);
         try {
             let evalType = 'Probation';
-            let feedback = '';
-            let technicalScore: number | undefined;
-            let attitudeScore: number | undefined;
-            let teamworkScore: number | undefined;
 
             if (currentStep === 0) {
                 evalType = 'Probation';
-                technicalScore = Math.round(values.codeQuality * 2);
-                attitudeScore = Math.round(((values.learningSpeed + values.punctuality) / 2) * 2);
-                teamworkScore = Math.round(values.communication * 2);
-                feedback = `${values.strengths || ''}\n\nImprovements: ${values.improvements || ''}`;
             } else if (currentStep === 1) {
                 evalType = 'Mid-term';
-                technicalScore = Math.round(((values.techContribution + values.problemSolving) / 2) * 2);
-                attitudeScore = Math.round(values.reliability * 2);
-                teamworkScore = Math.round(values.teamwork * 2);
-                feedback = `${values.accomplishments || ''}\n\nFeedback: ${values.feedback || ''}`;
             } else {
                 evalType = 'Final';
-                const technicalScores = [values.codeQualityFinal, values.architectureFinal, values.toolingFinal];
-                const softSkillScores = [values.attitudeFinal, values.communicationFinal, values.teamworkFinal];
-                technicalScore = Math.round(
-                    (technicalScores.filter(Boolean).reduce((a, b) => a + b, 0) / (technicalScores.filter(Boolean).length || 1)) * 2
-                );
-                attitudeScore = Math.round(
-                    (softSkillScores.filter(Boolean).reduce((a, b) => a + b, 0) / (softSkillScores.filter(Boolean).length || 1)) * 2
-                );
-                feedback = `Recommendation: ${values.recommendation}${values.hrNote ? '\n\nHR Note: ' + values.hrNote : ''}`;
             }
 
             await http.post('/evaluations', {
                 internId: id,
-                internName: internData.user?.fullName || internData.name,
                 mentorId: mentorProfile?.id,
-                mentorName: mentorProfile?.fullName,
                 type: evalType as any,
-                decision: currentStep === 2 ? values.recommendation : undefined,
-                technicalScore,
-                attitudeScore,
-                teamworkScore,
-                feedback,
-                date: new Date().toISOString()
+                overallScore: values.overallScore,
+                strengths: values.strengths,
+                weaknesses: values.improvements,
+                feedback: values.notes,
             });
 
             message.success(t('common.success'));
@@ -275,9 +228,6 @@ export const MentorEvaluation = () => {
                                     {isDone ? (
                                         <>
                                             <Divider style={{ margin: '8px 0' }} />
-                                            <ScoreBar label='Kỹ thuật' score={eval_.technicalScore} />
-                                            <ScoreBar label='Thái độ' score={eval_.attitudeScore} />
-                                            <ScoreBar label='Làm việc nhóm' score={eval_.teamworkScore} />
                                             {eval_.overallScore != null && (
                                                 <div style={{
                                                     marginTop: '12px', padding: '8px 12px',
@@ -291,16 +241,9 @@ export const MentorEvaluation = () => {
                                                     </Text>
                                                 </div>
                                             )}
-                                            {eval_.decision && (
-                                                <Tag
-                                                    color={eval_.decision === 'hire' ? 'success' : eval_.decision === 'extend' ? 'warning' : 'error'}
-                                                    style={{ marginTop: '8px', fontSize: '12px' }}
-                                                >
-                                                    {eval_.decision === 'hire' ? '✓ Đề xuất tuyển dụng'
-                                                        : eval_.decision === 'extend' ? '↻ Gia hạn thực tập'
-                                                            : '✕ Kết thúc chương trình'}
-                                                </Tag>
-                                            )}
+                                            {eval_.strengths ? <Text type='secondary' style={{ display: 'block', marginTop: '8px' }}>Điểm mạnh: {eval_.strengths}</Text> : null}
+                                            {eval_.weaknesses ? <Text type='secondary' style={{ display: 'block', marginTop: '4px' }}>Cần cải thiện: {eval_.weaknesses}</Text> : null}
+                                            {eval_.feedback ? <Text type='secondary' style={{ display: 'block', marginTop: '4px' }}>Ghi chú: {eval_.feedback}</Text> : null}
                                             <div style={{ marginTop: '8px', fontSize: '11px', color: '#94A3B8' }}>
                                                 <ClockCircleOutlined /> {eval_.evaluationDate ? new Date(eval_.evaluationDate).toLocaleDateString('vi-VN') : '--'}
                                                 {eval_.mentor?.fullName && ` • ${eval_.mentor.fullName}`}
@@ -355,327 +298,53 @@ export const MentorEvaluation = () => {
     );
 
     const renderStepContent = () => {
-        switch (currentStep) {
-            case 0:
-                return (
-                    <>
-                        <Card
-                            title={t('eval.core_perf')}
-                            bordered={false}
-                            style={{ borderRadius: '12px', marginBottom: '24px' }}
+        return (
+            <Card bordered={false} style={{ borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                <Row gutter={[24, 24]}>
+                    <Col xs={24}>
+                        <Form.Item
+                            label={t('eval.strengths')}
+                            name='strengths'
+                            rules={[{ required: true, message: t('common.required_field') }]}
                         >
-                            <Row gutter={48}>
-                                <Col span={12}>
-                                    <Form.Item
-                                        label={t('eval.learning_speed')}
-                                        name='learningSpeed'
-                                        rules={[{ required: true }]}
-                                    >
-                                        <Rate allowHalf />
-                                    </Form.Item>
-                                    <Text type='secondary' style={{ fontSize: '12px' }}>
-                                        {t('eval.learning_speed_desc')}
-                                    </Text>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item
-                                        label={t('eval.communication')}
-                                        name='communication'
-                                        rules={[{ required: true }]}
-                                    >
-                                        <Rate allowHalf />
-                                    </Form.Item>
-                                    <Text type='secondary' style={{ fontSize: '12px' }}>
-                                        {t('eval.communication_desc')}
-                                    </Text>
-                                </Col>
-                            </Row>
-                            <Divider />
-                            <Row gutter={48}>
-                                <Col span={12}>
-                                    <Form.Item
-                                        label={t('eval.punctuality')}
-                                        name='punctuality'
-                                        rules={[{ required: true }]}
-                                    >
-                                        <Rate allowHalf />
-                                    </Form.Item>
-                                    <Text type='secondary' style={{ fontSize: '12px' }}>
-                                        {t('eval.punctuality_desc')}
-                                    </Text>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item
-                                        label={t('eval.code_quality')}
-                                        name='codeQuality'
-                                        rules={[{ required: true }]}
-                                    >
-                                        <Rate allowHalf />
-                                    </Form.Item>
-                                    <Text type='secondary' style={{ fontSize: '12px' }}>
-                                        {t('eval.code_quality_desc')}
-                                    </Text>
-                                </Col>
-                            </Row>
-                        </Card>
-                        <Card
-                            title={t('eval.detailed_assessment')}
-                            bordered={false}
-                            style={{ borderRadius: '12px', marginBottom: '24px' }}
+                            <TextArea rows={4} placeholder={t('eval.strengths_placeholder')} />
+                        </Form.Item>
+                    </Col>
+                    <Col xs={24}>
+                        <Form.Item
+                            label={t('eval.improvements')}
+                            name='improvements'
+                            rules={[{ required: true, message: t('common.required_field') }]}
                         >
-                            <Form.Item
-                                label={t('eval.strengths')}
-                                name='strengths'
-                                rules={[{ required: true, message: t('common.required_field') }]}
-                            >
-                                <TextArea rows={3} placeholder={t('eval.strengths_placeholder')} />
-                            </Form.Item>
-                            <Form.Item
-                                label={t('eval.improvements')}
-                                name='improvements'
-                                rules={[{ required: true, message: t('common.required_field') }]}
-                            >
-                                <TextArea rows={3} placeholder={t('eval.improvements_placeholder')} />
-                            </Form.Item>
-                        </Card>
-                        <Card title={t('eval.recommendation')} bordered={false} style={{ borderRadius: '12px' }}>
-                            <Form.Item label={t('eval.proceed_q')} name='proceedToPhase2' rules={[{ required: true }]}>
-                                <Select
-                                    options={[
-                                        { value: 'yes', label: t('eval.ready_projects') },
-                                        { value: 'extended_training', label: t('eval.extended_training') },
-                                        { value: 'no', label: t('eval.not_meeting') }
-                                    ]}
-                                />
-                            </Form.Item>
-                        </Card>
-                    </>
-                );
-            case 1:
-                return (
-                    <>
-                        <Card
-                            title={t('eval.project_perf')}
-                            bordered={false}
-                            style={{ borderRadius: '12px', marginBottom: '24px' }}
+                            <TextArea rows={4} placeholder={t('eval.improvements_placeholder')} />
+                        </Form.Item>
+                    </Col>
+                    <Col xs={24}>
+                        <Form.Item
+                            label={t('common.description')}
+                            name='notes'
+                            rules={[{ required: true, message: t('common.required_field') }]}
                         >
-                            <Row gutter={48}>
-                                <Col span={12}>
-                                    <Form.Item
-                                        label={t('eval.tech_contribution')}
-                                        name='techContribution'
-                                        rules={[{ required: true }]}
-                                    >
-                                        <Rate character={<StarOutlined />} />
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item
-                                        label={t('eval.problem_solving')}
-                                        name='problemSolving'
-                                        rules={[{ required: true }]}
-                                    >
-                                        <Rate character={<StarOutlined />} />
-                                    </Form.Item>
-                                </Col>
-                            </Row>
-                            <Divider />
-                            <Row gutter={48}>
-                                <Col span={12}>
-                                    <Form.Item
-                                        label={t('eval.reliability')}
-                                        name='reliability'
-                                        rules={[{ required: true }]}
-                                    >
-                                        <Rate character={<StarOutlined />} />
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item
-                                        label={t('eval.team_integration')}
-                                        name='teamwork'
-                                        rules={[{ required: true }]}
-                                    >
-                                        <Rate character={<StarOutlined />} />
-                                    </Form.Item>
-                                </Col>
-                            </Row>
-                        </Card>
-                        <Card
-                            title={t('eval.accomplishments')}
-                            bordered={false}
-                            style={{ borderRadius: '12px', marginBottom: '24px' }}
+                            <TextArea rows={4} placeholder={t('eval.mentor_feedback_placeholder')} />
+                        </Form.Item>
+                    </Col>
+                    <Col xs={24}>
+                        <Form.Item
+                            label='Điểm đánh giá tổng'
+                            name='overallScore'
+                            rules={[{ required: true, message: t('common.required_field') }]}
+                            initialValue={7}
                         >
-                            <Form.Item
-                                label={t('eval.accomplishments')}
-                                name='accomplishments'
-                                rules={[{ required: true }]}
-                            >
-                                <TextArea rows={4} />
-                            </Form.Item>
-                            <Form.Item label={t('common.description')} name='feedback'>
-                                <TextArea rows={3} placeholder={t('eval.mentor_feedback_placeholder')} />
-                            </Form.Item>
-                        </Card>
-                    </>
-                );
-            case 2:
-                return (
-                    <>
-                        <Collapse
-                            defaultActiveKey={['1', '2']}
-                            expandIconPosition='end'
-                            style={{ background: 'transparent', border: 'none', marginBottom: '24px' }}
-                            items={[
-                                {
-                                    key: '1',
-                                    label: (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                            <div
-                                                style={{
-                                                    width: 40, height: 40,
-                                                    background: '#e6f7ff',
-                                                    borderRadius: '8px',
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    color: '#1E40AF'
-                                                }}
-                                            >
-                                                <TeamOutlined />
-                                            </div>
-                                            <div>
-                                                <div style={{ fontWeight: 600, fontSize: '16px' }}>
-                                                    {t('eval.attitude_soft_skills')}
-                                                </div>
-                                                <div style={{ fontSize: '14px', color: '#64748B' }}>
-                                                    Đúng giờ, chủ động và hòa nhập văn hóa.
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ),
-                                    style: {
-                                        background: '#fff', borderRadius: '12px',
-                                        border: '1px solid #E2E8F0', overflow: 'hidden', marginBottom: '16px'
-                                    },
-                                    children: (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                            <Form.Item name='attitudeFinal' label={t('eval.punctuality')} initialValue={5}>
-                                                <Radio.Group buttonStyle='solid'>
-                                                    {[1, 2, 3, 4, 5].map((v) => (
-                                                        <Radio.Button key={v} value={v}>{v}</Radio.Button>
-                                                    ))}
-                                                </Radio.Group>
-                                            </Form.Item>
-                                            <Form.Item name='communicationFinal' label={t('eval.communication')} initialValue={4}>
-                                                <Radio.Group buttonStyle='solid'>
-                                                    {[1, 2, 3, 4, 5].map((v) => (
-                                                        <Radio.Button key={v} value={v}>{v}</Radio.Button>
-                                                    ))}
-                                                </Radio.Group>
-                                            </Form.Item>
-                                            <Form.Item name='teamworkFinal' label={t('eval.team_integration')} initialValue={4}>
-                                                <Radio.Group buttonStyle='solid'>
-                                                    {[1, 2, 3, 4, 5].map((v) => (
-                                                        <Radio.Button key={v} value={v}>{v}</Radio.Button>
-                                                    ))}
-                                                </Radio.Group>
-                                            </Form.Item>
-                                        </div>
-                                    )
-                                },
-                                {
-                                    key: '2',
-                                    label: (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                            <div
-                                                style={{
-                                                    width: 40, height: 40,
-                                                    background: '#1E40AF',
-                                                    borderRadius: '8px',
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    color: '#fff'
-                                                }}
-                                            >
-                                                <CheckCircleOutlined />
-                                            </div>
-                                            <div>
-                                                <div style={{ fontWeight: 600, fontSize: '16px' }}>
-                                                    {t('eval.technical_proficiency')}
-                                                </div>
-                                                <div style={{ fontSize: '14px', color: '#64748B' }}>
-                                                    Chất lượng code, thành thạo công cụ và giải quyết vấn đề.
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ),
-                                    style: {
-                                        background: '#fff', borderRadius: '12px',
-                                        border: '1px solid #E2E8F0', overflow: 'hidden', marginBottom: '16px'
-                                    },
-                                    children: (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                                            {[
-                                                { name: 'codeQualityFinal', title: t('eval.code_quality'), desc: t('eval.code_quality_desc') },
-                                                { name: 'architectureFinal', title: 'Kiến trúc & Thiết kế', desc: 'Khả năng hiểu thiết kế hệ thống.' },
-                                                { name: 'toolingFinal', title: 'Thành thạo công cụ', desc: 'Git, Docker, CI/CD, v.v.' }
-                                            ].map((item, i) => (
-                                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                                    <div style={{ maxWidth: '300px' }}>
-                                                        <div style={{ fontWeight: 600 }}>{item.title}</div>
-                                                        <div style={{ fontSize: '12px', color: '#64748B' }}>{item.desc}</div>
-                                                    </div>
-                                                    <Form.Item name={item.name} noStyle initialValue={4}>
-                                                        <Radio.Group buttonStyle='solid'>
-                                                            {[1, 2, 3, 4, 5].map((v) => (
-                                                                <Radio.Button key={v} value={v}>{v}</Radio.Button>
-                                                            ))}
-                                                        </Radio.Group>
-                                                    </Form.Item>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )
-                                }
-                            ]}
-                        />
-                        <Card
-                            title={t('eval.final_recommendation')}
-                            bordered={false}
-                            style={{ borderRadius: '12px', border: '1px solid #E2E8F0' }}
-                        >
-                            <Row gutter={32}>
-                                <Col span={12}>
-                                    <Form.Item
-                                        label={<Text strong>{t('eval.final_recommendation')}</Text>}
-                                        name='recommendation'
-                                        rules={[{ required: true }]}
-                                    >
-                                        <Select placeholder='Chọn kết quả...'>
-                                            <Select.Option value='hire'>{t('eval.ready_projects')}</Select.Option>
-                                            <Select.Option value='extend'>{t('eval.extended_training')}</Select.Option>
-                                            <Select.Option value='end'>{t('eval.not_meeting')}</Select.Option>
-                                        </Select>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item
-                                        label={<Text strong>{t('eval.hr_note')}</Text>}
-                                        name='hrNote'
-                                        rules={[{ required: true }]}
-                                    >
-                                        <TextArea rows={4} placeholder='Thêm ghi chú cho quyết định của bạn...' />
-                                    </Form.Item>
-                                </Col>
-                            </Row>
-                        </Card>
-                    </>
-                );
-            default:
-                return null;
-        }
+                            <Slider min={0} max={10} step={1} marks={{ 0: '0', 5: '5', 10: '10' }} />
+                        </Form.Item>
+                    </Col>
+                </Row>
+            </Card>
+        );
     };
 
-    const completedPhases = evaluations.length;
-    const allDone = completedPhases === 3;
+    const completedPhases = PHASE_CONFIG.filter((phase) => Boolean(getEvalByPhase(phase.key))).length;
+    const allDone = completedPhases >= PHASE_CONFIG.length;
 
     return (
         <div style={{ padding: '24px', maxWidth: '1100px', margin: '0 auto', paddingBottom: '100px' }}>
