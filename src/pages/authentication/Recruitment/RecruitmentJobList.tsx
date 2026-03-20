@@ -214,12 +214,6 @@ export const RecruitmentJobList = () => {
             )
         },
         {
-            title: t('recruitment.campaigns'),
-            dataIndex: 'campaign',
-            key: 'campaign',
-            render: (text: any) => <Text style={{ fontSize: '13px' }}>{text}</Text>
-        },
-        {
             title: t('common.department'),
             dataIndex: 'department',
             key: 'department',
