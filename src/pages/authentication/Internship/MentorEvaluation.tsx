@@ -6,7 +6,8 @@ import {
     TeamOutlined,
     ClockCircleOutlined,
     FileTextOutlined,
-    LockOutlined
+    LockOutlined,
+    CloseOutlined
 } from '@ant-design/icons';
 import {
     Avatar,
@@ -179,6 +180,10 @@ export const MentorEvaluation = () => {
         });
     };
 
+    const handleBackToMentorInterns = () => {
+        navigate(RouteConfig.MentorInternList.path);
+    };
+
     if (isInternLoading) {
         return (
             <div style={{ padding: '100px', textAlign: 'center' }}>
@@ -342,7 +347,7 @@ export const MentorEvaluation = () => {
                 bordered={false}
                 style={{ borderRadius: '12px', marginBottom: '24px', background: '#fff', border: '1px solid #E2E8F0' }}
             >
-                <Row align='middle' gutter={24}>
+                <Row align='middle' gutter={24} justify='space-between'>
                     <Col>
                         <Avatar size={80} src={intern?.user?.avatarUrl || intern?.avatar} />
                     </Col>
@@ -351,6 +356,16 @@ export const MentorEvaluation = () => {
                             {intern?.user?.fullName || intern?.name}
                         </Title>
                         <Text type='secondary'>{intern?.track}</Text>
+                    </Col>
+                    <Col>
+                        <Button
+                            type='text'
+                            shape='circle'
+                            size='large'
+                            icon={<CloseOutlined />}
+                            aria-label='Quay về danh sách thực tập sinh'
+                            onClick={handleBackToMentorInterns}
+                        />
                     </Col>
                 </Row>
             </Card>
