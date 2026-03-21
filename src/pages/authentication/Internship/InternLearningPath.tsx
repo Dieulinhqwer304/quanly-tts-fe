@@ -15,6 +15,7 @@ import { useMeIntern } from '../../../hooks/Internship/useInterns';
 import { useMyProgress } from '../../../hooks/Internship/useStudentProgress';
 import { LearningPath } from '../../../services/Internship/learningPath';
 import { StudentProgress } from '../../../services/Internship/studentProgress';
+import { getCompactFileLabel, getCompactLinkLabel } from '../../../utils';
 
 const { Title, Text } = Typography;
 
@@ -334,7 +335,7 @@ export const InternLearningPath = () => {
                                                                         window.open(item.assessmentFileUrl, '_blank', 'noopener,noreferrer')
                                                                     }
                                                                 >
-                                                                    Xem file bài đánh giá đi kèm
+                                                                    {`Mở ${getCompactLinkLabel(item.assessmentFileUrl, 'danh gia')}`}
                                                                 </Button>
                                                             </div>
                                                         ) : null}
@@ -385,7 +386,7 @@ export const InternLearningPath = () => {
                                                                 key={`${url}-${index}`}
                                                                 onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
                                                             >
-                                                                Tài liệu {index + 1}
+                                                                {getCompactFileLabel(url, `Tai lieu ${index + 1}`)}
                                                             </Button>
                                                         ))}
                                                     </Space>
@@ -400,7 +401,7 @@ export const InternLearningPath = () => {
                                                             )
                                                         }
                                                     >
-                                                        Mở link đánh giá
+                                                        {`Mở ${getCompactLinkLabel(selectedMaterial.assessmentFileUrl, 'danh gia')}`}
                                                     </Button>
                                                 ) : null}
                                             </Space>
@@ -417,7 +418,7 @@ export const InternLearningPath = () => {
                                                                 key={`${url}-${index}`}
                                                                 onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
                                                             >
-                                                                Tài liệu {index + 1}
+                                                                {getCompactFileLabel(url, `Tai lieu ${index + 1}`)}
                                                             </Button>
                                                         ))}
                                                     </Space>
@@ -432,7 +433,7 @@ export const InternLearningPath = () => {
                                                             )
                                                         }
                                                     >
-                                                        Mở link đánh giá
+                                                        {`Mở ${getCompactLinkLabel(selectedMaterial.assessmentFileUrl, 'danh gia')}`}
                                                     </Button>
                                                 ) : null}
                                             </Space>
@@ -447,7 +448,7 @@ export const InternLearningPath = () => {
                                                                 key={`${url}-${index}`}
                                                                 onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
                                                             >
-                                                                Tài liệu {index + 1}
+                                                                {getCompactFileLabel(url, `Tai lieu ${index + 1}`)}
                                                             </Button>
                                                         ))}
                                                     </Space>
@@ -462,7 +463,7 @@ export const InternLearningPath = () => {
                                                             )
                                                         }
                                                     >
-                                                        Mở link đánh giá
+                                                        {`Mở ${getCompactLinkLabel(selectedMaterial.assessmentFileUrl, 'danh gia')}`}
                                                     </Button>
                                                 ) : null}
                                             </Space>

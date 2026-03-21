@@ -38,6 +38,7 @@ import {
     usePassInterviewCandidate
 } from '../../../hooks/Recruitment/useCandidates';
 import { ConvertToInternModal } from './components/ConvertToInternModal';
+import { getCompactFileLabel } from '../../../utils';
 
 const { Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -204,7 +205,17 @@ export const CVDetail = () => {
                                 </Tag>
                             </div>
                             <Space>
-                                <Button icon={<DownloadOutlined />}>{t('candidate.download_cv')}</Button>
+                                <Button
+                                    icon={<DownloadOutlined />}
+                                    disabled={!candidate.resumeUrl}
+                                    onClick={() => {
+                                        if (candidate.resumeUrl) {
+                                            window.open(candidate.resumeUrl, '_blank', 'noopener,noreferrer');
+                                        }
+                                    }}
+                                >
+                                    {t('candidate.download_cv')}
+                                </Button>
                                 {status === 'offer' && (
                                     <Button
                                         type='primary'
@@ -307,9 +318,19 @@ export const CVDetail = () => {
                                         style={{ fontSize: '48px', color: '#EF4444', marginBottom: '16px' }}
                                     />
                                     <Text type='secondary' style={{ display: 'block' }}>
-                                        {candidate.fullName.replace(' ', '_')}_Resume.pdf
+                                        {getCompactFileLabel(candidate.resumeUrl, `${candidate.fullName}_Resume.pdf`)}
                                     </Text>
-                                    <Button type='link'>{t('candidate.click_to_preview')}</Button>
+                                    <Button
+                                        type='link'
+                                        disabled={!candidate.resumeUrl}
+                                        onClick={() => {
+                                            if (candidate.resumeUrl) {
+                                                window.open(candidate.resumeUrl, '_blank', 'noopener,noreferrer');
+                                            }
+                                        }}
+                                    >
+                                        {t('candidate.click_to_preview')}
+                                    </Button>
                                 </div>
                             </div>
                         </Card>

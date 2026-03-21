@@ -200,7 +200,7 @@ export const InternList = () => {
                                                 {user?.fullName}
                                             </Text>
                                             <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                {record.code || record.id}
+                                                {user?.email || record.track || 'Thực tập sinh'}
                                             </Text>
                                         </div>
                                     </Space>

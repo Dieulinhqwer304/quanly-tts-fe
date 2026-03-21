@@ -31,6 +31,7 @@ import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
 import { Task } from '../../../services/Internship/tasks';
 import { useResponsive } from '../../../hooks/useResponsive';
+import { getCompactFileLabel } from '../../../utils';
 
 const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -40,23 +41,8 @@ const attachmentButtonStyle = {
     padding: 0,
     justifyContent: 'flex-start',
     whiteSpace: 'normal' as const,
-    wordBreak: 'break-all' as const,
+    wordBreak: 'break-word' as const,
     textAlign: 'left' as const,
-};
-const getAttachmentLabel = (attachment: string) => {
-    try {
-        const parsedUrl = new URL(attachment);
-        const normalizedPath = decodeURIComponent(parsedUrl.pathname || '');
-        const lastSegment = normalizedPath.split('/').filter(Boolean).pop();
-
-        if (lastSegment) {
-            return lastSegment;
-        }
-
-        return parsedUrl.hostname.replace(/^www\./, '') || attachment;
-    } catch {
-        return attachment;
-    }
 };
 
 export const InternTaskBoard = () => {
@@ -465,7 +451,7 @@ export const InternTaskBoard = () => {
                                             style={attachmentButtonStyle}
                                             onClick={() => window.open(attachment, '_blank', 'noopener,noreferrer')}
                                         >
-                                            {getAttachmentLabel(attachment)}
+                                            {getCompactFileLabel(attachment)}
                                         </Button>
                                     ))}
                                 </Space>
@@ -603,7 +589,7 @@ export const InternTaskBoard = () => {
                                                                 window.open(attachment, '_blank', 'noopener,noreferrer')
                                                             }
                                                         >
-                                                            {getAttachmentLabel(attachment)}
+                                                            {getCompactFileLabel(attachment)}
                                                         </Button>
                                                     ))
                                                 ) : null}

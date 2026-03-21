@@ -37,6 +37,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
 import { Task } from '../../../services/Internship/tasks';
+import { getCompactFileLabel } from '../../../utils';
 
 const { Title, Text } = Typography;
 const attachmentButtonStyle = {
@@ -45,23 +46,8 @@ const attachmentButtonStyle = {
     padding: 0,
     justifyContent: 'flex-start',
     whiteSpace: 'normal' as const,
-    wordBreak: 'break-all' as const,
+    wordBreak: 'break-word' as const,
     textAlign: 'left' as const,
-};
-const getAttachmentLabel = (attachment: string) => {
-    try {
-        const parsedUrl = new URL(attachment);
-        const normalizedPath = decodeURIComponent(parsedUrl.pathname || '');
-        const lastSegment = normalizedPath.split('/').filter(Boolean).pop();
-
-        if (lastSegment) {
-            return lastSegment;
-        }
-
-        return parsedUrl.hostname.replace(/^www\./, '') || attachment;
-    } catch {
-        return attachment;
-    }
 };
 
 export const MentorTaskManagement = () => {
@@ -614,7 +600,7 @@ export const MentorTaskManagement = () => {
                                     style={attachmentButtonStyle}
                                     onClick={() => window.open(attachment, '_blank', 'noopener,noreferrer')}
                                 >
-                                    {getAttachmentLabel(attachment)}
+                                    {getCompactFileLabel(attachment)}
                                 </Button>
                             ))
                         ) : (
@@ -638,7 +624,7 @@ export const MentorTaskManagement = () => {
                                                     style={attachmentButtonStyle}
                                                     onClick={() => window.open(attachment, '_blank', 'noopener,noreferrer')}
                                                 >
-                                                    {getAttachmentLabel(attachment)}
+                                                    {getCompactFileLabel(attachment)}
                                                 </Button>
                                             ))
                                         ) : null}

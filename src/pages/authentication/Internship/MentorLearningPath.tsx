@@ -25,6 +25,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { http } from '../../../utils/http';
 import type { UploadFile } from 'antd/es/upload/interface';
+import { getCompactFileLabel, getCompactLinkLabel } from '../../../utils';
 
 const { Title, Text } = Typography;
 
@@ -516,15 +517,24 @@ export const MentorLearningPath = () => {
                         description={
                           <Space direction='vertical' size={6} style={{ width: '100%' }}>
                             <Text type='secondary' style={{ wordBreak: 'break-all' }}>
-                              Video: {content.contentUrl || 'Không có URL'}
+                              Video: {content.contentUrl ? getCompactLinkLabel(content.contentUrl, 'Khong co URL') : 'Không có URL'}
                             </Text>
                             {content.metadata?.assessmentFileUrl ? (
-                              <Text type='secondary' style={{ wordBreak: 'break-all' }}>
-                                Link đánh giá: {content.metadata.assessmentFileUrl}
+                              <Text type='secondary' style={{ wordBreak: 'break-word' }}>
+                                Đánh giá: {getCompactLinkLabel(content.metadata.assessmentFileUrl, 'Mo danh gia')}
                               </Text>
                             ) : null}
                             {Array.isArray(content.metadata?.documentUrls) && content.metadata.documentUrls.length > 0 ? (
-                              <Text type='secondary'>Tài liệu đính kèm: {content.metadata.documentUrls.length} file</Text>
+                              <Text type='secondary'>
+                                Tài liệu đính kèm:{' '}
+                                {content.metadata.documentUrls
+                                  .slice(0, 2)
+                                  .map((url) => getCompactFileLabel(url))
+                                  .join(', ')}
+                                {content.metadata.documentUrls.length > 2
+                                  ? ` +${content.metadata.documentUrls.length - 2} file`
+                                  : ''}
+                              </Text>
                             ) : null}
                           </Space>
                         }
