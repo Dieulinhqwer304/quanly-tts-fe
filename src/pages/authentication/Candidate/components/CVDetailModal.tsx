@@ -22,6 +22,7 @@ import { http } from '../../../../utils/http';
 import { useResponsive } from '../../../../hooks/useResponsive';
 
 import { Candidate } from '../../../../services/Recruitment/candidates';
+import { getCompactFileLabel } from '../../../../utils';
 
 const { Title, Text } = Typography;
 
@@ -196,7 +197,7 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate, onU
                                 <div style={{ textAlign: 'center' }}>
                                     <FilePdfOutlined style={{ fontSize: '48px', color: '#EF4444', marginBottom: '12px' }} />
                                     <Text strong style={{ display: 'block' }}>
-                                        {candidate.resumeUrl.split('/').pop() || `${candidate.fullName}_Resume.pdf`}
+                                        {getCompactFileLabel(candidate.resumeUrl, `${candidate.fullName}_Resume.pdf`)}
                                     </Text>
                                     <Space wrap style={{ marginTop: '12px' }}>
                                         <Button

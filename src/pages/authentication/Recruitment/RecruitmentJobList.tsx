@@ -202,13 +202,10 @@ export const RecruitmentJobList = () => {
             title: t('recruitment.job_title'),
             dataIndex: 'title',
             key: 'title',
-            render: (text: any, record: any) => (
+            render: (text: any) => (
                 <div>
                     <Text strong style={{ display: 'block', color: '#1E40AF' }}>
                         {text}
-                    </Text>
-                    <Text type='secondary' style={{ fontSize: '12px' }}>
-                        {record.id}
                     </Text>
                 </div>
             )

@@ -1,4 +1,4 @@
-import { UserOutlined, MailOutlined, IdcardOutlined, TeamOutlined, LockOutlined } from '@ant-design/icons';
+import { UserOutlined, MailOutlined, TeamOutlined, LockOutlined } from '@ant-design/icons';
 import { Alert, Avatar, Button, Card, Descriptions, Form, Input, Space, Spin, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import { changePassword, getProfile } from '../../../services/auth/profile';
@@ -111,16 +111,6 @@ export default function SettingPage() {
                             </Space>
 
                             <Descriptions bordered column={1} size='middle'>
-                                <Descriptions.Item
-                                    label={
-                                        <Space>
-                                            <IdcardOutlined />
-                                            <span>ID</span>
-                                        </Space>
-                                    }
-                                >
-                                    {profile?.id || 'N/A'}
-                                </Descriptions.Item>
                                 <Descriptions.Item
                                     label={
                                         <Space>
