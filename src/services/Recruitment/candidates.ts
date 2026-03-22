@@ -231,12 +231,10 @@ export const deleteCandidate = async (params: DeleteCandidateParams): Promise<Re
 
 export const convertCandidateToIntern = async (
     id: string,
-    mentorId: string,
-    learningPathId: string
+    mentorId: string
 ): Promise<ResponseDetailSuccess<any>> => {
     const result = await http.post<ResponseDetailSuccess<any>>(`/candidates/${id}/convert-to-intern`, {
-        mentorId,
-        learningPathId
+        mentorId
     });
     return result;
 };

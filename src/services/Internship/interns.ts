@@ -19,7 +19,7 @@ export interface Intern {
     mentor?: {
         fullName: string;
     };
-    track: string;
+    track: string | null;
     startDate: string;
     endDate?: string;
     progress: number;
