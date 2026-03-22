@@ -2,7 +2,6 @@ import { Form, Modal, Select, message } from 'antd';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useResponsive } from '../../../../hooks/useResponsive';
-import { getLearningPaths, LearningPath } from '../../../../services/Internship/learningPath';
 import { convertCandidateToIntern } from '../../../../services/Recruitment/candidates';
 import { getUsers, User } from '../../../../services/System/users';
 
@@ -31,12 +30,6 @@ const mapMentorOptions = (users: User[]): SelectOption[] =>
             label: user.email ? `${user.fullName} - ${user.email}` : user.fullName
         }));
 
-const mapLearningPathOptions = (learningPaths: LearningPath[]): SelectOption[] =>
-    learningPaths.map((learningPath) => ({
-        value: learningPath.id,
-        label: `${learningPath.title} (${learningPath.track})`
-    }));
-
 export const ConvertToInternModal = ({
     open,
     onCancel,
@@ -50,7 +43,6 @@ export const ConvertToInternModal = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoadingOptions, setIsLoadingOptions] = useState(false);
     const [mentorOptions, setMentorOptions] = useState<SelectOption[]>([]);
-    const [learningPathOptions, setLearningPathOptions] = useState<SelectOption[]>([]);
 
     useEffect(() => {
         if (!open) {
@@ -63,11 +55,10 @@ export const ConvertToInternModal = ({
         const loadOptions = async () => {
             setIsLoadingOptions(true);
             try {
-                const [usersResult, learningPathsResult] = await Promise.all([getUsers(), getLearningPaths()]);
+                const usersResult = await getUsers();
                 if (!isMounted) return;
 
                 setMentorOptions(mapMentorOptions(usersResult.data || []));
-                setLearningPathOptions(mapLearningPathOptions(learningPathsResult.data || []));
             } catch {
                 if (isMounted) {
                     message.error(t('common.error'));
@@ -96,7 +87,7 @@ export const ConvertToInternModal = ({
             const values = await form.validateFields();
             setIsSubmitting(true);
 
-            await convertCandidateToIntern(candidateId, values.mentorId, values.learningPathId);
+            await convertCandidateToIntern(candidateId, values.mentorId);
 
             message.success(t('onboarding.convert_success', { name: candidateName }));
             form.resetFields();
@@ -135,20 +126,6 @@ export const ConvertToInternModal = ({
                         loading={isLoadingOptions}
                         placeholder={t('onboarding.select_mentor')}
                         options={mentorOptions}
-                        optionFilterProp='label'
-                    />
-                </Form.Item>
-
-                <Form.Item
-                    label='Lộ trình đào tạo'
-                    name='learningPathId'
-                    rules={[{ required: true, message: 'Vui lòng chọn lộ trình đào tạo' }]}
-                >
-                    <Select
-                        showSearch
-                        loading={isLoadingOptions}
-                        placeholder='Chọn lộ trình đào tạo'
-                        options={learningPathOptions}
                         optionFilterProp='label'
                     />
                 </Form.Item>
