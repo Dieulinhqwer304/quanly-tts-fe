@@ -77,7 +77,9 @@
         "view_details": "Xem chi tiết",
         "period": "Thời hạn",
         "approver": "Người phê duyệt",
-        "export_csv": "Xuất CSV"
+        "export_csv": "Xuất CSV",
+        "location": "Địa điểm",
+        "salary": "Mức lương"
     },
     "internship": {
         "management": "Quản lý Thực tập",

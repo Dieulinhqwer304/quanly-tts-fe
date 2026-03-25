@@ -77,7 +77,9 @@
         "view_details": "View Details",
         "period": "Period",
         "approver": "Approver",
-        "export_csv": "Export CSV"
+        "export_csv": "Export CSV",
+        "location": "Location",
+        "salary": "Salary"
     },
     "internship": {
         "management": "Internship Management",

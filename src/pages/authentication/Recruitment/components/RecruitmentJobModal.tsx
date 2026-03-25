@@ -14,12 +14,18 @@ import { useTranslation } from 'react-i18next';
 import { JobPosition } from '../../../../services/Recruitment/jobPositions';
 import { useResponsive } from '../../../../hooks/useResponsive';
 
+interface CampaignOption {
+    value: string;
+    label: string;
+    department?: string;
+}
+
 interface RecruitmentJobModalProps {
     open: boolean;
     onCancel: () => void;
     onSuccess: () => void;
     onSubmit: (values: JobFormValues) => Promise<void>;
-    campaignOptions: Array<{ value: string; label: string }>;
+    campaignOptions: CampaignOption[];
     initialValues?: JobPosition | null;
     viewOnly?: boolean;
 }
@@ -57,6 +63,18 @@ export const RecruitmentJobModal = ({
     const { isMobile, isLaptop } = useResponsive();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
+    const normalizedCampaignOptions = [...campaignOptions];
+
+    if (
+        initialValues?.recruitmentPlanId &&
+        !normalizedCampaignOptions.some((option) => option.value === initialValues.recruitmentPlanId)
+    ) {
+        normalizedCampaignOptions.push({
+            value: initialValues.recruitmentPlanId,
+            label: initialValues.recruitmentPlan?.title || initialValues.recruitmentPlanId,
+            department: initialValues.department
+        });
+    }
 
     useEffect(() => {
         if (open) {
@@ -74,8 +92,10 @@ export const RecruitmentJobModal = ({
                 });
             } else {
                 form.resetFields();
+                const defaultCampaign = campaignOptions[0];
                 form.setFieldsValue({
-                    campaignId: campaignOptions[0]?.value,
+                    campaignId: defaultCampaign?.value,
+                    department: defaultCampaign?.department || 'Engineering',
                     status: 'draft'
                 });
             }
@@ -98,6 +118,14 @@ export const RecruitmentJobModal = ({
     const getTitle = () => {
         if (viewOnly) return t('common.view');
         return initialValues ? t('common.edit') : t('recruitment.create_job_post');
+    };
+
+    const handleCampaignChange = (campaignId: string) => {
+        const selectedCampaign = normalizedCampaignOptions.find((option) => option.value === campaignId);
+
+        if (selectedCampaign?.department) {
+            form.setFieldValue('department', selectedCampaign.department);
+        }
     };
 
     return (
@@ -134,11 +162,15 @@ export const RecruitmentJobModal = ({
                 </Form.Item>
 
                 <Form.Item
+                    label={t('recruitment.campaign_name')}
                     name="campaignId"
-                    hidden
                     rules={[{ required: true, message: t('common.required_field') }]}
                 >
-                    <Input />
+                    <Select
+                        placeholder={t('recruitment.campaign_name')}
+                        options={normalizedCampaignOptions}
+                        onChange={handleCampaignChange}
+                    />
                 </Form.Item>
 
                 <Row gutter={16}>
@@ -174,7 +206,7 @@ export const RecruitmentJobModal = ({
                 >
                     <Select
                         options={[
-                            { value: 'draft', label: 'Draft' },
+                            { value: 'draft', label: t('recruitment.draft') },
                             { value: 'open', label: t('common.open') },
                             { value: 'on_hold', label: t('recruitment.on_hold') },
                             { value: 'closed', label: t('common.closed') }

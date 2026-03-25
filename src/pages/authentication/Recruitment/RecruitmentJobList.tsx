@@ -261,7 +261,7 @@ export const RecruitmentJobList = () => {
                     label = t('recruitment.status_stopped');
                 } else if (normalizedStatus === 'draft') {
                     color = 'warning';
-                    label = 'Draft';
+                    label = t('recruitment.draft');
                 } else if (normalizedStatus === 'on_hold') {
                     color = 'processing';
                     label = t('recruitment.on_hold');
