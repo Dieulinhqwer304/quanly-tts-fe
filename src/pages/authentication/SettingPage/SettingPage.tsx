@@ -1,7 +1,10 @@
-import { UserOutlined, MailOutlined, TeamOutlined, LockOutlined } from '@ant-design/icons';
-import { Alert, Avatar, Button, Card, Descriptions, Form, Input, Space, Spin, Typography } from 'antd';
+import { CameraOutlined, LockOutlined, MailOutlined, PhoneOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
+import { Alert, Button, Card, Descriptions, Form, Input, Space, Spin, Typography, Upload } from 'antd';
 import { useEffect, useState } from 'react';
-import { changePassword, getProfile } from '../../../services/auth/profile';
+import UserAvatar from '../../../components/UserAvatar';
+import { useAuth } from '../../../contexts/AuthContext';
+import { changePassword, uploadProfileAvatar } from '../../../services/auth/profile';
+import { showUpdateSuccessToast } from '../../../utils';
 
 const { Title, Text } = Typography;
 
@@ -9,6 +12,8 @@ type ProfileData = {
     id?: string;
     fullName?: string;
     email?: string;
+    phone?: string;
+    avatarUrl?: string;
     role?: string;
     roles?: Array<{ name?: string; displayName?: string }>;
 };
@@ -27,31 +32,35 @@ const toDisplayRole = (profile: ProfileData): string => {
 };
 
 export default function SettingPage() {
+    const { profile: authProfile, refreshProfile } = useAuth();
     const [form] = Form.useForm();
-    const [profile, setProfile] = useState<ProfileData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const profile = authProfile as ProfileData | null;
 
     useEffect(() => {
         let mounted = true;
 
         const loadProfile = async () => {
-            setIsLoading(true);
-            setErrorMessage('');
-            try {
-                const response = await getProfile();
-                if (!mounted) return;
-                const profileData = (response as any)?.data || {};
-                setProfile(profileData);
-            } catch {
-                if (!mounted) return;
-                setErrorMessage('Không thể tải thông tin cá nhân.');
-            } finally {
+            if (profile) {
                 if (mounted) {
+                    setErrorMessage('');
                     setIsLoading(false);
                 }
+                return;
             }
+
+            setIsLoading(true);
+            setErrorMessage('');
+            const profileData = (await refreshProfile()) as ProfileData | null;
+            if (!mounted) return;
+            if (!profileData) {
+                setErrorMessage('Không thể tải thông tin cá nhân.');
+            }
+
+            setIsLoading(false);
         };
 
         void loadProfile();
@@ -59,7 +68,7 @@ export default function SettingPage() {
         return () => {
             mounted = false;
         };
-    }, []);
+    }, [profile, refreshProfile]);
 
     const handleChangePassword = async (values: {
         currentPassword: string;
@@ -81,6 +90,22 @@ export default function SettingPage() {
         }
     };
 
+    const handleAvatarUpload = async (file: File) => {
+        setIsUploadingAvatar(true);
+        try {
+            await uploadProfileAvatar(file);
+            await refreshProfile();
+            setErrorMessage('');
+            showUpdateSuccessToast('\u1ea3nh \u0111\u1ea1i di\u1ec7n');
+        } catch {
+            // Http interceptor xử lý hiển thị lỗi từ backend
+        } finally {
+            setIsUploadingAvatar(false);
+        }
+
+        return Upload.LIST_IGNORE;
+    };
+
     return (
         <div style={{ padding: '24px' }}>
             <div style={{ marginBottom: '20px' }}>
@@ -100,17 +125,45 @@ export default function SettingPage() {
                         <Alert type='error' message={errorMessage} showIcon />
                     ) : (
                         <Space direction='vertical' size={20} style={{ width: '100%' }}>
-                            <Space>
-                                <Avatar size={56} icon={<UserOutlined />} />
+                            <Space align='start' size={16}>
+                                <UserAvatar
+                                    size={72}
+                                    src={profile?.avatarUrl}
+                                    alt={profile?.fullName || 'Avatar'}
+                                />
                                 <div>
                                     <Text strong style={{ fontSize: 16, display: 'block' }}>
                                         {profile?.fullName || 'Người dùng'}
                                     </Text>
                                     <Text type='secondary'>{profile?.email || 'N/A'}</Text>
                                 </div>
+                                <Space direction='vertical' size={8}>
+                                    <Upload
+                                        accept='image/*'
+                                        showUploadList={false}
+                                        beforeUpload={(file) => handleAvatarUpload(file as File)}
+                                    >
+                                        <Button icon={<CameraOutlined />} loading={isUploadingAvatar}>
+                                            {'Ch\u1ecdn \u1ea3nh \u0111\u1ea1i di\u1ec7n'}
+                                        </Button>
+                                    </Upload>
+                                    <Text type='secondary' style={{ fontSize: 12 }}>
+                                        {'H\u1ed7 tr\u1ee3 JPG, PNG, WEBP t\u1ed1i \u0111a 5MB. \u1ea2nh \u0111\u01b0\u1ee3c l\u01b0u b\u1ea3n g\u1ed1c \u0111\u1ec3 hi\u1ec3n th\u1ecb r\u00f5 h\u01a1n.'}
+                                    </Text>
+                                </Space>
                             </Space>
 
                             <Descriptions bordered column={1} size='middle'>
+                                <Descriptions.Item
+                                    label={
+                                        <Space>
+                                            <UserOutlined />
+                                            <span>{'H\u1ecd v\u00e0 t\u00ean'}</span>
+                                        </Space>
+                                    }
+                                >
+                                    {profile?.fullName || 'Người dùng'}
+                                </Descriptions.Item>
                                 <Descriptions.Item
                                     label={
                                         <Space>
@@ -120,6 +173,16 @@ export default function SettingPage() {
                                     }
                                 >
                                     {profile?.email || 'N/A'}
+                                </Descriptions.Item>
+                                <Descriptions.Item
+                                    label={
+                                        <Space>
+                                            <PhoneOutlined />
+                                            <span>{'S\u1ed1 \u0111i\u1ec7n tho\u1ea1i'}</span>
+                                        </Space>
+                                    }
+                                >
+                                    {profile?.phone || 'N/A'}
                                 </Descriptions.Item>
                                 <Descriptions.Item
                                     label={

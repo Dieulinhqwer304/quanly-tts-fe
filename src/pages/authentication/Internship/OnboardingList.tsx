@@ -27,6 +27,7 @@ import { useEffect, useState } from 'react';
 import { http } from '../../../utils/http';
 import { Onboarding, OnboardingStep } from '../../../services/Recruitment/onboarding';
 import { useTranslation } from 'react-i18next';
+import { showSuccessToast } from '../../../utils';
 
 const { Title, Text } = Typography;
 
@@ -68,7 +69,10 @@ export const OnboardingList = () => {
                     currentStep: nextStep,
                     steps: newSteps
                 });
-                message.success(t('onboarding.advance_success', { name: item.fullName }));
+                showSuccessToast({
+                    title: 'Cập nhật onboarding thành công',
+                    description: t('onboarding.advance_success', { name: item.fullName })
+                });
                 fetchOnboarding();
             } else if (nextStep === item.steps.length) {
                 const newSteps = [...item.steps];
@@ -78,7 +82,10 @@ export const OnboardingList = () => {
                     steps: newSteps,
                     status: 'completed'
                 });
-                message.success(t('onboarding.complete_success', { name: item.fullName }));
+                showSuccessToast({
+                    title: 'Hoàn thành onboarding thành công',
+                    description: t('onboarding.complete_success', { name: item.fullName })
+                });
                 fetchOnboarding();
             }
         } else {

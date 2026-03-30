@@ -5,12 +5,12 @@ import dayjs from 'dayjs';
 import { useResponsive } from '../../../../hooks/useResponsive';
 import { useCreateIntern, useUpdateIntern } from '../../../../hooks/Internship/useInterns';
 import { http } from '../../../../utils/http';
+import { showCreateSuccessToast, showUpdateSuccessToast } from '../../../../utils';
 
 interface InternFormValues {
   userId: string;
   mentorId: string;
   learningPathId?: string;
-  track?: string;
   department: string;
   status?: string;
   dates?: [dayjs.Dayjs, dayjs.Dayjs];
@@ -115,7 +115,6 @@ export const InternModal = ({
         userId: initialValues.userId,
         mentorId: initialValues.mentorId,
         learningPathId: hideLearningPathSelection ? undefined : initialValues.learningPathId || initialValues.learningPath?.id,
-        track: initialValues.track,
         department: initialValues.department,
         status: (initialValues.status || '').toLowerCase(),
         dates:
@@ -131,11 +130,6 @@ export const InternModal = ({
     }
   }, [form, initialValues, open, hideLearningPathSelection]);
 
-  const onLearningPathChange = (learningPathId?: string) => {
-    const selected = learningPaths.find((lp) => lp.id === learningPathId);
-    form.setFieldValue('track', selected?.track || undefined);
-  };
-
   const onFinish = async (values: InternFormValues) => {
     try {
       const [startDate, endDate] = values.dates || [];
@@ -143,7 +137,6 @@ export const InternModal = ({
         userId: values.userId,
         mentorId: values.mentorId,
         department: values.department,
-        track: values.track,
         startDate: startDate?.format('YYYY-MM-DD'),
         endDate: endDate?.format('YYYY-MM-DD'),
       };
@@ -157,11 +150,11 @@ export const InternModal = ({
 
       if (initialValues?.id) {
         await updateMutation.mutate({ id: initialValues.id, ...(payload as any) });
+        showUpdateSuccessToast('thực tập sinh');
       } else {
         await createMutation.mutate(payload);
+        showCreateSuccessToast('thực tập sinh');
       }
-
-      message.success(t('common.success'));
       onSuccess();
     } catch {
       message.error(t('common.error'));
@@ -222,15 +215,14 @@ export const InternModal = ({
           </Col>
         </Row>
 
-        <Row gutter={16}>
-          {!hideLearningPathSelection && (
+        {!hideLearningPathSelection && (
+          <Row gutter={16}>
             <Col xs={24} md={12}>
               <Form.Item label='Lộ trình đào tạo' name='learningPathId' rules={[{ required: true, message: t('common.required_field') }]}>
                 <Select
                   showSearch
                   optionFilterProp='label'
                   placeholder='Chọn lộ trình'
-                  onChange={onLearningPathChange}
                   options={learningPaths.map((lp) => ({
                     value: lp.id,
                     label: `${lp.title} (${lp.track})`,
@@ -238,16 +230,8 @@ export const InternModal = ({
                 />
               </Form.Item>
             </Col>
-          )}
-          <Col xs={24} md={hideLearningPathSelection ? 24 : 12}>
-            <Form.Item label={t('internship.track')} name='track' rules={[{ required: true, message: t('common.required_field') }]}>
-              <Input
-                readOnly={!hideLearningPathSelection}
-                placeholder={hideLearningPathSelection ? 'Nhập chuyên ngành thực tập' : 'Track tự động theo lộ trình'}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
+          </Row>
+        )}
 
         <Row gutter={16}>
           <Col xs={24} md={12}>

@@ -12,8 +12,7 @@ import {
     Form,
     message,
     Popconfirm,
-    Tooltip,
-    Avatar
+    Tooltip
 } from 'antd';
 import {
     UserAddOutlined,
@@ -21,11 +20,12 @@ import {
     DeleteOutlined,
     SearchOutlined,
     ReloadOutlined,
-    UserOutlined,
     CheckCircleOutlined,
     StopOutlined
 } from '@ant-design/icons';
+import UserAvatar from '../../../components/UserAvatar';
 import { http } from '../../../utils/http';
+import { showCreateSuccessToast, showUpdateSuccessToast } from '../../../utils';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -37,6 +37,8 @@ interface UserRecord {
     role: 'super_admin' | 'hr' | 'mentor' | 'intern' | 'director' | 'admin' | string;
     status: 'Active' | 'Inactive';
     lastLogin?: string;
+    avatarUrl?: string;
+    avatar?: string;
 }
 
 export const UserManagement: FC = () => {
@@ -95,7 +97,7 @@ export const UserManagement: FC = () => {
             try {
                 if (editingUser) {
                     await http.patch(`/users/${editingUser.key}`, values);
-                    message.success('Cập nhật người dùng thành công');
+                    showUpdateSuccessToast('người dùng');
                 } else {
                     await http.post('/users', {
                         fullName: values.name,
@@ -103,7 +105,7 @@ export const UserManagement: FC = () => {
                         password: values.password,
                         role: values.role
                     });
-                    message.success('Tạo người dùng thành công');
+                    showCreateSuccessToast('người dùng');
                 }
                 setIsModalOpen(false);
                 fetchUsers();
@@ -119,7 +121,9 @@ export const UserManagement: FC = () => {
         email: String(u.email || ''),
         role: String(u.role || 'User'),
         status: (u.status === 'Inactive' ? 'Inactive' : 'Active') as 'Active' | 'Inactive',
-        lastLogin: String(u.lastLogin || '-')
+        lastLogin: String(u.lastLogin || '-'),
+        avatarUrl: typeof u.avatarUrl === 'string' ? u.avatarUrl : undefined,
+        avatar: typeof u.avatar === 'string' ? u.avatar : undefined
     }));
 
     const filteredUsers = allUsers.filter((user) => {
@@ -136,9 +140,12 @@ export const UserManagement: FC = () => {
             key: 'user',
             render: (record: UserRecord) => (
                 <Space>
-                    <Avatar
-                        icon={<UserOutlined />}
-                        style={{ backgroundColor: record.role === 'Admin' ? '#1E40AF' : '#f56a00' }}
+                    <UserAvatar
+                        src={record.avatarUrl || record.avatar}
+                        alt={record.name || 'Avatar'}
+                        style={{
+                            backgroundColor: String(record.role || '').toLowerCase() === 'admin' ? '#1E40AF' : '#f56a00'
+                        }}
                     />
                     <div>
                         <Text strong style={{ display: 'block' }}>

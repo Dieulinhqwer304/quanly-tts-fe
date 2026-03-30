@@ -1,4 +1,4 @@
-import { Layout, Menu, Avatar, Typography, theme, Button, Drawer } from 'antd';
+import { Layout, Menu, Typography, theme, Button, Drawer } from 'antd';
 import {
     DashboardOutlined,
     UserOutlined,
@@ -14,10 +14,11 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useMemo } from 'react';
+import UserAvatar from '../../../components/UserAvatar';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { getProfile, UserProfile } from '../../../services/auth/profile';
+import { UserProfile } from '../../../services/auth/profile';
 
 const { Sider } = Layout;
 const { Text } = Typography;
@@ -80,43 +81,18 @@ const toDisplayRole = (roles: string[]): string => {
 export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onMobileClose }: NavbarDashboardProps) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { logout } = useAuth();
+    const { logout, profile } = useAuth();
     const { token } = theme.useToken();
     const { t } = useTranslation();
-    const [currentRoles, setCurrentRoles] = useState<string[]>([]);
-    const [displayEmail, setDisplayEmail] = useState('N/A');
-
-    useEffect(() => {
-        let isMounted = true;
-
-        const loadProfile = async () => {
-            try {
-                const response = await getProfile();
-                const profileData = (response.data || {}) as ProfileWithLegacyRole;
-                const rolesFromArray = Array.isArray(profileData.roles)
-                    ? profileData.roles.map((role) => String(role?.name || '').toLowerCase()).filter(Boolean)
-                    : [];
-                const roleFromSingleField = String(profileData.role || '').toLowerCase();
-                const roles = Array.from(new Set([roleFromSingleField, ...rolesFromArray].filter(Boolean)));
-
-                if (isMounted) {
-                    setCurrentRoles(roles);
-                    setDisplayEmail(profileData.email || 'N/A');
-                }
-            } catch {
-                if (isMounted) {
-                    setCurrentRoles([]);
-                    setDisplayEmail('N/A');
-                }
-            }
-        };
-
-        void loadProfile();
-
-        return () => {
-            isMounted = false;
-        };
-    }, []);
+    const currentRoles = useMemo(() => {
+        const profileData = (profile || {}) as ProfileWithLegacyRole;
+        const rolesFromArray = Array.isArray(profileData.roles)
+            ? profileData.roles.map((role) => String(role?.name || '').toLowerCase()).filter(Boolean)
+            : [];
+        const roleFromSingleField = String(profileData.role || '').toLowerCase();
+        return Array.from(new Set([roleFromSingleField, ...rolesFromArray].filter(Boolean)));
+    }, [profile]);
+    const displayEmail = profile?.email || 'N/A';
 
     const getCurrentModule = (): ModuleType => {
         const path = location.pathname;
@@ -409,7 +385,11 @@ export const NavbarDashboard = ({ collapsed, isMobile, isLaptop, mobileOpen, onM
                 }}
             >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
-                    <Avatar style={{ backgroundColor: token.colorPrimary, flexShrink: 0 }} icon={<UserOutlined />} />
+                    <UserAvatar
+                        src={profile?.avatarUrl}
+                        alt={profile?.fullName || 'Avatar'}
+                        style={profile?.avatarUrl ? { flexShrink: 0 } : { backgroundColor: token.colorPrimary, flexShrink: 0 }}
+                    />
                     {!collapsed && (
                         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                             <Text

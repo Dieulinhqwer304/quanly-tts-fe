@@ -19,13 +19,31 @@ export interface ChangePasswordPayload {
     newPassword: string;
 }
 
+export interface UpdateProfilePayload {
+    fullName?: string;
+    phone?: string;
+}
+
 export const getProfile = async (): Promise<ResponseDetailSuccess<UserProfile>> => {
     const result = await http.get<ResponseDetailSuccess<UserProfile>>('/auth/profile');
     return result;
 };
 
-export const updateProfile = async (data: Partial<UserProfile>): Promise<ResponseDetailSuccess<UserProfile>> => {
+export const updateProfile = async (data: UpdateProfilePayload): Promise<ResponseDetailSuccess<UserProfile>> => {
     const result = await http.patch<ResponseDetailSuccess<UserProfile>>('/auth/profile', data);
+    return result;
+};
+
+export const uploadProfileAvatar = async (file: File): Promise<ResponseDetailSuccess<UserProfile>> => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const result = await http.patch<ResponseDetailSuccess<UserProfile>>('/auth/profile/avatar', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+
     return result;
 };
 

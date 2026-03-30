@@ -32,6 +32,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { http } from '../../../utils/http';
 import { CreateMentorRequestParams, MentorRequest } from '../../../services/Recruitment/mentorRequests';
 import { useResponsive } from '../../../hooks/useResponsive';
+import { showCreateSuccessToast, showUpdateSuccessToast } from '../../../utils';
 
 const { Title, Text } = Typography;
 
@@ -141,10 +142,10 @@ export const MentorRequestList = () => {
                     ...formData,
                     status: (requests.find((r) => r.id === editingId)?.status || 'pending').toLowerCase()
                 });
-                message.success(t('mentor_request.update_success'));
+                showUpdateSuccessToast('yêu cầu mentor', t('mentor_request.update_success'));
             } else {
                 await http.post('/mentor-requests', formData);
-                message.success(t('mentor_request.create_success'));
+                showCreateSuccessToast('yêu cầu mentor', t('mentor_request.create_success'));
             }
             fetchRequests();
             setIsModalOpen(false);

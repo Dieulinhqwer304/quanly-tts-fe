@@ -21,6 +21,43 @@ import type { UploadFile } from 'antd/es/upload/interface';
 
 const { Header, Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
+const MAX_CV_SIZE_IN_MB = 10;
+const PHONE_PATTERN = /^\d{10}$/;
+
+const splitContentItems = (value?: string) =>
+    String(value || '')
+        .split(/\r?\n|•\s*|;\s*/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+const formatDisplayDate = (value?: string) => {
+    if (!value) return '';
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString('vi-VN');
+};
+
+const getApplyErrorMessage = (error: unknown) => {
+    if (typeof error === 'object' && error !== null) {
+        const errorObject = error as {
+            message?: string;
+            response?: {
+                data?: {
+                    message?: string;
+                    details?: string;
+                };
+            };
+        };
+
+        return (
+            errorObject.response?.data?.details ||
+            errorObject.response?.data?.message ||
+            errorObject.message ||
+            'Đã có lỗi xảy ra khi nộp hồ sơ. Vui lòng thử lại sau.'
+        );
+    }
+
+    return 'Đã có lỗi xảy ra khi nộp hồ sơ. Vui lòng thử lại sau.';
+};
 
 export const JobDetailPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -29,21 +66,63 @@ export const JobDetailPage = () => {
     const [form] = Form.useForm();
     const { mutate: applyJob, isLoading: isApplying } = useCreateCandidateWithCv();
     const [fileList, setFileList] = useState<UploadFile[]>([]);
+    const [cvError, setCvError] = useState('');
 
     const { data: jobRes, isLoading } = useJobPosition(id || '', true);
     const job = jobRes?.data;
 
-    const onFinish = async (values: { fullName: string; email: string; phone: string; coverLetter: string }) => {
+    const handleBeforeUpload = (file: File) => {
+        const fileExtension = file.name.split('.').pop()?.toLowerCase();
+        const isSupportedFile = ['pdf', 'doc', 'docx'].includes(String(fileExtension || ''));
+
+        if (!isSupportedFile) {
+            Modal.error({
+                title: 'File không hợp lệ',
+                content: 'CV chỉ hỗ trợ định dạng PDF, DOC hoặc DOCX.'
+            });
+            return Upload.LIST_IGNORE;
+        }
+
+        if (file.size > MAX_CV_SIZE_IN_MB * 1024 * 1024) {
+            Modal.error({
+                title: 'File quá lớn',
+                content: `CV chỉ hỗ trợ dung lượng tối đa ${MAX_CV_SIZE_IN_MB}MB.`
+            });
+            return Upload.LIST_IGNORE;
+        }
+
+        return false;
+    };
+
+    const onFinish = async (values: { fullName: string; email: string; phone: string }) => {
         if (!id) return;
+
+        const selectedCv = fileList[0]?.originFileObj as File | undefined;
+
+        if (!PHONE_PATTERN.test(values.phone)) {
+            form.setFields([
+                {
+                    name: 'phone',
+                    errors: ['Số điện thoại phải gồm đúng 10 chữ số.']
+                }
+            ]);
+            return;
+        }
+
+        if (!selectedCv) {
+            setCvError('Trường bắt buộc');
+            return;
+        }
+
+        setCvError('');
 
         try {
             await applyJob({
                 fullName: values.fullName,
                 email: values.email,
                 phone: values.phone,
-                coverLetter: values.coverLetter,
                 jobId: id,
-                cv: fileList[0]?.originFileObj as File | undefined
+                cv: selectedCv
             });
 
             Modal.success({
@@ -59,7 +138,7 @@ export const JobDetailPage = () => {
         } catch (err) {
             Modal.error({
                 title: 'Lỗi',
-                content: 'Đã có lỗi xảy ra khi nộp hồ sơ. Vui lòng thử lại sau.'
+                content: getApplyErrorMessage(err)
             });
         }
     };
@@ -192,7 +271,8 @@ export const JobDetailPage = () => {
                                             {item.text}
                                         </div>
                                     ))}
-                                    <div
+                                    {job.deadline && (
+                                        <div
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
@@ -204,9 +284,10 @@ export const JobDetailPage = () => {
                                             fontWeight: 700,
                                             color: '#e11d48'
                                         }}
-                                    >
-                                        <HourglassOutlined /> Hạn nộp: {job.deadline || 'Liên hệ HR'}
-                                    </div>
+                                        >
+                                            <HourglassOutlined /> Hạn nộp: {formatDisplayDate(job.deadline)}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <Card
@@ -218,22 +299,7 @@ export const JobDetailPage = () => {
                                     }}
                                 >
                                     <Row gutter={16}>
-                                        <Col span={8}>
-                                            <Text
-                                                type='secondary'
-                                                style={{
-                                                    fontSize: '12px',
-                                                    textTransform: 'uppercase',
-                                                    fontWeight: 600
-                                                }}
-                                            >
-                                                Thời gian
-                                            </Text>
-                                            <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px' }}>
-                                                3 - 6 Tháng
-                                            </div>
-                                        </Col>
-                                        <Col span={8}>
+                                        <Col span={12}>
                                             <Text
                                                 type='secondary'
                                                 style={{
@@ -248,7 +314,7 @@ export const JobDetailPage = () => {
                                                 {job.salaryRange || 'Thỏa thuận'}
                                             </div>
                                         </Col>
-                                        <Col span={8}>
+                                        <Col span={12}>
                                             <Text
                                                 type='secondary'
                                                 style={{
@@ -275,21 +341,26 @@ export const JobDetailPage = () => {
                                     </Title>
                                     <Paragraph>{job.requirements}</Paragraph>
 
-                                    <Title level={3} style={{ marginTop: '32px' }}>
-                                        Quyền lợi
-                                    </Title>
-                                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                                        {[
-                                            job.benefits || 'Môi trường học tập thực tế với mentor.',
-                                            'Cơ hội phát triển lên vị trí chính thức.',
-                                            'Được hỗ trợ trong suốt quá trình thực tập.'
-                                        ].map((item, i) => (
-                                            <li key={i} style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                                                <CheckCircleOutlined style={{ color: '#1E40AF', marginTop: '6px' }} />
-                                                {item}
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    {job.benefits && (
+                                        <>
+                                            <Title level={3} style={{ marginTop: '32px' }}>
+                                                Quyền lợi
+                                            </Title>
+                                            <ul style={{ listStyle: 'none', padding: 0 }}>
+                                                {splitContentItems(job.benefits).map((item, i) => (
+                                                    <li
+                                                        key={`${item}-${i}`}
+                                                        style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}
+                                                    >
+                                                        <CheckCircleOutlined
+                                                            style={{ color: '#1E40AF', marginTop: '6px' }}
+                                                        />
+                                                        {item}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </Col>
@@ -312,11 +383,11 @@ export const JobDetailPage = () => {
                                         <Text type='secondary'>Gửi thông tin của bạn để bắt đầu hành trình.</Text>
                                     </div>
 
-                                    <Form form={form} layout='vertical' onFinish={onFinish}>
+                                    <Form form={form} layout='vertical' requiredMark onFinish={onFinish}>
                                         <Form.Item
                                             name='fullName'
                                             label='Họ và tên'
-                                            rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
+                                            rules={[{ required: true, message: 'Trường bắt buộc' }]}
                                         >
                                             <Input placeholder='Nguyễn Văn A' size='large' />
                                         </Form.Item>
@@ -324,7 +395,10 @@ export const JobDetailPage = () => {
                                         <Form.Item
                                             name='email'
                                             label='Địa chỉ Email'
-                                            rules={[{ required: true, type: 'email', message: 'Email không hợp lệ!' }]}
+                                            rules={[
+                                                { required: true, message: 'Trường bắt buộc' },
+                                                { type: 'email', message: 'Email không hợp lệ!' }
+                                            ]}
                                         >
                                             <Input
                                                 prefix={<MailOutlined style={{ color: '#94a3b8' }} />}
@@ -335,26 +409,49 @@ export const JobDetailPage = () => {
 
                                         <Form.Item
                                             name='phone'
+                                            getValueFromEvent={(event) =>
+                                                String(event?.target?.value || '')
+                                                    .replace(/\D/g, '')
+                                                    .slice(0, 10)
+                                            }
                                             label='Số điện thoại'
-                                            rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+                                            rules={[{ required: true, message: 'Trường bắt buộc' }]}
                                         >
                                             <Input
                                                 prefix={<PhoneOutlined style={{ color: '#94a3b8' }} />}
                                                 placeholder='09xxxxxxxx'
                                                 size='large'
+                                                inputMode='numeric'
+                                                maxLength={10}
                                             />
                                         </Form.Item>
 
-                                        <Form.Item label='Tải lên CV (PDF/DOCX) - Không bắt buộc'>
+                                        <Form.Item
+                                            label={
+                                                <span>
+                                                    <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>
+                                                    Tải lên CV (PDF/DOC/DOCX)
+                                                </span>
+                                            }
+                                            validateStatus={cvError ? 'error' : ''}
+                                            help={cvError || null}
+                                        >
+                                    
                                             <Upload.Dragger
                                                 style={{
                                                     padding: '24px',
                                                     background: '#f8fafc',
                                                     border: '2px dashed #e2e8f0'
                                                 }}
-                                                beforeUpload={() => false}
+                                                beforeUpload={(file) => handleBeforeUpload(file as File)}
                                                 fileList={fileList}
-                                                onChange={(info) => setFileList(info.fileList.slice(-1))}
+                                                onChange={(info) => {
+                                                    const nextFileList = info.fileList.slice(-1);
+                                                    setFileList(nextFileList);
+                                                    if (nextFileList.length > 0) {
+                                                        setCvError('');
+                                                    }
+                                                }}
                                                 accept='.pdf,.doc,.docx'
                                                 maxCount={1}
                                             >
@@ -367,9 +464,12 @@ export const JobDetailPage = () => {
                                                     Bấm để chọn hoặc kéo thả file
                                                 </p>
                                                 <p style={{ fontSize: '12px', color: '#64748b' }}>
-                                                    Dung lượng tối đa 5MB
+                                                    Dung lượng tối đa 10MB
                                                 </p>
                                             </Upload.Dragger>
+                                            <Text type='secondary' style={{ fontSize: '12px' }}>
+                                                CV là bắt buộc để hoàn tất ứng tuyển.
+                                            </Text>
                                         </Form.Item>
 
                                         <Button

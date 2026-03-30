@@ -15,6 +15,7 @@ import { useQuiz } from '../../../hooks/Internship/useQuizzes';
 import { useMeIntern } from '../../../hooks/Internship/useInterns';
 import { useStudentProgress, useSubmitModuleQuiz } from '../../../hooks/Internship/useStudentProgress';
 import { useResponsive } from '../../../hooks/useResponsive';
+import { showSuccessToast } from '../../../utils';
 
 const { Title, Text, Paragraph } = Typography;
 const { Sider, Content } = Layout;
@@ -130,11 +131,13 @@ export const StudentLearningPath = () => {
                 passScore: 80
             });
 
-            message.success(
-                percentage >= 80
-                    ? t('student_learning_path.status_completed')
-                    : t('student_learning_path.start_quiz')
-            );
+            showSuccessToast({
+                title: 'Nộp bài kiểm tra thành công',
+                description:
+                    percentage >= 80
+                        ? t('student_learning_path.status_completed')
+                        : t('student_learning_path.start_quiz')
+            });
         } catch {
             message.error(t('common.error'));
         }

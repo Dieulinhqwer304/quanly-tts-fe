@@ -21,6 +21,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
 import { getProfile } from '../../../services/auth/profile';
+import { showSuccessToast } from '../../../utils';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -74,7 +75,7 @@ export const MentorEvalPhase2 = () => {
                 date: new Date().toISOString()
             });
 
-            message.success(t('common.success'));
+            showSuccessToast({ title: 'Gửi đánh giá giai đoạn 2 thành công' });
             navigate(RouteConfig.InternList.path);
         } catch {
             message.error(t('common.error'));

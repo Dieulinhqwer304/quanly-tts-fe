@@ -38,6 +38,7 @@ import { RouteConfig } from '../../../constants';
 import { Intern } from '../../../services/Internship/interns';
 import { LearningPath } from '../../../services/Internship/learningPath';
 import { StudentProgress } from '../../../services/Internship/studentProgress';
+import { showSuccessToast } from '../../../utils';
 import { Task } from '../../../services/Internship/tasks';
 import { http } from '../../../utils/http';
 import dayjs from 'dayjs';
@@ -746,7 +747,7 @@ export const InternDashboard = () => {
                                                                         />
                                                                     }
                                                                     onClick={() =>
-                                                                        messageApi.success('Nộp bài tập thành công!')
+                                                                        showSuccessToast({ title: 'Nộp bài tập thành công' })
                                                                     }
                                                                 >
                                                                     Nộp bài tập

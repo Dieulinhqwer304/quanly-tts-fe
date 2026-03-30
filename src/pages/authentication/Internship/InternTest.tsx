@@ -22,6 +22,7 @@ import { Intern } from '../../../services/Internship/interns';
 import { LearningPath } from '../../../services/Internship/learningPath';
 import { Quiz, QuizQuestion } from '../../../services/Internship/quizzes';
 import { StudentProgress } from '../../../services/Internship/studentProgress';
+import { showSuccessToast } from '../../../utils';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -221,7 +222,10 @@ export const InternTest = () => {
 
             setScore(backendScore);
             setSubmitted(true);
-            message.success(t('test.submitted_success') || 'Nop ket qua bai kiem tra thanh cong!');
+            showSuccessToast({
+                title: 'Nộp bài kiểm tra thành công',
+                description: t('test.submitted_success') || 'Nop ket qua bai kiem tra thanh cong!'
+            });
         } catch {
             message.error('Nop ket qua that bai. Vui long thu lai.');
         } finally {

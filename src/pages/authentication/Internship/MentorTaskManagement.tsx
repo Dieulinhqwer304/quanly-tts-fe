@@ -37,7 +37,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
 import { Task } from '../../../services/Internship/tasks';
-import { getCompactFileLabel } from '../../../utils';
+import { getCompactFileLabel, showCreateSuccessToast, showUpdateSuccessToast } from '../../../utils';
 
 const { Title, Text } = Typography;
 const attachmentButtonStyle = {
@@ -160,7 +160,7 @@ export const MentorTaskManagement = () => {
             setIsModalOpen(false);
             form.resetFields();
             setAssignmentFileList([]);
-            messageApi.success(t('common.success'));
+            showCreateSuccessToast('công việc');
             fetchTasks();
         } catch {
             messageApi.error(t('common.error'));
@@ -174,7 +174,7 @@ export const MentorTaskManagement = () => {
             await http.patch(`/tasks/${id}/status`, {
                 status: newStatus
             });
-            messageApi.success(t('common.success'));
+            showUpdateSuccessToast('trạng thái công việc');
             fetchTasks();
         } catch {
             messageApi.error(t('common.error'));
@@ -210,7 +210,7 @@ export const MentorTaskManagement = () => {
                 status: 'need_rework',
                 revisionRequest: revisionRequest.trim(),
             });
-            messageApi.success(t('common.success'));
+            showUpdateSuccessToast('yêu cầu chỉnh sửa');
             setIsRevisionModalOpen(false);
             setRevisionTask(null);
             setRevisionRequest('');
@@ -295,14 +295,11 @@ export const MentorTaskManagement = () => {
 
     const columns: ColumnsType<Task> = [
         {
-            title: t('task_mgmt.task_id'),
-            dataIndex: 'id',
-            key: 'id',
-            render: (text) => (
-                <Text type='secondary' style={{ fontSize: '12px' }}>
-                    {text}
-                </Text>
-            )
+            title: t('task_mgmt.task_title'),
+            dataIndex: 'title',
+            key: 'title',
+            ellipsis: true,
+            render: (text) => <Text strong>{text}</Text>
         },
         {
             title: t('common.status'),
@@ -330,13 +327,6 @@ export const MentorTaskManagement = () => {
                     </Tag>
                 );
             }
-        },
-        {
-            title: t('task_mgmt.task_title'),
-            dataIndex: 'title',
-            key: 'title',
-            ellipsis: true,
-            render: (text) => <Text strong>{text}</Text>
         },
         {
             title: t('task_mgmt.intern'),
@@ -554,9 +544,6 @@ export const MentorTaskManagement = () => {
                 confirmLoading={isLoadingDetail}
             >
                 <Space direction='vertical' style={{ width: '100%' }}>
-                    <Text type='secondary'>
-                        {t('task_mgmt.task_id')}: {taskDetail?.id || 'N/A'}
-                    </Text>
                     <Text>
                         {t('task_mgmt.intern')}: {taskDetail?.internName || taskDetail?.intern?.user?.fullName || 'N/A'}
                     </Text>

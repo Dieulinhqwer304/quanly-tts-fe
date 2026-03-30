@@ -6,6 +6,19 @@ import {
     PaginateParams
 } from '../../utils/types/ServiceResponse';
 
+export interface RecruitmentPlanPosition {
+    title: string;
+    count?: number;
+    requiredQuantity?: number;
+    department?: string;
+    description?: string;
+    requirements?: string;
+    benefits?: string;
+    location?: string;
+    salaryRange?: string;
+    deadline?: string;
+}
+
 export interface RecruitmentPlan {
     id: string;
     name: string;
@@ -19,7 +32,8 @@ export interface RecruitmentPlan {
     approvedBy?: string;
     approvedAt?: string;
     rejectionReason?: string;
-    jobPositions?: any[];
+    positions?: RecruitmentPlanPosition[];
+    jobPositions?: RecruitmentPlanPosition[];
     createdAt: string;
     updatedAt: string;
 }
@@ -53,6 +67,8 @@ export interface CreateRecruitmentPlanParams {
     startDate: string;
     endDate: string;
     description?: string;
+    positions?: RecruitmentPlanPosition[];
+    jobPositions?: RecruitmentPlanPosition[];
     status?: 'draft' | 'pending_approval' | 'active' | 'on_hold' | 'closed' | 'rejected';
 }
 
@@ -71,6 +87,8 @@ export interface UpdateRecruitmentPlanParams {
     startDate?: string;
     endDate?: string;
     description?: string;
+    positions?: RecruitmentPlanPosition[];
+    jobPositions?: RecruitmentPlanPosition[];
     status?: 'draft' | 'pending_approval' | 'active' | 'on_hold' | 'closed' | 'rejected';
 }
 

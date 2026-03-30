@@ -34,6 +34,7 @@ import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
 import { RouteConfig } from '../../../constants';
 import { getProfile } from '../../../services/auth/profile';
+import { showSaveSuccessToast, showSuccessToast } from '../../../utils';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -105,7 +106,7 @@ export const MentorEvalFinal = () => {
                 date: new Date().toISOString()
             });
 
-            message.success(t('common.success'));
+            showSuccessToast({ title: 'Gửi đánh giá tổng kết thành công' });
             navigate(RouteConfig.InternList.path);
         } catch {
             message.error(t('common.error'));
@@ -611,7 +612,10 @@ export const MentorEvalFinal = () => {
                                 </div>
                             </div>
                             <Space>
-                                <Button icon={<SaveOutlined />} onClick={() => message.success('Bản nhiớm đã được lưu!')}>
+                                <Button
+                                    icon={<SaveOutlined />}
+                                    onClick={() => showSaveSuccessToast('bản nháp đánh giá')}
+                                >
                                     Lưu bản nhiớm
                                 </Button>
                                 <Button

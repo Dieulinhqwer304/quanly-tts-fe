@@ -22,7 +22,7 @@ import { http } from '../../../../utils/http';
 import { useResponsive } from '../../../../hooks/useResponsive';
 
 import { Candidate } from '../../../../services/Recruitment/candidates';
-import { getCompactFileLabel } from '../../../../utils';
+import { getCompactFileLabel, showSuccessToast } from '../../../../utils';
 
 const { Title, Text } = Typography;
 
@@ -67,7 +67,7 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate, onU
         setIsProcessing(true);
         try {
             await http.patch(`/candidates/${candidate.id}`, { status: 'shortlisted' });
-            message.success(t('common.success'));
+            showSuccessToast({ title: 'Duyệt hồ sơ thành công' });
             fetchCandidate();
             onUpdated?.();
         } catch {
@@ -86,7 +86,7 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate, onU
                 rejectionReason: rejectReason
             });
             setIsRejectModalOpen(false);
-            message.success(t('common.success'));
+            showSuccessToast({ title: 'Từ chối hồ sơ thành công' });
             fetchCandidate();
             onUpdated?.();
         } catch {
@@ -219,15 +219,6 @@ export const CVDetailModal = ({ open, onCancel, candidate: initialCandidate, onU
                             <Empty description='Ứng viên chưa tải CV lên hệ thống' />
                         )}
                     </div>
-
-                    <div style={{ marginTop: '16px' }}>
-                        <Title level={5}>{t('candidate.cover_letter')}</Title>
-                        <Card size='small'>
-                            <Text>{candidate.coverLetter || 'Ứng viên chưa để lại nội dung giới thiệu.'}</Text>
-                        </Card>
-                    </div>
-
-                    <Divider />
 
                     <div style={{ textAlign: 'right' }}>
                         <Space wrap>

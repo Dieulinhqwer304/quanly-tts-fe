@@ -2,16 +2,16 @@ import {
     SearchOutlined,
     EditOutlined,
     EyeOutlined,
-    UserOutlined,
     MailOutlined,
     PhoneOutlined,
     CalendarOutlined,
     StarOutlined
 } from '@ant-design/icons';
-import { Avatar, Button, Card, Input, Select, Space, Table, Tag, Typography, message, Tooltip } from 'antd';
+import { Button, Card, Input, Select, Space, Table, Tag, Typography, message, Tooltip } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import UserAvatar from '../../../components/UserAvatar';
 import { RouteConfig } from '../../../constants';
 import { http } from '../../../utils/http';
 import { getProfile } from '../../../services/auth/profile';
@@ -128,7 +128,7 @@ export const InternList = () => {
                 String(record?.code || record?.id || '')
                     .toLowerCase()
                     .includes(normalizedKeyword) ||
-                String(record?.track || '')
+                String(record?.mentor?.fullName || '')
                     .toLowerCase()
                     .includes(normalizedKeyword);
 
@@ -194,13 +194,13 @@ export const InternList = () => {
                                 key: 'user',
                                 render: (user: any, record: any) => (
                                     <Space size='middle'>
-                                        <Avatar size={40} src={user?.avatarUrl} icon={<UserOutlined />} />
+                                        <UserAvatar size={40} src={user?.avatarUrl} alt={user?.fullName || 'Avatar'} />
                                         <div>
                                             <Text strong style={{ display: 'block' }}>
                                                 {user?.fullName}
                                             </Text>
                                             <Text type='secondary' style={{ fontSize: '12px' }}>
-                                                {user?.email || record.track || 'Thực tập sinh'}
+                                                {user?.email || 'Thực tập sinh'}
                                             </Text>
                                         </div>
                                     </Space>
@@ -239,17 +239,9 @@ export const InternList = () => {
                                   }
                                 : null,
                             {
-                                title: t('internship.track_mentor'),
+                                title: t('internship.mentor'),
                                 key: 'track',
-                                render: (_: any, record: any) => (
-                                    <div>
-                                        <Tag color='purple'>{record.track}</Tag>
-                                        <div style={{ marginTop: '4px', fontSize: '12px' }}>
-                                            <Text type='secondary'>Mentor: </Text>
-                                            <Text strong>{record.mentor?.fullName || 'TBD'}</Text>
-                                        </div>
-                                    </div>
-                                )
+                                render: (_: any, record: any) => <Text strong>{record.mentor?.fullName || 'TBD'}</Text>
                             },
                             !isMentorView
                                 ? {

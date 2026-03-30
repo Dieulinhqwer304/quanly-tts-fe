@@ -38,7 +38,7 @@ import {
     usePassInterviewCandidate
 } from '../../../hooks/Recruitment/useCandidates';
 import { ConvertToInternModal } from './components/ConvertToInternModal';
-import { getCompactFileLabel } from '../../../utils';
+import { getCompactFileLabel, showSuccessToast } from '../../../utils';
 
 const { Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -60,7 +60,7 @@ export const CVDetail = () => {
         if (!id) return;
         try {
             await shortlistMutation.mutate({ id });
-            message.success(t('common.success'));
+            showSuccessToast({ title: 'Duyệt hồ sơ thành công' });
         } catch {
             message.error(t('common.error'));
         }
@@ -70,7 +70,10 @@ export const CVDetail = () => {
         if (!id) return;
         try {
             await passInterviewMutation.mutate({ id });
-            message.success(t('candidate.passed_interview_success'));
+            showSuccessToast({
+                title: 'Cập nhật kết quả phỏng vấn thành công',
+                description: t('candidate.passed_interview_success')
+            });
         } catch {
             message.error(t('common.error'));
         }
@@ -81,7 +84,7 @@ export const CVDetail = () => {
         try {
             await rejectMutation.mutate({ id, reason: rejectReason });
             setIsRejectModalOpen(false);
-            message.success(t('common.success'));
+            showSuccessToast({ title: 'Từ chối hồ sơ thành công' });
         } catch {
             message.error(t('common.error'));
         }
@@ -273,9 +276,6 @@ export const CVDetail = () => {
                             style={{ borderRadius: '12px', marginBottom: '24px' }}
                         >
                             <Descriptions column={1} labelStyle={{ fontWeight: 600, width: '150px' }}>
-                                <Descriptions.Item label={t('candidate.education')}>
-                                    {candidate.education}
-                                </Descriptions.Item>
                                 <Descriptions.Item label={t('candidate.experience')}>
                                     {candidate.experience}
                                 </Descriptions.Item>
@@ -291,13 +291,6 @@ export const CVDetail = () => {
                                     </a>
                                 </Descriptions.Item>
                             </Descriptions>
-
-                            <Divider />
-
-                            <Title level={5}>{t('candidate.cover_letter')}</Title>
-                            <Paragraph style={{ color: '#64748B' }}>
-                                {candidate.coverLetter || 'Chưa có thư giới thiệu.'}
-                            </Paragraph>
 
                             <Divider />
 

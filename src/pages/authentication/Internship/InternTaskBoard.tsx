@@ -11,7 +11,6 @@ import {
     UserOutlined
 } from '@ant-design/icons';
 import {
-    Avatar,
     Button,
     Card,
     Divider,
@@ -28,10 +27,12 @@ import {
 import type { UploadFile } from 'antd/es/upload/interface';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import UserAvatar from '../../../components/UserAvatar';
+import { useAuth } from '../../../contexts/AuthContext';
 import { http } from '../../../utils/http';
 import { Task } from '../../../services/Internship/tasks';
 import { useResponsive } from '../../../hooks/useResponsive';
-import { getCompactFileLabel } from '../../../utils';
+import { getCompactFileLabel, showSuccessToast } from '../../../utils';
 
 const { Content, Sider } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -44,10 +45,12 @@ const attachmentButtonStyle = {
     wordBreak: 'break-word' as const,
     textAlign: 'left' as const,
 };
+const isExternalUrl = (value?: string | null) => /^https?:\/\//i.test(String(value || '').trim());
 
 export const InternTaskBoard = () => {
     const { t } = useTranslation();
     const { isMobile, isLaptop } = useResponsive();
+    const { profile } = useAuth();
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [repoLink, setRepoLink] = useState('');
     const [submissionFileList, setSubmissionFileList] = useState<UploadFile[]>([]);
@@ -90,6 +93,7 @@ export const InternTaskBoard = () => {
 
     const intern = internData;
     const internId = intern?.id;
+    const currentInternAvatar = profile?.avatarUrl || intern?.user?.avatarUrl || null;
     const tasks = tasksData?.data || [];
     const submittedComments = (selectedTask?.comments || []).filter(
         (commentItem) =>
@@ -141,6 +145,60 @@ export const InternTaskBoard = () => {
         }
     };
 
+    const openAttachment = async (attachment?: string | null) => {
+        const attachmentValue = String(attachment || '').trim();
+        if (!attachmentValue) {
+            message.error('Không tìm thấy tài liệu đính kèm.');
+            return;
+        }
+
+        const previewWindow = window.open('', '_blank');
+        if (previewWindow) {
+            previewWindow.opener = null;
+        }
+
+        try {
+            let resolvedUrl = attachmentValue;
+
+            if (!isExternalUrl(attachmentValue)) {
+                const urlResult = await http.get<{ url?: string; data?: { url?: string } }>(
+                    `/storage/url/${encodeURIComponent(attachmentValue)}`,
+                );
+                resolvedUrl = urlResult?.url || urlResult?.data?.url || attachmentValue;
+            }
+
+            if (previewWindow) {
+                previewWindow.location.href = resolvedUrl;
+            } else {
+                window.open(resolvedUrl, '_blank', 'noopener,noreferrer');
+            }
+        } catch {
+            previewWindow?.close();
+            message.error('Không thể mở tài liệu này. Vui lòng thử lại.');
+        }
+    };
+
+    const handleStartTask = async (task: Task) => {
+        setIsMutating(true);
+        try {
+            await http.patch(`/tasks/${task.id}/status`, { status: 'in_progress' });
+            showSuccessToast({ title: 'Đã chuyển task sang đang thực hiện' });
+
+            if (selectedTask?.id === task.id) {
+                const refreshedTask = await http.get<Task>(`/tasks/${task.id}`);
+                setSelectedTask(refreshedTask);
+            }
+
+            if (internId) {
+                await fetchTasks(internId);
+            }
+        } catch {
+            message.error('Không thể cập nhật trạng thái task.');
+        } finally {
+            setIsMutating(false);
+        }
+    };
+
     useEffect(() => {
         setRepoLink('');
         setSubmissionFileList([]);
@@ -179,8 +237,23 @@ export const InternTaskBoard = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#64748B' }}>
                     <CalendarOutlined /> {task.dueDate}
                 </div>
-                <Avatar size='small' src={task.internAvatar} />
+                <UserAvatar size='small' src={currentInternAvatar || task.internAvatar} alt={task.internName || 'Avatar'} />
             </div>
+            {task.status?.toLowerCase() === 'to_do' && (
+                <Button
+                    type='primary'
+                    size='small'
+                    block
+                    style={{ marginTop: '12px' }}
+                    loading={isMutating}
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        handleStartTask(task);
+                    }}
+                >
+                    Chuyển sang đang thực hiện
+                </Button>
+            )}
         </Card>
     );
 
@@ -449,7 +522,7 @@ export const InternTaskBoard = () => {
                                             key={`${attachment}-${index}`}
                                             type='link'
                                             style={attachmentButtonStyle}
-                                            onClick={() => window.open(attachment, '_blank', 'noopener,noreferrer')}
+                                            onClick={() => openAttachment(attachment)}
                                         >
                                             {getCompactFileLabel(attachment)}
                                         </Button>
@@ -540,7 +613,7 @@ export const InternTaskBoard = () => {
                                         });
                                         await http.patch(`/tasks/${selectedTask.id}/status`, { status: 'under_review' });
                                         const refreshedTask = await http.get<Task>(`/tasks/${currentTaskId}`);
-                                        message.success(t('common.success'));
+                                        showSuccessToast({ title: 'Nộp công việc thành công' });
                                         setRepoLink('');
                                         setSubmissionFileList([]);
                                         setSelectedTask(refreshedTask);
@@ -585,9 +658,7 @@ export const InternTaskBoard = () => {
                                                             key={`${attachment}-${index}`}
                                                             type='link'
                                                             style={attachmentButtonStyle}
-                                                            onClick={() =>
-                                                                window.open(attachment, '_blank', 'noopener,noreferrer')
-                                                            }
+                                                            onClick={() => openAttachment(attachment)}
                                                         >
                                                             {getCompactFileLabel(attachment)}
                                                         </Button>

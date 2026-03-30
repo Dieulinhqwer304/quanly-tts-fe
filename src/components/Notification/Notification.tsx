@@ -1,6 +1,7 @@
 import { notification } from 'antd';
 import { NotificationInstance } from 'antd/es/notification/interface';
-import { createContext, useContext } from 'react';
+import { createContext, useCallback, useContext, useEffect } from 'react';
+import { registerToastDispatcher, unregisterToastDispatcher } from '../../utils/successToast';
 
 interface NotificationContextType {
     api: NotificationInstance;
@@ -25,22 +26,33 @@ export const useNotification = () => {
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [api, contextHolder] = notification.useNotification();
 
-    const showNotification = (
-        type: 'success' | 'error' | 'info' | 'warning',
-        message: string,
-        description?: string,
-        duration: number = 3
-    ) => {
-        api[type]({
-            message,
-            description,
-            duration,
-            placement: 'topRight'
-            // style: {
-            //     marginTop: '20px'
-            // }
-        });
-    };
+    const showNotification = useCallback(
+        (
+            type: 'success' | 'error' | 'info' | 'warning',
+            message: string,
+            description?: string,
+            duration: number = 3
+        ) => {
+            api[type]({
+                message,
+                description,
+                duration,
+                placement: 'topRight'
+                // style: {
+                //     marginTop: '20px'
+                // }
+            });
+        },
+        [api]
+    );
+
+    useEffect(() => {
+        registerToastDispatcher(showNotification);
+
+        return () => {
+            unregisterToastDispatcher(showNotification);
+        };
+    }, [showNotification]);
 
     return (
         <NotificationContext.Provider value={{ api, showNotification }}>

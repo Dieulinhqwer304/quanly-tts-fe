@@ -15,13 +15,13 @@ import {
     Select,
     Space,
     Typography,
-    message,
     Divider
 } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { RouteConfig } from '../../../constants';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { showCreateSuccessToast } from '../../../utils';
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -38,7 +38,7 @@ export const RecruitmentPlanCreate = () => {
 
         setTimeout(() => {
             setLoading(false);
-            message.success(t('common.success'));
+            showCreateSuccessToast('kế hoạch tuyển dụng');
             navigate(RouteConfig.RecruitmentPlanList.path);
         }, 1500);
     };
@@ -73,7 +73,8 @@ export const RecruitmentPlanCreate = () => {
                 onFinish={onFinish}
                 initialValues={{
                     status: 'draft',
-                    department: 'Engineering'
+                    department: 'Engineering',
+                    positions: []
                 }}
             >
                 <Row gutter={24}>
@@ -129,9 +130,18 @@ export const RecruitmentPlanCreate = () => {
                                 {(fields, { add, remove }) => (
                                     <>
                                         {fields.map(({ key, name, ...restField }) => (
-                                            <div key={key} style={{ marginBottom: '16px', padding: '16px', background: '#fafafa', borderRadius: '8px', position: 'relative' }}>
+                                            <div
+                                                key={key}
+                                                style={{
+                                                    marginBottom: '16px',
+                                                    padding: '16px',
+                                                    background: '#fafafa',
+                                                    borderRadius: '8px',
+                                                    position: 'relative'
+                                                }}
+                                            >
                                                 <Row gutter={16}>
-                                                    <Col span={14}>
+                                                    <Col xs={24} md={12}>
                                                         <Form.Item
                                                             {...restField}
                                                             name={[name, 'title']}
@@ -141,7 +151,7 @@ export const RecruitmentPlanCreate = () => {
                                                             <Input placeholder={t('recruitment.job_title')} />
                                                         </Form.Item>
                                                     </Col>
-                                                    <Col span={10}>
+                                                    <Col xs={24} md={12}>
                                                         <Form.Item
                                                             {...restField}
                                                             name={[name, 'count']}
@@ -152,26 +162,91 @@ export const RecruitmentPlanCreate = () => {
                                                         </Form.Item>
                                                     </Col>
                                                 </Row>
+                                                <Row gutter={16}>
+                                                    <Col xs={24} md={12}>
+                                                        <Form.Item
+                                                            {...restField}
+                                                            name={[name, 'department']}
+                                                            label={t('common.department')}
+                                                        >
+                                                            <Select
+                                                                options={[
+                                                                    { value: 'Engineering', label: 'Engineering' },
+                                                                    { value: 'Marketing', label: 'Marketing' },
+                                                                    { value: 'Design', label: 'Design' },
+                                                                    { value: 'Data', label: 'Data Science' },
+                                                                    { value: 'HR', label: 'Human Resources' }
+                                                                ]}
+                                                            />
+                                                        </Form.Item>
+                                                    </Col>
+                                                    <Col xs={24} md={12}>
+                                                        <Form.Item
+                                                            {...restField}
+                                                            name={[name, 'location']}
+                                                            label={t('recruitment.location')}
+                                                        >
+                                                            <Input placeholder={'Hà Nội / TP.HCM / Remote'} />
+                                                        </Form.Item>
+                                                    </Col>
+                                                </Row>
+                                                <Form.Item
+                                                    {...restField}
+                                                    name={[name, 'description']}
+                                                    label={t('recruitment.campaign_desc')}
+                                                >
+                                                    <Input.TextArea rows={3} placeholder={t('recruitment.campaign_desc')} />
+                                                </Form.Item>
                                                 <Form.Item
                                                     {...restField}
                                                     name={[name, 'requirements']}
                                                     label={t('recruitment.requirements')}
                                                 >
-                                                    <Input.TextArea rows={2} placeholder={t('recruitment.requirements')} />
+                                                    <Input.TextArea rows={3} placeholder={t('recruitment.requirements')} />
                                                 </Form.Item>
-                                                {fields.length > 1 && (
-                                                    <Button
-                                                        type="text"
-                                                        danger
-                                                        onClick={() => remove(name)}
-                                                        style={{ position: 'absolute', top: 8, right: 8 }}
-                                                    >
-                                                        {t('common.delete')}
-                                                    </Button>
-                                                )}
+                                                <Form.Item
+                                                    {...restField}
+                                                    name={[name, 'benefits']}
+                                                    label={t('recruitment.benefits')}
+                                                >
+                                                    <Input.TextArea rows={3} placeholder={t('recruitment.benefits')} />
+                                                </Form.Item>
+                                                <Row gutter={16}>
+                                                    <Col xs={24} md={12}>
+                                                        <Form.Item
+                                                            {...restField}
+                                                            name={[name, 'salaryRange']}
+                                                            label={t('recruitment.salary')}
+                                                        >
+                                                            <Input placeholder='1000 - 1500 USD' />
+                                                        </Form.Item>
+                                                    </Col>
+                                                    <Col xs={24} md={12}>
+                                                        <Form.Item
+                                                            {...restField}
+                                                            name={[name, 'deadline']}
+                                                            label={'Hạn nộp'}
+                                                        >
+                                                            <DatePicker style={{ width: '100%' }} format='DD/MM/YYYY' />
+                                                        </Form.Item>
+                                                    </Col>
+                                                </Row>
+                                                <Button
+                                                    type="text"
+                                                    danger
+                                                    onClick={() => remove(name)}
+                                                    style={{ position: 'absolute', top: 8, right: 8 }}
+                                                >
+                                                    {t('common.delete')}
+                                                </Button>
                                             </div>
                                         ))}
-                                        <Button type="dashed" onClick={() => add()} block icon={<SaveOutlined />}>
+                                        <Button
+                                            type="dashed"
+                                            onClick={() => add({ department: form.getFieldValue('department') || 'Engineering' })}
+                                            block
+                                            icon={<SaveOutlined />}
+                                        >
                                             {t('recruitment.add_position')}
                                         </Button>
                                     </>
@@ -208,7 +283,7 @@ export const RecruitmentPlanCreate = () => {
 
                             <div style={{ background: '#e6f7ff', padding: '16px', borderRadius: '8px' }}>
                                 <Text type="secondary" style={{ fontSize: '12px' }}>
-                                    Tip: Once active, the campaign will be visible on the public job board.
+                                    Tip: Once active, the recruitment plan will be visible on the public job board.
                                 </Text>
                             </div>
                         </Card>

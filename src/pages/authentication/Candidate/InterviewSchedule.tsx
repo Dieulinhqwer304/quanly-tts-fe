@@ -33,6 +33,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { http } from '../../../utils/http';
 import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
+import { showEmailSuccessToast } from '../../../utils';
 
 const { Title, Text } = Typography;
 const { Content } = Layout;
@@ -165,6 +167,7 @@ export const InterviewSchedule = () => {
     const [candidatesData, setCandidatesData] = useState<CandidateListResponse | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [scheduleErrors, setScheduleErrors] = useState<{ date?: string; startTime?: string }>({});
 
     const [summary, setSummary] = useState<StatusSummary>({
         total: 0,
@@ -175,6 +178,8 @@ export const InterviewSchedule = () => {
         rejected_cv: 0,
         rejected_interview: 0
     });
+    const requiresScheduleFields = selectedTemplate === 'interview' || selectedTemplate === 'meeting';
+    const disablePastInterviewDate = (current: Dayjs) => current.endOf('day').isBefore(dayjs().startOf('day'));
 
     const fetchSummary = async () => {
         try {
@@ -217,6 +222,7 @@ export const InterviewSchedule = () => {
         setEmailSubject(TEMPLATES[val].subject);
         setEmailHtml(TEMPLATES[val].body);
         setIsEditing(false);
+        setScheduleErrors({});
     };
 
     const handleResetTemplate = () => {
@@ -242,7 +248,39 @@ export const InterviewSchedule = () => {
         return startTime.clone().add(index * intervalMinutes, 'minute').format('HH:mm');
     };
 
+    const validateScheduleFields = () => {
+        if (!requiresScheduleFields) {
+            setScheduleErrors({});
+            return true;
+        }
+
+        const nextScheduleErrors: { date?: string; startTime?: string } = {};
+        if (!date) {
+            nextScheduleErrors.date = 'Trường bắt buộc';
+        }
+        if (!startTime) {
+            nextScheduleErrors.startTime = 'Trường bắt buộc';
+        }
+
+        setScheduleErrors(nextScheduleErrors);
+        return !nextScheduleErrors.date && !nextScheduleErrors.startTime;
+    };
+
     const handleSendInvites = async () => {
+        if (selectedCandidates.length === 0) {
+            message.warning('Vui lòng chọn ít nhất một ứng viên.');
+            return;
+        }
+
+        if (requiresScheduleFields && !date) {
+            message.error('Vui lòng chọn Ngày trước khi gửi email.');
+            return;
+        }
+
+        if (requiresScheduleFields && !startTime) {
+            message.error('Vui lòng chọn Giờ bắt đầu trước khi gửi email.');
+            return;
+        }
         if (selectedCandidates.length === 0) {
             message.warning('Vui lòng chọn ít nhất một ứng viên.');
             return;
@@ -261,6 +299,7 @@ export const InterviewSchedule = () => {
 
             const interviewDate = date ? date.format('DD/MM/YYYY') : '';
             const mailPayload = {
+                mailType: selectedTemplate,
                 subject: emailSubject,
                 recipients: selectedCandsInfo.map((candidate: ICandidate, index) => {
                     const candidateName = String(candidate.fullName || candidate.name || '');
@@ -312,10 +351,8 @@ export const InterviewSchedule = () => {
                     key: 'inviting'
                 });
             } else {
-                message.success({
-                    content: `Đã gửi thành công ${mailResult.success} email và cập nhật trạng thái ứng viên.`,
-                    key: 'inviting'
-                });
+                message.destroy('inviting');
+                showEmailSuccessToast(`Đã gửi thành công ${mailResult.success} email và cập nhật trạng thái ứng viên.`);
             }
             setSelectedCandidates([]);
             fetchCandidates();
@@ -514,22 +551,45 @@ export const InterviewSchedule = () => {
                                     </Title>
                                     <Row gutter={16}>
                                         <Col span={8}>
-                                            <Text strong>{t('interview.date')}</Text>
+                                            <Text strong>
+                                                <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>
+                                                {t('interview.date')}
+                                            </Text>
                                             <DatePicker
                                                 style={{ width: '100%', marginTop: '8px' }}
-                                                onChange={setDate}
+                                                onChange={(value) => {
+                                                    setDate(value);
+                                                    setScheduleErrors((prev) => ({ ...prev, date: undefined }));
+                                                }}
                                                 value={date}
                                                 format='DD/MM/YYYY'
+                                                disabledDate={disablePastInterviewDate}
                                             />
+                                            {scheduleErrors.date && (
+                                                <div style={{ marginTop: '4px', color: '#ff4d4f', fontSize: '14px' }}>
+                                                    {scheduleErrors.date}
+                                                </div>
+                                            )}
                                         </Col>
                                         <Col span={8}>
-                                            <Text strong>{t('interview.start_time')}</Text>
+                                            <Text strong>
+                                                <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>
+                                                {t('interview.start_time')}
+                                            </Text>
                                             <TimePicker
                                                 style={{ width: '100%', marginTop: '8px' }}
                                                 format='HH:mm'
-                                                onChange={setStartTime}
+                                                onChange={(value) => {
+                                                    setStartTime(value);
+                                                    setScheduleErrors((prev) => ({ ...prev, startTime: undefined }));
+                                                }}
                                                 value={startTime}
                                             />
+                                            {scheduleErrors.startTime && (
+                                                <div style={{ marginTop: '4px', color: '#ff4d4f', fontSize: '14px' }}>
+                                                    {scheduleErrors.startTime}
+                                                </div>
+                                            )}
                                         </Col>
                                         <Col span={8}>
                                             <Text strong>{t('interview.interval_minutes')}</Text>
@@ -699,7 +759,12 @@ export const InterviewSchedule = () => {
                                     type='primary'
                                     size='large'
                                     icon={<SendOutlined />}
-                                    onClick={handleSendInvites}
+                                    onClick={() => {
+                                        if (!validateScheduleFields()) {
+                                            return;
+                                        }
+                                        handleSendInvites();
+                                    }}
                                     disabled={selectedCandidates.length === 0}
                                     loading={isProcessing}
                                     style={{ background: '#10b981', borderColor: '#10b981' }}

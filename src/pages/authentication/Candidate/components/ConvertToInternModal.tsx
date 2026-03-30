@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useResponsive } from '../../../../hooks/useResponsive';
 import { convertCandidateToIntern } from '../../../../services/Recruitment/candidates';
 import { getUsers, User } from '../../../../services/System/users';
+import { showCreateSuccessToast } from '../../../../utils';
 
 interface ConvertToInternModalProps {
     open: boolean;
@@ -89,7 +90,7 @@ export const ConvertToInternModal = ({
 
             await convertCandidateToIntern(candidateId, values.mentorId);
 
-            message.success(t('onboarding.convert_success', { name: candidateName }));
+            showCreateSuccessToast('hồ sơ thực tập sinh', t('onboarding.convert_success', { name: candidateName }));
             form.resetFields();
             await onSuccess?.();
             onCancel();

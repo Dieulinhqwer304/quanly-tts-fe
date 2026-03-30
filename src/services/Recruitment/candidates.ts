@@ -13,7 +13,6 @@ export interface Candidate {
     phone: string;
     location: string;
     avatarUrl: string;
-    education: string;
     experience: string;
     skills: string[];
     resumeUrl: string;
@@ -35,7 +34,6 @@ export interface Candidate {
         | 'rejected_interview'
         | 'converted_to_intern';
     matchScore: number;
-    coverLetter: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -123,9 +121,7 @@ export interface CreateCandidateParams {
     phone?: string;
     location?: string;
     jobId: string;
-    education?: string;
     experience?: string;
-    coverLetter?: string;
     skills?: string[];
     resumeUrl?: string;
 }
@@ -138,13 +134,11 @@ export const createCandidate = async (params: CreateCandidateParams): Promise<Re
 export interface CreateCandidateWithCvParams {
     fullName: string;
     email: string;
-    phone?: string;
+    phone: string;
     location?: string;
     jobId: string;
-    education?: string;
     experience?: string;
-    coverLetter?: string;
-    cv?: File;
+    cv: File;
 }
 
 export interface CandidateCvUploadResult {
@@ -158,16 +152,7 @@ export const createCandidateWithCv = async (
     params: CreateCandidateWithCvParams
 ): Promise<ResponseDetailSuccess<Candidate>> => {
     if (!params.cv) {
-        return createCandidate({
-            fullName: params.fullName,
-            email: params.email,
-            phone: params.phone,
-            location: params.location,
-            jobId: params.jobId,
-            education: params.education,
-            experience: params.experience,
-            coverLetter: params.coverLetter
-        });
+        throw new Error('Vui long tai len CV truoc khi nop ho so.');
     }
 
     const formData = new FormData();
@@ -176,9 +161,7 @@ export const createCandidateWithCv = async (
     formData.append('jobId', params.jobId);
     if (params.phone) formData.append('phone', params.phone);
     if (params.location) formData.append('location', params.location);
-    if (params.education) formData.append('education', params.education);
     if (params.experience) formData.append('experience', params.experience);
-    if (params.coverLetter) formData.append('coverLetter', params.coverLetter);
     formData.append('cv', params.cv);
 
     const result = await http.post<ResponseDetailSuccess<Candidate>>('/candidates/apply-with-cv', formData, {

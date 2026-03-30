@@ -25,7 +25,12 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { http } from '../../../utils/http';
 import type { UploadFile } from 'antd/es/upload/interface';
-import { getCompactFileLabel, getCompactLinkLabel } from '../../../utils';
+import {
+  getCompactFileLabel,
+  getCompactLinkLabel,
+  showCreateSuccessToast,
+  showUpdateSuccessToast,
+} from '../../../utils';
 
 const { Title, Text } = Typography;
 
@@ -49,6 +54,11 @@ interface LearningPathItem {
   id: string;
   title: string;
   track: string;
+  description?: string;
+}
+
+interface LearningPathFormValues {
+  title: string;
   description?: string;
 }
 
@@ -80,6 +90,13 @@ export const MentorLearningPath = () => {
     () => modules.find((module) => module.id === selectedModuleId) || null,
     [modules, selectedModuleId],
   );
+
+  const buildPathPayload = ({ title, description }: LearningPathFormValues) => ({
+    title,
+    description,
+    // Keep backend compatibility while removing the separate Track field from the UI.
+    track: title,
+  });
 
   const loadPaths = async () => {
     setIsLoading(true);
@@ -115,7 +132,6 @@ export const MentorLearningPath = () => {
 
       pathForm.setFieldsValue({
         title: detail?.title,
-        track: detail?.track,
         description: detail?.description,
       });
     } catch {
@@ -139,10 +155,11 @@ export const MentorLearningPath = () => {
   const savePathMetadata = async () => {
     if (!selectedPathId) return;
     try {
-      const values = await pathForm.validateFields();
+      pathForm.setFieldValue('track', pathForm.getFieldValue('title'));
+      const values = (await pathForm.validateFields()) as LearningPathFormValues;
       setIsSavingPath(true);
-      await http.patch(`/learning-paths/${selectedPathId}`, values);
-      message.success('Cập nhật thông tin lộ trình thành công');
+      await http.patch(`/learning-paths/${selectedPathId}`, buildPathPayload(values));
+      showUpdateSuccessToast('lộ trình đào tạo');
       await loadPaths();
       await loadPathDetail(selectedPathId);
     } catch {
@@ -159,12 +176,16 @@ export const MentorLearningPath = () => {
 
   const submitCreatePath = async () => {
     try {
-      const values = await createPathForm.validateFields();
+      createPathForm.setFieldValue('track', createPathForm.getFieldValue('title'));
+      const values = (await createPathForm.validateFields()) as LearningPathFormValues;
       setIsCreatingPath(true);
-      const created = await http.post<{ id?: string; data?: { id?: string } }>('/learning-paths', values);
+      const created = await http.post<{ id?: string; data?: { id?: string } }>(
+        '/learning-paths',
+        buildPathPayload(values),
+      );
       const createdId = created?.id || created?.data?.id;
 
-      message.success('Tạo lộ trình đào tạo thành công');
+      showCreateSuccessToast('lộ trình đào tạo');
       setPathModalOpen(false);
       await loadPaths();
 
@@ -200,11 +221,11 @@ export const MentorLearningPath = () => {
       const values = await moduleForm.validateFields();
       if (editingModule) {
         await http.patch(`/modules/${editingModule.id}`, { ...values, learningPathId: selectedPathId });
+        showUpdateSuccessToast('học phần');
       } else {
         await http.post('/modules', { ...values, learningPathId: selectedPathId });
+        showCreateSuccessToast('học phần');
       }
-
-      message.success('Lưu học phần thành công');
       setModuleModalOpen(false);
       await loadPathDetail(selectedPathId);
     } catch (error: any) {
@@ -320,10 +341,11 @@ export const MentorLearningPath = () => {
 
       if (editingContent) {
         await http.patch(`/training-content/contents/${editingContent.id}`, payload);
+        showUpdateSuccessToast('bài giảng');
       } else {
         await http.post('/training-content/contents', payload);
+        showCreateSuccessToast('bài giảng');
       }
-      message.success('Lưu bài giảng thành công');
       setContentModalOpen(false);
       setDocumentFileList([]);
       setExistingDocumentUrls([]);
@@ -347,6 +369,11 @@ export const MentorLearningPath = () => {
 
   return (
     <div style={{ padding: 24 }}>
+      <style>{`
+        .learning-path-create-form .ant-form-item:nth-child(2) {
+          display: none;
+        }
+      `}</style>
       <Space direction='vertical' style={{ width: '100%' }} size={16}>
         <Title level={3} style={{ margin: 0 }}>
           Quản lý lộ trình đào tạo
@@ -375,7 +402,7 @@ export const MentorLearningPath = () => {
                       onChange={setSelectedPathId}
                       options={paths.map((path) => ({
                         value: path.id,
-                        label: `${path.title} (${path.track})`,
+                        label: path.title,
                       }))}
                     />
                     <Button icon={<PlusOutlined />} type='primary' onClick={openCreatePath} block>
@@ -395,17 +422,17 @@ export const MentorLearningPath = () => {
                   }}
                 >
                   <Row gutter={[12, 0]}>
-                    <Col xs={24} md={12} xl={10}>
+                    <Col xs={24} md={14} xl={14}>
                       <Form.Item label='Tên lộ trình' name='title' rules={[{ required: true, message: 'Bắt buộc' }]}>
                         <Input />
                       </Form.Item>
                     </Col>
-                    <Col xs={24} md={12} xl={6}>
+                    <Col xs={0} style={{ display: 'none' }}>
                       <Form.Item label='Track' name='track' rules={[{ required: true, message: 'Bắt buộc' }]}>
                         <Input />
                       </Form.Item>
                     </Col>
-                    <Col xs={24} xl={8}>
+                    <Col xs={24} md={10} xl={10}>
                       <Form.Item label='Mô tả' name='description'>
                         <Input />
                       </Form.Item>
@@ -556,7 +583,7 @@ export const MentorLearningPath = () => {
         confirmLoading={isCreatingPath}
         destroyOnClose
       >
-        <Form form={createPathForm} layout='vertical'>
+        <Form form={createPathForm} layout='vertical' className='learning-path-create-form'>
           <Form.Item label='Tên lộ trình' name='title' rules={[{ required: true, message: 'Bắt buộc' }]}>
             <Input placeholder='Ví dụ: Lộ trình Backend' />
           </Form.Item>

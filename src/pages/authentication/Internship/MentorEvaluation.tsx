@@ -33,6 +33,7 @@ import { http } from '../../../utils/http';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getProfile } from '../../../services/auth/profile';
+import { showSaveSuccessToast, showSuccessToast } from '../../../utils';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -156,7 +157,11 @@ export const MentorEvaluation = () => {
                 status,
             });
 
-            message.success(status === 'draft' ? t('eval.draft_saved') : t('common.success'));
+            if (status === 'draft') {
+                showSaveSuccessToast('đánh giá', t('eval.draft_saved'));
+            } else {
+                showSuccessToast({ title: 'Gửi đánh giá thành công' });
+            }
             await fetchEvaluations();
 
             if (status === 'completed' && currentStep === PHASE_CONFIG.length - 1) {

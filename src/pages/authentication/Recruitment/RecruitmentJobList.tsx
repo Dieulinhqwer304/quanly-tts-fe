@@ -34,6 +34,7 @@ type RecruitmentPlanOption = {
     value: string;
     label: string;
     department?: string;
+    status?: string;
 };
 
 const normalizeJobStatus = (status?: string): 'draft' | 'open' | 'closed' | 'on_hold' => {
@@ -48,6 +49,7 @@ export const RecruitmentJobList = () => {
     const { t } = useTranslation();
     const [searchText, setSearchText] = useState('');
     const [departmentFilter, setDepartmentFilter] = useState('All');
+    const [recruitmentPlanFilter, setRecruitmentPlanFilter] = useState('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingJob, setEditingJob] = useState<JobPosition | null>(null);
     const [isViewOnly, setIsViewOnly] = useState(false);
@@ -61,10 +63,13 @@ export const RecruitmentJobList = () => {
         try {
             const params: any = {};
             if (searchText) {
-                params.searcher = JSON.stringify({ keyword: searchText, field: 'title' });
+                params.q = searchText.trim();
             }
             if (departmentFilter !== 'All') {
                 params.department = departmentFilter;
+            }
+            if (recruitmentPlanFilter !== 'all') {
+                params.recruitmentPlanId = recruitmentPlanFilter;
             }
             const res = await http.get('/job-positions', { params });
             setJobPositionsData(res);
@@ -78,14 +83,16 @@ export const RecruitmentJobList = () => {
     const fetchPlans = async () => {
         try {
             const res = await http.get('/recruitment-plans');
-            const plans = (res as { data?: Array<Record<string, unknown>> }).data || [];
-            const activePlans = plans.filter((plan) => String(plan.status).toLowerCase() === 'active');
+            const plans = (res as { data?: Array<Record<string, unknown>>; hits?: Array<Record<string, unknown>> }).data ||
+                (res as { hits?: Array<Record<string, unknown>> }).hits ||
+                [];
 
             setPlanOptions(
-                activePlans.map((plan) => ({
+                plans.map((plan) => ({
                     value: String(plan.id),
                     label: String(plan.name || plan.batch || plan.id),
-                    department: String(plan.department || '')
+                    department: String(plan.department || ''),
+                    status: String(plan.status || '')
                 }))
             );
         } catch (error) {
@@ -95,11 +102,13 @@ export const RecruitmentJobList = () => {
 
     useEffect(() => {
         fetchJobs();
-    }, [searchText, departmentFilter]);
+    }, [searchText, departmentFilter, recruitmentPlanFilter]);
 
     useEffect(() => {
         fetchPlans();
     }, []);
+
+    const activePlanOptions = planOptions.filter((plan) => String(plan.status || '').toLowerCase() === 'active');
 
     const handleStatusChange = async (record: JobPosition) => {
         const currentStatus = normalizeJobStatus(record.status);
@@ -121,7 +130,7 @@ export const RecruitmentJobList = () => {
     };
 
     const handleCreate = () => {
-        if (planOptions.length === 0) {
+        if (activePlanOptions.length === 0) {
             message.warning('Chưa có kế hoạch tuyển dụng Active để tạo tin tuyển dụng.');
             return;
         }
@@ -156,13 +165,15 @@ export const RecruitmentJobList = () => {
     const handleSubmit = async (values: JobFormValues) => {
         const payload = {
             title: values.title,
-            recruitmentPlanId: values.campaignId,
+            recruitmentPlanId: values.recruitmentPlanId,
             department: values.department,
             requiredQuantity: values.requiredQuantity,
             description: values.description,
             requirements: values.requirements,
+            benefits: values.benefits,
             location: values.location,
             salaryRange: values.salaryRange,
+            deadline: values.deadline ? values.deadline.format('YYYY-MM-DD') : undefined,
             status: values.status
         };
 
@@ -348,6 +359,18 @@ export const RecruitmentJobList = () => {
                                 { value: 'Data', label: 'Data Science' }
                             ]}
                         />
+                        <Select
+                            value={recruitmentPlanFilter}
+                            style={{ width: 220 }}
+                            onChange={setRecruitmentPlanFilter}
+                            options={[
+                                { value: 'all', label: t('common.all_plans') },
+                                ...planOptions.map((plan) => ({
+                                    value: plan.value,
+                                    label: plan.label
+                                }))
+                            ]}
+                        />
                     </Space>
                     <Space>
                         <Text type='secondary'>
@@ -377,7 +400,7 @@ export const RecruitmentJobList = () => {
                     setIsModalOpen(false);
                     fetchJobs();
                 }}
-                campaignOptions={planOptions}
+                planOptions={activePlanOptions}
                 initialValues={editingJob}
                 viewOnly={isViewOnly}
             />

@@ -23,6 +23,7 @@ import {
     PlusOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { showSuccessToast } from '../../../utils';
 
 const { Title, Text } = Typography;
 
@@ -123,7 +124,10 @@ export const PermissionManagement: FC = () => {
     const handleSavePermissions = () => {
         if (!selectedRole) return;
         setRoles(roles.map((r) => (r.key === selectedRole.key ? { ...r, permissions: checkedPermissions } : r)));
-        message.success(`Cập nhật quyền cho vai trò ${selectedRole.role} thành công`);
+        showSuccessToast({
+            title: 'Cập nhật quyền thành công',
+            description: `Cập nhật quyền cho vai trò ${selectedRole.role} thành công`
+        });
         setIsEditModalOpen(false);
     };
 

@@ -28,6 +28,7 @@ import { http } from '../../../utils/http';
 import { Candidate } from '../../../services/Recruitment/candidates';
 import { CVDetailModal } from './components/CVDetailModal';
 import { ConvertToInternModal } from './components/ConvertToInternModal';
+import { showSuccessToast } from '../../../utils';
 
 const { Title, Text } = Typography;
 
@@ -163,7 +164,10 @@ export const CVList = () => {
         try {
             await http.patch(`/candidates/${id}`, { status });
             const statusLabel = STATUS_TAG[status]?.label ? t(STATUS_TAG[status].label) : status;
-            message.success(`Đã chuyển trạng thái ${name} -> ${statusLabel}`);
+            showSuccessToast({
+                title: 'Cập nhật trạng thái ứng viên thành công',
+                description: `Đã chuyển trạng thái ${name} -> ${statusLabel}`
+            });
 
             const nextTab = getTabForStatus(status);
             if (isStatusInTab(activeTab, status)) {
@@ -191,7 +195,13 @@ export const CVList = () => {
 
         try {
             await Promise.all(selectedRowKeys.map((id) => http.patch(`/candidates/${id}`, { status })));
-            message.success(status === 'shortlisted' ? 'Đã shortlist các hồ sơ đã chọn.' : 'Đã từ chối các hồ sơ đã chọn.');
+            showSuccessToast({
+                title: 'Cập nhật hàng loạt thành công',
+                description:
+                    status === 'shortlisted'
+                        ? 'Đã shortlist các hồ sơ đã chọn.'
+                        : 'Đã từ chối các hồ sơ đã chọn.'
+            });
             setSelectedRowKeys([]);
 
             const nextTab = getTabForStatus(status);

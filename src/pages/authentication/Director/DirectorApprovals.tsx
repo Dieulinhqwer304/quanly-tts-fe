@@ -38,6 +38,7 @@ import {
     ApprovalStatus,
     ApprovalType
 } from '../../../services/Recruitment/approvals';
+import { showSuccessToast } from '../../../utils';
 
 dayjs.extend(relativeTime);
 
@@ -70,7 +71,9 @@ const normalizeStatus = (status: string): ApprovalStatus | null => {
     return null;
 };
 
-const getStatusLabel = (status: string): string => {
+const getStatusLabel = (status: ApprovalStatus | 'all' | string): string => {
+    if (status === 'all') return STATUS_LABELS.all;
+
     const normalized = normalizeStatus(status);
     return normalized ? STATUS_LABELS[normalized] : status;
 };
@@ -112,7 +115,7 @@ export const DirectorApprovals = () => {
     const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
     const [directorNote, setDirectorNote] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
-    const [statusFilter, setStatusFilter] = useState<ApprovalStatus | 'all'>('Pending');
+    const [statusFilter, setStatusFilter] = useState<ApprovalStatus | 'all'>('all');
 
     const debouncedSearchKeyword = useDebounce(searchKeyword, 300);
 
@@ -167,7 +170,10 @@ export const DirectorApprovals = () => {
                 status,
                 notes: directorNote.trim() || undefined
             });
-            message.success(`Đã cập nhật trạng thái: ${getStatusLabel(status)}`);
+            showSuccessToast({
+                title: 'Cập nhật phê duyệt thành công',
+                description: `Đã cập nhật trạng thái: ${getStatusLabel(status)}`
+            });
             setDirectorNote('');
             await refetch();
         } catch (error) {
@@ -200,18 +206,28 @@ export const DirectorApprovals = () => {
                         Hàng đợi phê duyệt
                     </Title>
 
-                    <Space wrap style={{ marginBottom: 12 }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: 8,
+                            marginBottom: 12,
+                            overflowX: 'auto',
+                            flexWrap: 'nowrap',
+                            paddingBottom: 4
+                        }}
+                    >
                         {STATUS_OPTIONS.map((status) => (
                             <Button
                                 key={status}
                                 size='small'
                                 type={statusFilter === status ? 'primary' : 'text'}
                                 onClick={() => setStatusFilter(status)}
+                                style={{ flex: '0 0 auto' }}
                             >
                                 {getStatusLabel(status)}
                             </Button>
                         ))}
-                    </Space>
+                    </div>
 
                     <Input
                         value={searchKeyword}

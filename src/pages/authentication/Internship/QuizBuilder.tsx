@@ -27,6 +27,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useCreateQuiz, useUpdateQuiz, useQuiz } from '../../../hooks/Internship/useQuizzes';
 import { QuizQuestion } from '../../../services/Internship/quizzes';
 import { useResponsive } from '../../../hooks/useResponsive';
+import { showCreateSuccessToast, showUpdateSuccessToast } from '../../../utils';
 
 const { Title, Text } = Typography;
 const { Content, Sider } = Layout;
@@ -119,10 +120,10 @@ export const QuizBuilder = () => {
         try {
             if (id) {
                 await updateMutation.mutate({ id, ...quizPayload });
-                message.success(t('quiz.update_success'));
+                showUpdateSuccessToast('bài quiz', t('quiz.update_success'));
             } else {
                 await createMutation.mutate(quizPayload);
-                message.success(t('quiz.create_success'));
+                showCreateSuccessToast('bài quiz', t('quiz.create_success'));
             }
             navigate('/mentor/learning-path');
         } catch {

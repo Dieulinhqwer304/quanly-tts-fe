@@ -13,7 +13,6 @@ import {
     Button,
     Input,
     Badge,
-    Avatar,
     theme,
     Popover,
     List,
@@ -24,11 +23,12 @@ import {
     Space,
     message
 } from 'antd';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import UserAvatar from '../../../components/UserAvatar';
 import { useAuth } from '../../../contexts/AuthContext';
 import { RouteConfig } from '../../../constants';
-import { getProfile, UserProfile } from '../../../services/auth/profile';
+import { UserProfile } from '../../../services/auth/profile';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -58,40 +58,17 @@ const toDisplayRole = (roles: string[]): string => {
 export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop }: HeaderDashboardProps) => {
     const { token } = theme.useToken();
     const navigate = useNavigate();
-    const { logout } = useAuth();
+    const { logout, profile } = useAuth();
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [currentRoles, setCurrentRoles] = useState<string[]>([]);
-
-    useEffect(() => {
-        let isMounted = true;
-
-        const loadProfile = async () => {
-            try {
-                const response = await getProfile();
-                const profileData = (response.data || {}) as ProfileWithLegacyRole;
-                const rolesFromArray = Array.isArray(profileData.roles)
-                    ? profileData.roles.map((role) => String(role?.name || '').toLowerCase()).filter(Boolean)
-                    : [];
-                const roleFromSingleField = String(profileData.role || '').toLowerCase();
-                const roles = Array.from(new Set([roleFromSingleField, ...rolesFromArray].filter(Boolean)));
-
-                if (isMounted) {
-                    setCurrentRoles(roles);
-                }
-            } catch {
-                if (isMounted) {
-                    setCurrentRoles([]);
-                }
-            }
-        };
-
-        void loadProfile();
-
-        return () => {
-            isMounted = false;
-        };
-    }, []);
+    const currentRoles = useMemo(() => {
+        const profileData = (profile || {}) as ProfileWithLegacyRole;
+        const rolesFromArray = Array.isArray(profileData.roles)
+            ? profileData.roles.map((role) => String(role?.name || '').toLowerCase()).filter(Boolean)
+            : [];
+        const roleFromSingleField = String(profileData.role || '').toLowerCase();
+        return Array.from(new Set([roleFromSingleField, ...rolesFromArray].filter(Boolean)));
+    }, [profile]);
 
     const notifications = [
         { title: 'Người dùng mới đăng ký', time: '5 phút trước', read: false },
@@ -235,14 +212,19 @@ export const HeaderDashboard = ({ collapsed, toggleCollapsed, isMobile, isLaptop
 
                 <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement='bottomRight' arrow>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                        <Avatar
-                            style={{
-                                backgroundColor: token.colorPrimary,
-                                verticalAlign: 'middle',
-                                cursor: 'pointer'
-                            }}
+                        <UserAvatar
+                            src={profile?.avatarUrl}
+                            alt={profile?.fullName || 'Avatar'}
+                            style={
+                                profile?.avatarUrl
+                                    ? { verticalAlign: 'middle', cursor: 'pointer' }
+                                    : {
+                                          backgroundColor: token.colorPrimary,
+                                          verticalAlign: 'middle',
+                                          cursor: 'pointer'
+                                      }
+                            }
                             size='default'
-                            icon={<UserOutlined />}
                         />
                         {!isMobile && <span style={{ fontWeight: 500, color: '#1E293B' }}>{toDisplayRole(currentRoles)}</span>}
                     </div>
